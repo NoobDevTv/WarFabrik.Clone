@@ -1,0 +1,567 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Command Management System</name>
+    </assembly>
+    <members>
+        <member name="T:CommandManagementSystem.Attributes.CommandAttribute">
+            <summary>
+            Indicates a class as a command
+            </summary>
+        </member>
+        <member name="F:CommandManagementSystem.Attributes.CommandAttribute.Tag">
+            <summary>
+            Uniquely identifies the command
+            </summary>
+        </member>
+        <member name="F:CommandManagementSystem.Attributes.CommandAttribute.Aliases">
+            <summary>
+            Alternate names for the command
+            </summary>
+        </member>
+        <member name="M:CommandManagementSystem.Attributes.CommandAttribute.#ctor(System.Object,System.String[])">
+            <summary>
+            Indicates a class as a command
+            </summary>
+            <param name="tag">Uniquely identifies the command</param>
+            <param name="aliases">Alternate names for the command</param>
+        </member>
+        <member name="T:CommandManagementSystem.Attributes.CommandManagerAttribute">
+            <summary>
+            Describes a class as command manager
+            </summary>
+        </member>
+        <member name="F:CommandManagementSystem.Attributes.CommandManagerAttribute.Tag">
+            <summary>
+            Clear labeling of the manager
+            </summary>
+        </member>
+        <member name="F:CommandManagementSystem.Attributes.CommandManagerAttribute.CommandNamespaces">
+            <summary>
+            Namespaces where commands are to be registered
+            </summary>
+        </member>
+        <member name="M:CommandManagementSystem.Attributes.CommandManagerAttribute.#ctor(System.Object)">
+            <summary>
+            Describes a class as command manager
+            </summary>
+            <param name="tag">Clear labeling of the manager</param>
+        </member>
+        <member name="M:CommandManagementSystem.Attributes.CommandManagerAttribute.#ctor(System.Object,System.String[])">
+            <summary>
+            Describes a class as command manager
+            </summary>
+            <param name="tag">Clear labeling of the manager</param>
+            <param name="commandNamespaces">Namespaces where commands are to be registered</param>
+        </member>
+        <member name="T:CommandManagementSystem.Attributes.DispatchOrderAttribute">
+            <summary>
+            Registers and defines a method in a Command class for execution when dispatching
+            </summary>
+        </member>
+        <member name="P:CommandManagementSystem.Attributes.DispatchOrderAttribute.Order">
+            <summary>
+            After this property, the class sorts the Registered methods. 
+            Higher numbers are executed later than lower.
+            </summary>
+        </member>
+        <member name="M:CommandManagementSystem.Attributes.DispatchOrderAttribute.#ctor(System.Int32)">
+            <summary>
+            Registers and defines a method in a Command class for execution when dispatching
+            </summary>
+            <param name="order">The order of the method</param>
+        </member>
+        <member name="M:CommandManagementSystem.Attributes.DispatchOrderAttribute.#ctor">
+            <summary>
+            Registers and defines a method in a Command class for execution when dispatching.
+            Sets the sequence to 0.
+            </summary>
+        </member>
+        <member name="T:CommandManagementSystem.Command`2">
+            <summary>
+            An abstract standard implementation of a command
+            </summary>
+            <typeparam name="TParameter">The data type of the parameter to be passed</typeparam>
+            <typeparam name="TOut">The data type of the dispatchresponse</typeparam>
+        </member>
+        <member name="P:CommandManagementSystem.Command`2.ExecutionOrder">
+            <summary>
+            The ExecutionOrder property contains all methods of the class registered
+            for a dispatch in the correct order of their execution
+            </summary>
+        </member>
+        <member name="P:CommandManagementSystem.Command`2.Registered">
+            <summary>
+            Returns a true if methods were registered for the dispatch in this class
+            </summary>
+        </member>
+        <member name="F:CommandManagementSystem.Command`2.executionCount">
+            <summary>
+            The number of executions by a dispatch
+            </summary>
+        </member>
+        <member name="P:CommandManagementSystem.Command`2.NextFunction">
+            <summary>
+            Contains the delegates for the next function to execute
+            </summary>
+        </member>
+        <member name="P:CommandManagementSystem.Command`2.Finished">
+            <summary>
+            Returns whether the command has already gone through all steps
+            </summary>
+        </member>
+        <member name="P:CommandManagementSystem.Command`2.TAG">
+            <summary>
+            Unique Indentifikator for the command
+            </summary>
+        </member>
+        <member name="E:CommandManagementSystem.Command`2.FinishEvent">
+            <summary>
+            Is thrown when the command has gone through all steps
+            </summary>
+        </member>
+        <member name="E:CommandManagementSystem.Command`2.WaitEvent">
+            <summary>
+            Is thrown when the command waits for the next dispatch
+            </summary>
+        </member>
+        <member name="M:CommandManagementSystem.Command`2.#ctor">
+            <summary>
+            An abstract standard implementation of a command
+            </summary>
+        </member>
+        <member name="M:CommandManagementSystem.Command`2.Main(`0)">
+            <summary>
+            The main method is executed when dispatch if no Dispatch Order attribute found in the class.
+            And set the NextFunction property to NULL.
+            </summary>
+            <param name="arg">The arguments passed by the dispatch</param>
+            <returns>Returns the default value of the return type</returns>
+        </member>
+        <member name="M:CommandManagementSystem.Command`2.Dispatch(`0)">
+            <summary>
+            Executes the next action in the command
+            </summary>
+            <param name="arg">Parameters to be passed</param>
+            <returns>Returns a fixed return value</returns>
+        </member>
+        <member name="M:CommandManagementSystem.Command`2.Initialize(`0)">
+            <summary>
+            Initializes the command
+            </summary>
+            <param name="arg">Parameters to be passed</param>
+            <returns>Returns a fixed return value</returns>
+        </member>
+        <member name="M:CommandManagementSystem.Command`2.RaiseFinishEvent(System.Object,`0)">
+            <summary>
+            Raises the finish event
+            </summary>
+            <param name="sender">This command</param>
+            <param name="arg">The passed parameters</param>
+        </member>
+        <member name="M:CommandManagementSystem.Command`2.RaiseWaitEvent(System.Object,System.Func{`0,`1})">
+            <summary>
+            Raises the wait event
+            </summary>
+            <param name="sender">This command</param>
+            <param name="arg">The dispatch method</param>
+        </member>
+        <member name="M:CommandManagementSystem.Command`2.ToString">
+            <summary>
+            Returns the tag of the command.
+            Returns the current tag of the command by calling the ToString method of the command tag.
+            </summary>
+            <returns>Returns the tag of the command</returns>
+        </member>
+        <member name="M:CommandManagementSystem.Command`2.Register(System.Type)">
+            <summary>
+            Registers the class in its static components. 
+            Also registers all DispatchOrderAttribute-defined methods for Dispatch. 
+            </summary>
+            <param name="type">The type of this class</param>
+        </member>
+        <member name="T:CommandManagementSystem.Command`1">
+            <summary>
+            An abstract standard implementation of a command with dynamic as return type
+            </summary>
+            <typeparam name="TParameter">The data type of the parameter to be passed</typeparam>
+        </member>
+        <member name="T:CommandManagementSystem.Command">
+            <summary>
+            An abstract standard implementation of a command with dynamic as return type and 
+            EventArgs As the parameter type 
+            </summary>
+        </member>
+        <member name="T:CommandManagementSystem.CommandHandler`3">
+            <summary>
+            Manages individual commands as events
+            </summary>
+            <typeparam name="TIn">Data type of the command indentifier</typeparam>
+            <typeparam name="TParameter">Data type of the command parameters</typeparam>
+            <typeparam name="TOut">Return value of the dispatch</typeparam>
+        </member>
+        <member name="P:CommandManagementSystem.CommandHandler`3.CommandQueue">
+            <summary>
+            Commands waiting for a submit
+            </summary>
+        </member>
+        <member name="M:CommandManagementSystem.CommandHandler`3.#ctor">
+            <summary>
+            Manages individual commands as events
+            </summary>
+        </member>
+        <member name="P:CommandManagementSystem.CommandHandler`3.Item(`0)">
+            <summary>
+            Gives or sets a command to the specified identifier
+            </summary>
+            <param name="commandName">The command identifier</param>
+            <returns>The command delegate</returns>
+        </member>
+        <member name="M:CommandManagementSystem.CommandHandler`3.Dispatch(`0,`1)">
+            <summary>
+            Dispatched the command with the specified identifier and passed the parameters
+            </summary>
+            <param name="commandName">The command identifier</param>
+            <param name="parameter">The parameters to be transferred</param>
+            <returns>Returns the set value</returns>
+        </member>
+        <member name="M:CommandManagementSystem.CommandHandler`3.DispatchOnSubmit(`0,`1)">
+            <summary>
+            Does not dispose of a command until the submit method is called
+            </summary>
+            <param name="commandName">The command identifier</param>
+            <param name="parameter">The parameters to be transferred</param>
+        </member>
+        <member name="M:CommandManagementSystem.CommandHandler`3.Submit">
+            <summary>
+            Dispatch all commands in que
+            </summary>
+            <returns>Returns the set value</returns>
+        </member>
+        <member name="M:CommandManagementSystem.CommandHandler`3.CommandExists(`0)">
+            <summary>
+            Checks whether a command with the specified identifier is already registered
+            </summary>
+            <param name="commandName">The command identifier</param>
+            <returns>Returns a true if the command is already registered</returns>
+        </member>
+        <member name="T:CommandManagementSystem.CommandHandler`2">
+            <summary>
+            Manages individual commands as events with string as command indentifier type
+            </summary>
+            <typeparam name="TParameter">Data type of the command parameters</typeparam>
+            <typeparam name="TOut">Return value of the dispatch</typeparam>
+        </member>
+        <member name="T:CommandManagementSystem.CommandHandler`1">
+            <summary>
+            Manages individual commands as events with string as command indentifier type and
+            dynamic as return value
+            </summary>
+            <typeparam name="TParameter">Data type of the command parameters</typeparam>
+        </member>
+        <member name="T:CommandManagementSystem.CommandHandler">
+            <summary>
+            Manages individual commands as events with string as command indentifier type and
+            dynamic as return value and EventArgs as parameter type
+            </summary>
+        </member>
+        <member name="T:CommandManagementSystem.CommandManager`3">
+            <summary>
+            An abstract base implementation of a command manager
+            </summary>
+            <typeparam name="TIn">Data type of command indentifiers</typeparam>
+            <typeparam name="TParameter">Data type of command parameters</typeparam>
+            <typeparam name="TOut">Return value of the dispatch method</typeparam>
+        </member>
+        <member name="F:CommandManagementSystem.CommandManager`3.commandHandler">
+            <summary>
+            The main command handler
+            </summary>
+        </member>
+        <member name="F:CommandManagementSystem.CommandManager`3.waitingDictionary">
+            <summary>
+            Dictionary with waiting commands
+            </summary>
+        </member>
+        <member name="T:CommandManagementSystem.CommandManager`3.CommandManagerEventHandler">
+            <summary>
+            Delegate for command manager events
+            </summary>
+            <param name="command">Triggering command</param>
+            <param name="arg">Passed parameters for the command</param>
+        </member>
+        <member name="E:CommandManagementSystem.CommandManager`3.OnFinishedCommand">
+            <summary>
+            Dispatched when a command is completed
+            </summary>
+        </member>
+        <member name="E:CommandManagementSystem.CommandManager`3.OnWaitingCommand">
+            <summary>
+            Dispatched when a command is waiting
+            </summary>
+        </member>
+        <member name="M:CommandManagementSystem.CommandManager`3.#ctor(System.Boolean)">
+            <summary>
+            An abstract base implementation of a command manager. With control over the initialization
+            </summary>
+            <param name="initialize">If this value is set to false, no commands are searched by the manager.</param>
+        </member>
+        <member name="M:CommandManagementSystem.CommandManager`3.#ctor">
+            <summary>
+            An abstract base implementation of a command manager
+            </summary>        
+        </member>
+        <member name="M:CommandManagementSystem.CommandManager`3.Initialize">
+            <summary>
+            Initializes the command manager and registers the 
+            corresponding commands at the command handler
+            </summary>
+        </member>
+        <member name="M:CommandManagementSystem.CommandManager`3.Dispatch(`0,`1)">
+            <summary>
+            Dispatch the specified command and pass the parameters
+            </summary>
+            <param name="command">The command Indentifier</param>
+            <param name="arg">The parameters to be transferred</param>
+            <returns>Returns the result of the dispatch</returns>
+        </member>
+        <member name="M:CommandManagementSystem.CommandManager`3.DispatchAsync(`0,`1)">
+            <summary>
+            Dispatch the specified command and pass the parameters asynchronous
+            </summary>
+            <param name="command">The command Indentifier</param>
+            <param name="arg">The parameters to be transferred</param>
+            <returns>Returns the result of the dispatch</returns>
+        </member>
+        <member name="M:CommandManagementSystem.CommandManager`3.InitializeCommand(CommandManagementSystem.Interfaces.ICommand{`1,`2},`1)">
+            <summary>
+            Initializes the passed command with the parameters
+            </summary>
+            <param name="command">The command</param>
+            <param name="arg">The parameters to be transferred</param>
+            <returns>Returns the result of the initialize</returns>
+        </member>
+        <member name="M:CommandManagementSystem.CommandManager`3.InitializeCommand(System.Type,`1)">
+            <summary>
+            Initializes a command from the specified command datatype with the parameters
+            </summary>
+            <param name="commandType">The command data type</param>
+            <param name="arg">The parameters to be transferred</param>
+            <returns>Returns the result of the initialize</returns>
+        </member>
+        <member name="M:CommandManagementSystem.CommandManager`3.InitializeCommand(System.Type,`1,System.Object[])">
+            <summary>
+            Initializes a command from the specified command datatype with
+            the parameters and start parameters for the constructor
+            </summary>
+            <param name="commandType">The command data type</param>
+            <param name="arg">The parameters to be transferred</param>
+            <param name="startParams">Parameters passed to the constructor</param>
+            <returns>Returns the result of the initialize</returns>
+        </member>
+        <member name="M:CommandManagementSystem.CommandManager`3.Command_FinishEvent(System.Object,`1)">
+            <summary>
+            Executed when a command is finished
+            </summary>
+            <param name="sender">The triggering command</param>
+            <param name="arg">The command parameters</param>
+        </member>
+        <member name="M:CommandManagementSystem.CommandManager`3.Command_WaitEvent(System.Object,System.Func{`1,`2})">
+            <summary>
+            Executed when a command is waiting
+            </summary>
+            <param name="sender">The triggering command</param>
+            <param name="arg">The dispatch method</param>
+        </member>
+        <member name="M:CommandManagementSystem.CommandManager`3.InitializeOneTimeCommand(System.String[],System.Type[])">
+            <summary>
+            Searches and registers all methods in the given namespace in the TypeArray,
+            which have a OneTimeCommandAttribute as a Command.
+            </summary>
+            <param name="namespaces">Namespaces in which the method searches</param>
+            <param name="types">TypeArray that searches the method</param>
+        </member>
+        <member name="M:CommandManagementSystem.CommandManager`3.InitializeOneTimeCommand(System.String[])">
+            <summary>
+            Searches and registers all methods that have a OneTimeCommandAttribute as a command in the 
+            specified namespace in the assembly where the CommandManager is defined.
+            </summary>
+            <param name="namespaces">Namespaces in which the method searches</param>
+        </member>
+        <member name="M:CommandManagementSystem.CommandManager`3.InitializeOneTimeCommand">
+            <summary>
+            Find and register all methods that has a OneTimeCommandAttribute as a command in the namespaces registered
+            with the manager in the assembly where the CommandManager is defined.
+            </summary>
+        </member>
+        <member name="T:CommandManagementSystem.CommandManager`2">
+            <summary>
+            An abstract base implementation of a command manager with string as command indentifiers
+            </summary>
+            <typeparam name="TParameter">Data type of command parameters</typeparam>
+            <typeparam name="TOut">Return value of the dispatch method</typeparam>
+        </member>
+        <member name="T:CommandManagementSystem.CommandManager`1">
+            <summary>
+            An abstract base implementation of a command manager with string as command indentifiers
+            and dynamic as result data type
+            </summary>
+            <typeparam name="TParameter">Data type of command parameters</typeparam>
+        </member>
+        <member name="T:CommandManagementSystem.CommandManager">
+            <summary>
+            An abstract base implementation of a command manager with string as command indentifiers
+            and dynamic as result data type and EventArgs as parameter type
+            </summary>
+        </member>
+        <member name="T:CommandManagementSystem.DefaultCommandManager">
+            <summary>
+            A standard implementation of a Command Manager. 
+            Command = string, parameter = object [], return type = dynamic
+            </summary>
+        </member>
+        <member name="P:CommandManagementSystem.DefaultCommandManager.Namespaces">
+            <summary>
+            Namespaces that were registered in the default Command Manager
+            </summary>
+        </member>
+        <member name="P:CommandManagementSystem.DefaultCommandManager.IsInitialized">
+            <summary>
+            This property returns true if the manager has been initialized
+            </summary>
+        </member>
+        <member name="M:CommandManagementSystem.DefaultCommandManager.#ctor(System.String[])">
+            <summary>
+            A standard implementation of a Command Manager. 
+            </summary>
+            <param name="namespaces">Namespace to be registered in the manager</param>
+        </member>
+        <member name="M:CommandManagementSystem.DefaultCommandManager.Initialize(System.Reflection.Assembly,System.String[])">
+            <summary>
+            Initalizes the manager with the specified namespaces in the specified assembly
+            </summary>
+            <param name="assembly">Assembly in which is searched</param>
+            <param name="namespaces">Namespace to be registered in the manager</param>
+        </member>
+        <member name="M:CommandManagementSystem.DefaultCommandManager.Initialize(System.String[])">
+            <summary>
+            Initalizes the manager with the specified namespaces in the calling assembly of this method
+            </summary>
+            <param name="namespaces">Namespace to be registered in the manager</param>
+        </member>
+        <member name="M:CommandManagementSystem.DefaultCommandManager.Initialize">
+            <summary>
+            The overwritten default initialization method. 
+            This method contains only one return and does not call base. Otherwise, errors occur
+            </summary>
+        </member>
+        <member name="T:CommandManagementSystem.Interfaces.WaitEventHandler`2">
+            <summary>
+            Delegate for command waiting events
+            </summary>
+            <typeparam name="TParameter">Parameters type for the command</typeparam>
+            <typeparam name="TOut">Return value type of the command</typeparam>
+            <param name="sender">The command as object</param>
+            <param name="arg">Parameters for the command</param>
+        </member>
+        <member name="T:CommandManagementSystem.Interfaces.FinishEventHandler`1">
+            <summary>
+            Delegate for command finish events
+            </summary>
+            <typeparam name="TParameter">Parameters type for the command</typeparam>
+            <param name="sender">The command as object</param>
+            <param name="arg">Parameters for the command</param>
+        </member>
+        <member name="T:CommandManagementSystem.Interfaces.ICommand`2">
+            <summary>
+            Interface for commands
+            </summary>
+            <typeparam name="TParameter">Parameters type for the command</typeparam>
+            <typeparam name="TOut">Return value type of the command</typeparam>
+        </member>
+        <member name="P:CommandManagementSystem.Interfaces.ICommand`2.NextFunction">
+            <summary>
+            Contains the delegates for the next function to execute
+            </summary>
+        </member>
+        <member name="P:CommandManagementSystem.Interfaces.ICommand`2.Finished">
+            <summary>
+            Returns whether the command has already gone through all steps
+            </summary>
+        </member>
+        <member name="P:CommandManagementSystem.Interfaces.ICommand`2.TAG">
+            <summary>
+            Unique Indentifikator for the command
+            </summary>
+        </member>
+        <member name="E:CommandManagementSystem.Interfaces.ICommand`2.WaitEvent">
+            <summary>
+            Is thrown when the command waits for the next dispatch
+            </summary>
+        </member>
+        <member name="E:CommandManagementSystem.Interfaces.ICommand`2.FinishEvent">
+            <summary>
+            Is thrown when the command has gone through all steps
+            </summary>
+        </member>
+        <member name="M:CommandManagementSystem.Interfaces.ICommand`2.Main(`0)">
+            <summary>
+            The main method is executed when dispatch if no Dispatch Order attribute found in the class.
+            </summary>
+            <param name="arg">The arguments passed by the dispatch</param>
+            <returns>Returns the result of the command</returns>
+        </member>
+        <member name="M:CommandManagementSystem.Interfaces.ICommand`2.RaiseWaitEvent(System.Object,System.Func{`0,`1})">
+            <summary>
+            Raises the wait event
+            </summary>
+            <param name="sender">This command</param>
+            <param name="arg">The dispatch method</param>
+        </member>
+        <member name="M:CommandManagementSystem.Interfaces.ICommand`2.RaiseFinishEvent(System.Object,`0)">
+            <summary>
+            Raises the finish event
+            </summary>
+            <param name="sender">This command</param>
+            <param name="arg">The passed parameters</param>
+        </member>
+        <member name="M:CommandManagementSystem.Interfaces.ICommand`2.Dispatch(`0)">
+            <summary>
+            Executes the next action in the command
+            </summary>
+            <param name="arg">Parameters to be passed</param>
+            <returns>Returns a fixed return value</returns>
+        </member>
+        <member name="M:CommandManagementSystem.Interfaces.ICommand`2.Initialize(`0)">
+            <summary>
+            Initializes the command
+            </summary>
+            <param name="arg">Parameters to be passed</param>
+            <returns>Returns a fixed return value</returns>
+        </member>
+        <member name="T:CommandManagementSystem.Interfaces.ICommandManager`3">
+            <summary>
+            Interface for command managers
+            </summary>
+            <typeparam name="TIn">Type for the command Indetifier</typeparam>
+            <typeparam name="TParameter">Type for the command parameters to be transferred</typeparam>
+            <typeparam name="TOut">Return type for the dispatch</typeparam>
+        </member>
+        <member name="M:CommandManagementSystem.Interfaces.ICommandManager`3.Dispatch(`0,`1)">
+            <summary>
+            Raises the specified command
+            </summary>
+            <param name="command">Command identifier</param>
+            <param name="arg">Parameters to be passed</param>
+            <returns>The fixed return value</returns>
+        </member>
+        <member name="M:CommandManagementSystem.Interfaces.ICommandManager`3.DispatchAsync(`0,`1)">
+            <summary>
+            Raises the specified command Asynchronous
+            </summary>
+            <param name="command">Command identifier</param>
+            <param name="arg">Parameters to be passed</param>
+            <returns>The fixed return value as Task</returns>
+        </member>
+    </members>
+</doc>
