@@ -1,4 +1,4 @@
-﻿namespace Wargame.Clone
+﻿namespace WarFabrik.Clone
 {
     public class TokenFile
     {
