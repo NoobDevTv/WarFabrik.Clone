@@ -17,7 +17,7 @@ namespace WarFabrik.Clone
 
             bot.Connect();
 
-            bot.FollowerServiceOnNewFollowersDetected(null, null);
+            //bot.FollowerServiceOnNewFollowersDetected(null, null);
             
             Console.ReadKey();
             bot.SendMessage("/me geht in den Standby");

@@ -1,6 +1,10 @@
 ﻿using CommandManagementSystem;
 using Newtonsoft.Json;
+using System;
+using System.Drawing;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using TwitchLib;
 using TwitchLib.Events.Client;
 using TwitchLib.Events.Services.FollowerService;
@@ -12,12 +16,12 @@ namespace WarFabrik.Clone
 {
     public class Bot
     {
+        public FollowerServiceNew FollowerService;
+
         private TwitchClient client;
         private BotCommandManager manager;
         private ConsoleLogger logger;
         private TwitchAPI api;
-        private FollowerService followerService;
-
 
         public Bot()
         {
@@ -26,17 +30,17 @@ namespace WarFabrik.Clone
 
             logger = new ConsoleLogger();
             api = new TwitchAPI(tokenFile.ClientId, tokenFile.Token);
-            followerService = new FollowerService(api);
+            FollowerService = new FollowerServiceNew(api, "NoobDevTv", 10000);
 
             var credentials = new ConnectionCredentials(tokenFile.Name, tokenFile.OAuth);
-            client = new TwitchClient(credentials, channel: "noobdevtv", logging: true, logger: logger);
+            client = new TwitchClient(credentials, channel: "NoobDevTv", logging: true, logger: logger);
 
             client.OnConnected += ClientOnConnected;
             client.OnDisconnected += ClientOnDisconnected;
             client.OnMessageReceived += ClientOnMessageReceived;
 
-            followerService.OnNewFollowersDetected += FollowerServiceOnNewFollowersDetected;
-
+            FollowerService.OnNewFollowersDetected += FollowerServiceOnNewFollowersDetected;
+            FollowerService.StartService();
         }
 
         private void ClientOnChatCommandReceived(object sender, OnChatCommandReceivedArgs e)
@@ -64,7 +68,7 @@ namespace WarFabrik.Clone
                 end = message.Length;
 
             var command = message.Substring(index, end - index).Trim().TrimStart('!').ToLower();
-
+            
             manager.DispatchAsync(command, new BotCommandArgs(this, api, e.ChatMessage));
         }
 
@@ -74,8 +78,20 @@ namespace WarFabrik.Clone
             client.SendMessage($"Bot is Online...");
         }
 
-        public void FollowerServiceOnNewFollowersDetected(object sender, OnNewFollowersDetectedArgs e)
+        public void FollowerServiceOnNewFollowersDetected(object sender, NewFollowerDetectedArgs e)
         {
+            foreach (var item in e.NewFollowers)
+            {
+                var tempColor = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write(item.User.DisplayName + " has followed and ");
+                if (item.Notifications)
+                    Console.WriteLine("wants to be notified");
+                else
+                    Console.WriteLine("doesn't like to be notified");
+                Console.ForegroundColor = tempColor;
+            }
+
             //Task.Run(() =>
             //{
             //    using (var graphics = Graphics.FromHwnd(IntPtr.Zero))
@@ -90,8 +106,6 @@ namespace WarFabrik.Clone
             //    }
 
             //});
-
-
         }
 
         private void ClientOnDisconnected(object sender, OnDisconnectedArgs e)
