@@ -25,9 +25,8 @@ namespace WarFabrik.Clone
 
         public Bot()
         {
-            var tokenFile = JsonConvert.DeserializeObject<TokenFile>(File.ReadAllText(@".\Token.json"));
+            var tokenFile = JsonConvert.DeserializeObject<TokenFile>(File.ReadAllText(@".\..\Token.json"));
             manager = new BotCommandManager();
-
             logger = new ConsoleLogger();
             api = new TwitchAPI(tokenFile.ClientId, tokenFile.Token);
             FollowerService = new FollowerServiceNew(api, "NoobDevTv", 10000);
@@ -92,20 +91,16 @@ namespace WarFabrik.Clone
                 Console.ForegroundColor = tempColor;
             }
 
-            //Task.Run(() =>
-            //{
-            //    using (var graphics = Graphics.FromHwnd(IntPtr.Zero))
-            //    {
-            //        var font = new Font("Calibri", 12, FontStyle.Bold);
-
-            //        graphics.FillRectangle(new SolidBrush(Color.Black), new Rectangle(0, 0, 200, 200));
-            //        graphics.DrawString("Neuer Follower", font, new SolidBrush(Color.Red), new PointF(0, 0));
-
-            //        Thread.Sleep(5000);
-
-            //    }
-
-            //});
+            Task.Run(() =>
+            {
+                using (var graphics = Graphics.FromHwnd(IntPtr.Zero))
+                {
+                    var font = new Font("Calibri", 12, FontStyle.Bold);
+                    graphics.FillRectangle(new SolidBrush(Color.Black), new Rectangle(0, 0, 200, 200));
+                    graphics.DrawString("Neuer Follower", font, new SolidBrush(Color.Red), new PointF(0, 0));
+                    Thread.Sleep(5000);
+                }
+            });
         }
 
         private void ClientOnDisconnected(object sender, OnDisconnectedArgs e)

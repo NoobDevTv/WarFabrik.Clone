@@ -57,6 +57,7 @@ namespace WarFabrik.Clone.Commands
         [Command("?", "help")]
         public static bool Help(BotCommandArgs args)
         {
+
             args.Bot.SendMessage("Folgende Befehle sind verfügbar: !uptime, !hype, !telegram, !flipacoin, !donate, !teamspeak, !twitter, !youtube, !github, !time, !streamer, !projects, !whoami");
             return true;
         }

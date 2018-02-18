@@ -9,5 +9,6 @@ namespace WarFabrik.Clone
     [CommandManager("BotManager", "WarFabrik.Clone.Commands")]
     class BotCommandManager : CommandManager<string, BotCommandArgs, bool>
     {
+     
     }
 }

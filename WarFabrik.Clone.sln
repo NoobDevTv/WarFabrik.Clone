@@ -5,6 +5,10 @@ VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WarFabrik.Clone", "WarFabrik.Clone\WarFabrik.Clone.csproj", "{52E7144A-2D6A-43BF-98EB-98730A197918}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoobDevBot.Telegram", "NoobDevBot.Telegram\NoobDevBot.Telegram.csproj", "{CE1D2188-72EE-4B5D-982A-7F1B07964E8E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotMaster", "BotMaster\BotMaster.csproj", "{516A2D11-D436-44CA-B2EF-1B31FCB7877A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{52E7144A-2D6A-43BF-98EB-98730A197918}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52E7144A-2D6A-43BF-98EB-98730A197918}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52E7144A-2D6A-43BF-98EB-98730A197918}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE1D2188-72EE-4B5D-982A-7F1B07964E8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE1D2188-72EE-4B5D-982A-7F1B07964E8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE1D2188-72EE-4B5D-982A-7F1B07964E8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE1D2188-72EE-4B5D-982A-7F1B07964E8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{516A2D11-D436-44CA-B2EF-1B31FCB7877A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{516A2D11-D436-44CA-B2EF-1B31FCB7877A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{516A2D11-D436-44CA-B2EF-1B31FCB7877A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{516A2D11-D436-44CA-B2EF-1B31FCB7877A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
