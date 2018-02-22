@@ -34,7 +34,8 @@ namespace NoobDevBot.Telegram
             if (message.Text[0] == '/')
             {
                 //Command
-                var command = message.Text.Substring(1, message.Text.Length - 1).ToLower();
+                //TODO Get real end of command
+                var command = message.Text.Substring(message.Text.IndexOf('/'), message.Text.Length - 1).ToLower();
 
                 manager.DispatchAsync(command, new TelegramCommandArgs(e.Message, bot));
                 return;
@@ -54,8 +55,14 @@ namespace NoobDevBot.Telegram
         public void SendMessageToGroup(string groupName, string message)
         {
             var group = DatabaseManager.GetGroupByName(groupName);
-        
-            group.Member.ForEach(async x => await bot.SendTextMessageAsync(new ChatId(x.ChatId), message));
+
+            try
+            {
+                group.Member.ForEach(async x => await bot.SendTextMessageAsync(x.ChatId, message));
+            }
+            catch (Exception)
+            {
+            }
         }
     }
 }

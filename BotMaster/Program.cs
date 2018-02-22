@@ -13,13 +13,12 @@ namespace BotMaster
         {
             telegramBot = new TelegramBot();
 
-            //twitchBot = new Bot();
-            //twitchBot.Connect();
+            twitchBot = new Bot();
+            twitchBot.Connect();
+            
+            twitchBot.FollowerService.OnNewFollowersDetected += TwitchNewFollower;
 
-
-            //twitchBot.FollowerService.OnNewFollowersDetected += TwitchNewFollower;
-
-            //telegramBot.SendMessageToGroup("NoobDev", "New Follower Alert Test");-
+            //telegramBot.SendMessageToGroup("NoobDev", "New Follower Alert Test");
             Console.ReadKey();
         }
 

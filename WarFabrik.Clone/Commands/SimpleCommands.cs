@@ -91,7 +91,7 @@ namespace WarFabrik.Clone.Commands
         public static bool Github(BotCommandArgs args)
         {
             //TODO Check current project
-            args.Bot.SendMessage("Marcus: https://github.com/Gallimathias \r\n  susch19: https://github.com/susch19");
+            args.Bot.SendMessage("Github: https://github.com/NoobDevTv");
             return true;
         }
 

@@ -29,5 +29,11 @@ namespace NoobDevBot.Telegram.Commands
             args.Bot.SendTextMessageAsync(args.Message.Chat.Id, s.Substring(0, s.Length - 2));
             return true;
         }
+
+        [Command("addusertogroup")]
+        public static bool AddUserToGroup(TelegramCommandArgs args)
+        {
+            return true;
+        }
     }
 }
