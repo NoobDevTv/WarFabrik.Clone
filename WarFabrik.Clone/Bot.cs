@@ -25,7 +25,7 @@ namespace WarFabrik.Clone
 
         public Bot()
         {
-            var tokenFile = JsonConvert.DeserializeObject<TokenFile>(File.ReadAllText(@".\..\Token.json"));
+            var tokenFile = JsonConvert.DeserializeObject<TokenFile>(File.ReadAllText(@".\Token.json"));
             manager = new BotCommandManager();
             logger = new ConsoleLogger();
             api = new TwitchAPI(tokenFile.ClientId, tokenFile.Token);

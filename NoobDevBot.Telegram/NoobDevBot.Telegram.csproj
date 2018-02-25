@@ -11,4 +11,10 @@
     <PackageReference Include="Telegram.Bot" Version="13.4.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Telegram_Token.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

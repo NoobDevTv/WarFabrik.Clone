@@ -16,7 +16,7 @@ namespace NoobDevBot.Telegram
 
         public TelegramBot()
         {
-            bot = new TelegramBotClient(System.IO.File.ReadAllText(@".\..\Telegram_Token.txt"));
+            bot = new TelegramBotClient(System.IO.File.ReadAllText(@".\Telegram_Token.txt"));
             manager = new TelegramCommandManager();
             DatabaseManager.Initialize();
             
