@@ -9,25 +9,37 @@ using Telegram.Bot.Types.Enums;
 
 namespace NoobDevBot.Telegram
 {
-    internal class DatabaseManager
+    internal static class DatabaseManager
     {
-        static TelegramBotContext context;
+        public static TelegramBotContext Context
+        {
+            get
+            {
+                lock (mainLock)
+                    return context;
+            }
+        }
+
+        private static TelegramBotContext context;
+
+        private static object mainLock;
+
         internal static void Initialize()
         {
+            mainLock = new object();
             context = new TelegramBotContext();
-
-            context.Database.EnsureCreated();
+            Context.Database.EnsureCreated();
         }
 
         public static void PutUserInGroup(DatabaseModels.Group group, NoobUser user)
         {
-            var gu = context.Group_User.FirstOrDefault(x => x.GroupId == group.Id && x.UserId == user.Id);
+            var gu = Context.Group_User.FirstOrDefault(x => x.GroupId == group.Id && x.UserId == user.Id);
             if (gu == null)
-                context.Group_User.Add(new Group_User { Id = context.Group_User.Count() + 1, GroupId = group.Id, UserId = user.Id });
+                Context.Group_User.Add(new Group_User { Id = Context.Group_User.Count() + 1, GroupId = group.Id, UserId = user.Id });
             Submit();
         }
 
-        public static bool UserExists(int id) => context.User.Any(u => u.Id == id);
+        public static bool UserExists(int id) => Context.User.Any(u => u.Id == id);
 
         public static NoobUser InsertUserIfNotExist(User user, Message message)
         {
@@ -37,11 +49,12 @@ namespace NoobDevBot.Telegram
             if (message.Chat.Type != ChatType.Private)
                 return null;
 
-            var tempUser = context.User.FirstOrDefault(u => u.Id == user.Id);
+            var tempUser = Context.User.FirstOrDefault(u => u.Id == user.Id);
 
             if (tempUser == null)
             {
                 tempUser = SaveNewUser(user, message.Chat.Id);
+                //PutUserInGroup(GetGroupByName("NoobDev"), tempUser);
                 Submit();
             }
 
@@ -50,14 +63,14 @@ namespace NoobDevBot.Telegram
 
         private static NoobUser InsertUserFromGroupIfNotExist(User user, Message message)
         {
-            var tempUser = context.User.FirstOrDefault(u => u.Id == user.Id);
-            var group = context.GroupChat.FirstOrDefault(x => x.ChatId == message.Chat.Id);
+            var tempUser = Context.User.FirstOrDefault(u => u.Id == user.Id);
+            var group = Context.GroupChat.FirstOrDefault(x => x.ChatId == message.Chat.Id);
 
             if (group == null)
             {
-                context.GroupChat.Add(new GroupChat { ChatId = message.Chat.Id, Name = message.Chat.Title });
+                Context.GroupChat.Add(new GroupChat { ChatId = message.Chat.Id, Name = message.Chat.Title });
                 Submit();
-                group = context.GroupChat.FirstOrDefault(x => x.ChatId == message.Chat.Id);
+                group = Context.GroupChat.FirstOrDefault(x => x.ChatId == message.Chat.Id);
             }
 
             if (tempUser == null)
@@ -66,27 +79,27 @@ namespace NoobDevBot.Telegram
                 Submit();
             }
 
-            context.GroupChat_User.Add(new GroupChat_User { ChatId = group.ChatId, UserId = tempUser.Id });
+            Context.GroupChat_User.Add(new GroupChat_User { ChatId = group.ChatId, UserId = tempUser.Id });
 
             return tempUser;
         }
 
         internal static void DeleteUser(int id)
         {
-//TODO Delete every remain of a user in our database
-            var user = context.User.FirstOrDefault(x => x.Id == id);
+            //TODO Delete every remain of a user in our database
+            var user = Context.User.FirstOrDefault(x => x.Id == id);
 
             if (user == null)
                 return;
 
-            context.Remove(user);
+            Context.Remove(user);
             Submit();
 
         }
 
         private static NoobUser SaveNewUser(User user, ChatId chatId = null)
         {
-            var table = context.User;
+            var table = Context.User;
 
             var tempUser = new NoobUser
             {
@@ -101,7 +114,7 @@ namespace NoobDevBot.Telegram
 
         public static Stream InsertNewStream(int user, DateTime dateTime, string name)
         {
-            var table = context.Streams;
+            var table = Context.Streams;
 
             var tempStream = new Stream
             {
@@ -118,24 +131,24 @@ namespace NoobDevBot.Telegram
 
         internal static DatabaseModels.Group GetGroupByName(string groupName)
         {
-            var group = context.Groups.FirstOrDefault(x => x.Name == groupName);
+            var group = Context.Groups.FirstOrDefault(x => x.Name == groupName);
 
             if (group == null)
                 return null;
 
-            var usergroup = context.Group_User.Where(x => x.GroupId == group.Id).ToList();
+            var usergroup = Context.Group_User.Where(x => x.GroupId == group.Id).ToList();
 
             foreach (var item in usergroup)
-                group.Member.Add(context.User.FirstOrDefault(x => x.Id == item.UserId));
+                group.Member.Add(Context.User.FirstOrDefault(x => x.Id == item.UserId));
 
             return group;
         }
 
         internal static List<DatabaseModels.Group> GetGroupsFromUser(NoobUser user)
         {
-            var usergroups = context.Group_User.Where(x => x.UserId== user.Id).ToList();
+            var usergroups = Context.Group_User.Where(x => x.UserId == user.Id).ToList();
 
-            var groups = context.Groups.Where(x => usergroups.FirstOrDefault(y=>y.GroupId == x.Id) != null).ToList();
+            var groups = Context.Groups.Where(x => usergroups.FirstOrDefault(y => y.GroupId == x.Id) != null).ToList();
 
             return groups;
         }
@@ -148,7 +161,7 @@ namespace NoobDevBot.Telegram
 
         public static bool DeleteStream(int user, int id)
         {
-            var table = context.Streams;
+            var table = Context.Streams;
             var stream = table.FirstOrDefault(s => s.Id == id && s.UserId == user);
 
             if (stream == null)
@@ -161,34 +174,34 @@ namespace NoobDevBot.Telegram
 
         public static Stream GetNextStream()
         {
-            var table = context.Streams;
+            var table = Context.Streams;
 
             return table?.Where(s => s.Start > DateTime.UtcNow)?.OrderBy(s => s.Start)?.FirstOrDefault();
         }
 
         public static Stream GetStreamById(int id)
         {
-            var table = context.Streams;
+            var table = Context.Streams;
 
             return table?.Where(s => s.Id == id)?.FirstOrDefault();
         }
 
-        public static List<Stream> GetUserStreams(int id) => context.Streams.Where(x => x.UserId == id).ToList();
+        public static List<Stream> GetUserStreams(int id) => Context.Streams.Where(x => x.UserId == id).ToList();
 
-        public static NoobUser GetUserById(int id) => context.User.First(u => u.Id == id);
-        public static NoobUser GetUserByName(string name) => context.User.First(u => u.Name == name);
+        public static NoobUser GetUserById(int id) => Context.User.FirstOrDefault(u => u.Id == id);
+        public static NoobUser GetUserByName(string name) => Context.User.First(u => u.Name == name);
 
         public static DatabaseModels.Group CreateGroup(string name)
         {
-            var group = context.Groups.FirstOrDefault(x => x.Name == name);
+            var group = Context.Groups.FirstOrDefault(x => x.Name == name);
             if (group != null)
                 return group;
-            context.Groups.Add(new DatabaseModels.Group { Id = context.Groups.Count() + 1, Name = name });
+            Context.Groups.Add(new DatabaseModels.Group { Id = Context.Groups.Count() + 1, Name = name });
             Submit();
-            return context.Groups.FirstOrDefault(x => x.Name == name);
+            return Context.Groups.FirstOrDefault(x => x.Name == name);
         }
 
-        public static void Submit() => context.SaveChanges();
+        public static void Submit() => Context.SaveChanges();
 
         //public static List<groups_relation> GetGroups(int user_id) =>
         //    context.GetTable<groups_relation>().Where(r => r.user_id == user_id).ToList();
