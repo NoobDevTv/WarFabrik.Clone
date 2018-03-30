@@ -1,5 +1,5 @@
-﻿using TwitchLib;
-using TwitchLib.Models.Client;
+﻿using TwitchLib.Api;
+using TwitchLib.Client.Models;
 
 namespace WarFabrik.Clone
 {

@@ -29,7 +29,7 @@ namespace NoobDevBot.Telegram
         {
             var message = e.Message;
 
-            if (message.Type != MessageType.TextMessage)
+            if (message.Type != MessageType.Text)
                 return;
 
             if (message.Text[0] == '/')
@@ -45,8 +45,11 @@ namespace NoobDevBot.Telegram
             var user = DatabaseManager.InsertUserIfNotExist(e.Message.From, e.Message);
 
             //New Member(s) for the Databse
-            if (e.Message.NewChatMember != null)
-                DatabaseManager.InsertUserIfNotExist(e.Message.NewChatMember, message);
+            if (e.Message.NewChatMembers != null)
+            {
+                foreach (var chatMember in e.Message.NewChatMembers)
+                    DatabaseManager.InsertUserIfNotExist(chatMember, message);
+            }
 
             if (e.Message.NewChatMembers?.Length > 0)
                 foreach (var item in e.Message.NewChatMembers)

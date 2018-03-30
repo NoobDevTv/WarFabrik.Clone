@@ -5,12 +5,10 @@ using System.Drawing;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using TwitchLib;
-using TwitchLib.Events.Client;
-using TwitchLib.Events.Services.FollowerService;
-using TwitchLib.Logging;
-using TwitchLib.Models.Client;
-using TwitchLib.Services;
+using TwitchLib.Api;
+using TwitchLib.Client;
+using TwitchLib.Client.Events;
+using TwitchLib.Client.Models;
 
 namespace WarFabrik.Clone
 {
@@ -27,12 +25,16 @@ namespace WarFabrik.Clone
         {
             var tokenFile = JsonConvert.DeserializeObject<TokenFile>(File.ReadAllText(@".\Token.json"));
             manager = new BotCommandManager();
-            logger = new ConsoleLogger();
-            api = new TwitchAPI(tokenFile.ClientId, tokenFile.Token);
+            //logger = new ConsoleLogger();
+            api = new TwitchAPI();
+            api.InitializeAsync(tokenFile.ClientId, tokenFile.Token).Wait();
+            
             FollowerService = new FollowerServiceNew(api, "NoobDevTv", 10000);
 
             var credentials = new ConnectionCredentials(tokenFile.Name, tokenFile.OAuth);
-            client = new TwitchClient(credentials, channel: "NoobDevTv", logging: true, logger: logger);
+            //client = new TwitchClient(credentials, channel: "NoobDevTv", logging: true, logger: logger);
+            client = new TwitchClient();
+            client.Initialize(credentials, channel: "NoobDevTv", autoReListenOnExceptions: true);
 
             client.OnConnected += ClientOnConnected;
             client.OnDisconnected += ClientOnDisconnected;
@@ -73,7 +75,7 @@ namespace WarFabrik.Clone
 
         private void ClientOnConnected(object sender, OnConnectedArgs e)
         {
-            logger.Info("Connected to Twitch Channel {Channel}");
+            //logger.Info("Connected to Twitch Channel {Channel}");
             client.SendMessage($"Bot is Online...");
         }
 
@@ -105,7 +107,7 @@ namespace WarFabrik.Clone
 
         private void ClientOnDisconnected(object sender, OnDisconnectedArgs e)
         {
-            logger.Info("Bot disconnect");
+            //logger.Info("Bot disconnect");
             client.SendMessage("Ich gehe in den Standby bb");
         }
     }
