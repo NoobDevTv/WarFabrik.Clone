@@ -5,8 +5,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using TwitchLib;
-using TwitchLib.Interfaces;
-using TwitchLib.Models.API.v5.Channels;
+using TwitchLib.Api;
+using TwitchLib.Api.Interfaces;
 
 namespace WarFabrik.Clone
 {
@@ -33,7 +33,7 @@ namespace WarFabrik.Clone
             this.api = api;
             channelName = channel;
             timerInterval = period;
-            timer = new Timer((o) => Timer_Tick(o));
+            timer = new Timer(async (o) => await Timer_Tick(o));
         }
 
         public void StartService()
