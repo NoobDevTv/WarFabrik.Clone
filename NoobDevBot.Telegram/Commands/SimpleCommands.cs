@@ -22,6 +22,9 @@ namespace NoobDevBot.Telegram.Commands
         {
             var user = DatabaseManager.GetUserById(args.Message.From.Id);
 
+            if (user == null)
+                return false;
+
             var groups = DatabaseManager.GetGroupsFromUser(user);
 
             string s = "Die Gruppen denen du angehörig bist: ";
