@@ -42,6 +42,7 @@ namespace NoobDevBot.Telegram
             if (tempUser == null)
             {
                 tempUser = SaveNewUser(user, message.Chat.Id);
+                PutUserInGroup(GetGroupByName("NoobDev"), tempUser);
                 Submit();
             }
 
@@ -125,6 +126,7 @@ namespace NoobDevBot.Telegram
 
             var usergroup = context.Group_User.Where(x => x.GroupId == group.Id).ToList();
 
+            group.Member.Clear();
             foreach (var item in usergroup)
                 group.Member.Add(context.User.FirstOrDefault(x => x.Id == item.UserId));
 
