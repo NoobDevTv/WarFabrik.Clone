@@ -2,6 +2,7 @@
 using System;
 using System.Threading;
 using WarFabrik.Clone;
+using static WarFabrik.Clone.FollowerServiceNew;
 
 namespace BotMaster
 {

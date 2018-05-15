@@ -1,14 +1,17 @@
 ﻿using CommandManagementSystem;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using TwitchLib.Api;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
+using static WarFabrik.Clone.FollowerServiceNew;
 
 namespace WarFabrik.Clone
 {
@@ -19,22 +22,26 @@ namespace WarFabrik.Clone
         private TwitchClient client;
         private BotCommandManager manager;
         private ConsoleLogger logger;
+        private JoinedChannel initialChannel;
+
         private TwitchAPI api;
 
         public Bot()
         {
             var tokenFile = JsonConvert.DeserializeObject<TokenFile>(File.ReadAllText(@".\Token.json"));
             manager = new BotCommandManager();
-            //logger = new ConsoleLogger();
+            logger = new ConsoleLogger();
             api = new TwitchAPI();
-            api.InitializeAsync(tokenFile.ClientId, tokenFile.Token).Wait();
+            api.Settings.ClientId = tokenFile.ClientId;
+            api.Settings.AccessToken = tokenFile.Token;
             
-            FollowerService = new FollowerServiceNew(api, "NoobDevTv", 10000);
-
             var credentials = new ConnectionCredentials(tokenFile.Name, tokenFile.OAuth);
             //client = new TwitchClient(credentials, channel: "NoobDevTv", logging: true, logger: logger);
             client = new TwitchClient();
             client.Initialize(credentials, channel: "NoobDevTv", autoReListenOnExceptions: true);
+
+            initialChannel = client.JoinedChannels.FirstOrDefault();
+            FollowerService = new FollowerServiceNew(api, initialChannel, 10000);
 
             client.OnConnected += ClientOnConnected;
             client.OnDisconnected += ClientOnDisconnected;
@@ -53,7 +60,7 @@ namespace WarFabrik.Clone
 
         public void Disconnect() => client.Disconnect();
 
-        internal void SendMessage(string v) => client.SendMessage(v);
+        internal void SendMessage(string v) => client.SendMessage(initialChannel, v);
 
         private void ClientOnMessageReceived(object sender, OnMessageReceivedArgs e)
         {
@@ -69,14 +76,14 @@ namespace WarFabrik.Clone
                 end = message.Length;
 
             var command = message.Substring(index, end - index).Trim().TrimStart('!').ToLower();
-            
+
             manager.DispatchAsync(command, new BotCommandArgs(this, api, e.ChatMessage));
         }
 
         private void ClientOnConnected(object sender, OnConnectedArgs e)
         {
             //logger.Info("Connected to Twitch Channel {Channel}");
-            client.SendMessage($"Bot is Online...");
+            client.SendMessage(initialChannel, $"Bot is Online...");
         }
 
         public void FollowerServiceOnNewFollowersDetected(object sender, NewFollowerDetectedArgs e)
@@ -108,7 +115,7 @@ namespace WarFabrik.Clone
         private void ClientOnDisconnected(object sender, OnDisconnectedArgs e)
         {
             //logger.Info("Bot disconnect");
-            client.SendMessage("Ich gehe in den Standby bb");
+            client.SendMessage(initialChannel, "Ich gehe in den Standby bb");
         }
     }
 }

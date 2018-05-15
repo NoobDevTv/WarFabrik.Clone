@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using TwitchLib;
 using TwitchLib.Api;
 using TwitchLib.Api.Interfaces;
+using TwitchLib.Client.Models;
 
 namespace WarFabrik.Clone
 {
@@ -17,10 +18,11 @@ namespace WarFabrik.Clone
         public event EventHandler<NewFollowerDetectedArgs> OnNewFollowersDetected;
 
         private TwitchAPI api;
-        private string channelName;
         private List<string> currentFollowerIds;
         private Timer timer;
-        private int timerInterval;
+        private readonly int timerInterval;
+
+        public JoinedChannel InitialChannel { get; internal set; }
 
         /// <summary>
         /// Creates a new instance for the follower service. StartService has to be calles seperately
@@ -28,17 +30,17 @@ namespace WarFabrik.Clone
         /// <param name="api">Instance of the twitch api</param>
         /// <param name="channel">Name of your channel</param>
         /// <param name="period">time interval to check for new followers in miliseconds</param>
-        public FollowerServiceNew(TwitchAPI api, string channel, int period)
+        public FollowerServiceNew(TwitchAPI api, JoinedChannel channel, int period)
         {
             this.api = api;
-            channelName = channel;
             timerInterval = period;
-            timer = new Timer(async (o) => await Timer_Tick(o));
+            InitialChannel = channel;
+            timer = new Timer(async (o) => await TimerTick(o));
         }
 
         public void StartService()
         {
-            var channel = api.Channels.v3.GetChannelByNameAsync(channelName).Result;
+            var channel = api.Channels.v5.GetChannelByIDAsync(InitialChannel.Channel).Result;
             var channelFollowers = api.Channels.v5.GetAllFollowersAsync(channel.Id).Result;
 
             CurrentFollowers = channelFollowers.Select(x=>(IFollow)x).ToList();
@@ -48,9 +50,9 @@ namespace WarFabrik.Clone
         }
         //TODO Warning not threadsafe
 
-        private async Task Timer_Tick(object state)
+        private async Task TimerTick(object state)
         {
-            var channel = api.Channels.v3.GetChannelByNameAsync(channelName).Result;
+            var channel = api.Channels.v5.GetChannelByIDAsync(InitialChannel.Channel).Result;
             var channelFollowers = await api.Channels.v5.GetChannelFollowersAsync(channel.Id, 100);
             var newFollowers = channelFollowers.Follows.Where(x => !currentFollowerIds.Contains(x.User.Id)).ToList();
 
@@ -61,11 +63,12 @@ namespace WarFabrik.Clone
                 OnNewFollowersDetected?.Invoke(this, new NewFollowerDetectedArgs { NewFollowers = newFollowers });
             }
         }
+
+        public class NewFollowerDetectedArgs
+        {
+            public List<IFollow> NewFollowers { get; internal set; }
+        }
     }
 
-    //TODO Export in own class?
-    public class NewFollowerDetectedArgs
-    {
-        public List<IFollow> NewFollowers { get; internal set; }
-    }
+    
 }
