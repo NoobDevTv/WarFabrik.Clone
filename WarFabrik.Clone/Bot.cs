@@ -19,17 +19,18 @@ namespace WarFabrik.Clone
     {
         public FollowerServiceNew FollowerService;
 
+        internal BotCommandManager Manager;
+
         private TwitchClient client;
-        private BotCommandManager manager;
-        private ConsoleLogger logger;
-        private JoinedChannel initialChannel;
+        private readonly ConsoleLogger logger;
+        private readonly JoinedChannel initialChannel;
 
         private TwitchAPI api;
 
         public Bot()
         {
             var tokenFile = JsonConvert.DeserializeObject<TokenFile>(File.ReadAllText(@".\Token.json"));
-            manager = new BotCommandManager();
+            Manager = new BotCommandManager();
             logger = new ConsoleLogger();
             api = new TwitchAPI();
             api.Settings.ClientId = tokenFile.ClientId;
@@ -77,7 +78,7 @@ namespace WarFabrik.Clone
 
             var command = message.Substring(index, end - index).Trim().TrimStart('!').ToLower();
 
-            manager.DispatchAsync(command, new BotCommandArgs(this, api, e.ChatMessage));
+            Manager.DispatchAsync(command, new BotCommandArgs(this, api, e.ChatMessage));
         }
 
         private void ClientOnConnected(object sender, OnConnectedArgs e)

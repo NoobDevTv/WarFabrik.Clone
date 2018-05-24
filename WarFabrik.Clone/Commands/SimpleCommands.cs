@@ -11,16 +11,17 @@ namespace WarFabrik.Clone.Commands
     public static class SimpleCommands
     {
         static Random random;
+        private static readonly string[] smilies;
 
         static SimpleCommands()
         {
             random = new Random();
+            smilies = new string[] { ":)", ":D", "O_o", "B)", ":O", "<3", ";)", ":P", ";P", "R)" };
         }
 
         [Command("hype")]
         public static bool Hype(BotCommandArgs args)
         {
-            var smilies = new string[] { ":)", ":D", "O_o", "B)", ":O", "<3", ";)", ":P", ";P", "R)" };
             string msg = "";
 
             for (int i = 0; i < 15; i++)
@@ -33,32 +34,19 @@ namespace WarFabrik.Clone.Commands
         }
 
         [Command("uptime")]
-        public static bool Uptime(BotCommandArgs args)
-        {
-            return UptimeAsync(args).Result;
-        }
-
-        private static async Task<bool> UptimeAsync(BotCommandArgs args)
-        {
-            var uptime = await args.TwitchAPI.Streams.v5.GetUptimeAsync(args.Message.RoomId);
-
-            if (uptime == null)
-            {
-                args.Bot.SendMessage("Irgendwas ist mit dem !uptime Befehl kaputt gegangen :(");
-
-                return false;
-            }
-
-            args.Bot.SendMessage(
-                $"Der Stream läuft schon {uptime.Value.Hours.ToString("d2")}:{uptime.Value.Minutes.ToString("d2")}:{uptime.Value.Seconds.ToString("d2")}");
-            return true;
-        }
+        public static bool Uptime(BotCommandArgs args) => UptimeAsync(args).Result;
 
         [Command("?", "help")]
         public static bool Help(BotCommandArgs args)
         {
+            var commandsList = args.Bot.Manager.GetCommandTagList().Select(c => new[] { c.Key }.Concat(c.Value));
+            string message = "";
 
-            args.Bot.SendMessage("Folgende Befehle sind verfügbar: !uptime, !hype, !telegram, !flipacoin, !donate, !teamspeak, !twitter, !youtube, !github, !time, !streamer, !projects, !whoami");
+            //args.Bot.SendMessage("Folgende Befehle sind verfügbar: !uptime, !hype, !telegram, !flipacoin, !donate, !teamspeak, !twitter, !youtube, !github, !time, !streamer, !projects, !whoami");
+            foreach (var commandTag in commandsList)
+                message += $"!{commandTag},";
+
+            args.Bot.SendMessage(message.Trim(',',' '));
             return true;
         }
 
@@ -72,11 +60,11 @@ namespace WarFabrik.Clone.Commands
         [Command("flipacoin")]
         public static bool FlipACoin(BotCommandArgs args)
         {
-            Random r = new Random();
-            if (r.Next(0, 2) == 0)
+            if (random.Next(0, 2) == 0)
                 args.Bot.SendMessage("Kopf");
             else
                 args.Bot.SendMessage("Zahl");
+
             return true;
         }
 
@@ -172,6 +160,22 @@ namespace WarFabrik.Clone.Commands
             }
 
             args.Bot.SendMessage(result);
+            return true;
+        }
+
+        private static async Task<bool> UptimeAsync(BotCommandArgs args)
+        {
+            var uptime = await args.TwitchAPI.Streams.v5.GetUptimeAsync(args.Message.RoomId);
+
+            if (uptime == null)
+            {
+                args.Bot.SendMessage("Irgendwas ist mit dem !uptime Befehl kaputt gegangen :(");
+
+                return false;
+            }
+
+            args.Bot.SendMessage(
+                $"Der Stream läuft schon {uptime.Value.Hours.ToString("d2")}:{uptime.Value.Minutes.ToString("d2")}:{uptime.Value.Seconds.ToString("d2")}");
             return true;
         }
     }
