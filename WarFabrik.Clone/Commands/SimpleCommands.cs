@@ -39,14 +39,15 @@ namespace WarFabrik.Clone.Commands
         [Command("?", "help")]
         public static bool Help(BotCommandArgs args)
         {
-            var commandsList = args.Bot.Manager.GetCommandTagList().Select(c => new[] { c.Key }.Concat(c.Value));
-            string message = "";
+            var commandsList = args.Bot.Manager.GetCommandTagList().Select(c => new[] { c.Key }.Concat(c.Value).ToArray()).ToList();
+            string message = "Folgende Befehle sind verfügbar:";
 
             //args.Bot.SendMessage("Folgende Befehle sind verfügbar: !uptime, !hype, !telegram, !flipacoin, !donate, !teamspeak, !twitter, !youtube, !github, !time, !streamer, !projects, !whoami");
-            foreach (var commandTag in commandsList)
-                message += $"!{commandTag},";
+            foreach (var commandTags in commandsList)
+                foreach (var commandTag in commandTags)
+                    message += $" !{commandTag},";
 
-            args.Bot.SendMessage(message.Trim(',',' '));
+            args.Bot.SendMessage(message.Trim(',', ' '));
             return true;
         }
 

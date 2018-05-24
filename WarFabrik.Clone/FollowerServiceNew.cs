@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using TwitchLib;
 using TwitchLib.Api;
 using TwitchLib.Api.Interfaces;
+using TwitchLib.Api.Models.v5.Channels;
 using TwitchLib.Client.Models;
 
 namespace WarFabrik.Clone
@@ -22,7 +23,7 @@ namespace WarFabrik.Clone
         private Timer timer;
         private readonly int timerInterval;
 
-        public JoinedChannel InitialChannel { get; internal set; }
+        public string ChannelId { get; }
 
         /// <summary>
         /// Creates a new instance for the follower service. StartService has to be calles seperately
@@ -30,20 +31,20 @@ namespace WarFabrik.Clone
         /// <param name="api">Instance of the twitch api</param>
         /// <param name="channel">Name of your channel</param>
         /// <param name="period">time interval to check for new followers in miliseconds</param>
-        public FollowerServiceNew(TwitchAPI api, JoinedChannel channel, int period)
+        public FollowerServiceNew(TwitchAPI api, string channelId, int period)
         {
             this.api = api;
             timerInterval = period;
-            InitialChannel = channel;
+            ChannelId = channelId;
             timer = new Timer(async (o) => await TimerTick(o));
         }
 
         public void StartService()
         {
-            var channel = api.Channels.v5.GetChannelByIDAsync(InitialChannel.Channel).Result;
+            var channel = api.Channels.v5.GetChannelByIDAsync(ChannelId).Result;
             var channelFollowers = api.Channels.v5.GetAllFollowersAsync(channel.Id).Result;
 
-            CurrentFollowers = channelFollowers.Select(x=>(IFollow)x).ToList();
+            CurrentFollowers = channelFollowers.Select(x => (IFollow)x).ToList();
             currentFollowerIds = CurrentFollowers.Select(x => x.User.Id).ToList();
 
             timer.Change(0, timerInterval);
@@ -52,8 +53,8 @@ namespace WarFabrik.Clone
 
         private async Task TimerTick(object state)
         {
-            var channel = api.Channels.v5.GetChannelByIDAsync(InitialChannel.Channel).Result;
-            var channelFollowers = await api.Channels.v5.GetChannelFollowersAsync(channel.Id, 100);
+            var channel = api.Channels.v5.GetChannelByIDAsync(ChannelId).Result;
+            var channelFollowers = await api.Channels.v5.GetChannelFollowersAsync(channel.Id, 100);            
             var newFollowers = channelFollowers.Follows.Where(x => !currentFollowerIds.Contains(x.User.Id)).ToList();
 
             if (newFollowers.Count > 0)
@@ -70,5 +71,5 @@ namespace WarFabrik.Clone
         }
     }
 
-    
+
 }
