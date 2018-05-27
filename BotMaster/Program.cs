@@ -23,7 +23,7 @@ namespace BotMaster
             
             twitchBot.FollowerService.OnNewFollowersDetected += TwitchNewFollower;
             Console.CancelKeyPress += ConsoleCancelKeyPress;
-            telegramBot.SendMessageToGroup("NoobDev", "New Follower Alert Test");
+            telegramBot.SendMessageToGroup("NoobDev", "Der Bot ist Online");
             //Console.ReadKey();
             manualReset.WaitOne();
 
