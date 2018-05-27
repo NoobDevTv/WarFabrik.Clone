@@ -28,7 +28,7 @@ namespace NoobDevBot.Telegram.Commands
             var groups = DatabaseManager.GetGroupsFromUser(user);
 
             string s = "Die Gruppen denen du angehörig bist: ";
-            groups.Select(x => x.Name + ", ").ToList().ForEach(x=>s+=x);
+            groups.Select(x => x.Name + ", ").ToList().ForEach(x => s += x);
             args.Bot.SendTextMessageAsync(args.Message.Chat.Id, s.Substring(0, s.Length - 2));
             return true;
         }
