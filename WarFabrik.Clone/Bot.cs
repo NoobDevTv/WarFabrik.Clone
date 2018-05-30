@@ -24,7 +24,7 @@ namespace WarFabrik.Clone
         internal BotCommandManager Manager;
 
         private TwitchClient client;
-        private readonly ConsoleLogger logger;
+        private readonly Logger<TwitchClient> logger;
         private JoinedChannel initialChannel;
 
         private TwitchAPI api;
@@ -33,17 +33,34 @@ namespace WarFabrik.Clone
         {
             var tokenFile = JsonConvert.DeserializeObject<TokenFile>(File.ReadAllText(@".\Token.json"));
             Manager = new BotCommandManager();
-            logger = new ConsoleLogger();
+            logger = new Logger<TwitchClient>(new LoggerFactory());
             api = new TwitchAPI();
             api.Settings.ClientId = tokenFile.ClientId;
             api.Settings.AccessToken = tokenFile.Token;
 
             var credentials = new ConnectionCredentials(tokenFile.Name, tokenFile.OAuth);
             //client = new TwitchClient(credentials, channel: "NoobDevTv", logging: true, logger: logger);
-            client = new TwitchClient();
+            client = new TwitchClient(logger: logger);
             client.Initialize(credentials, channel: "NoobDevTv", autoReListenOnExceptions: true);
-            ChannelId = api.Users.v5.GetUserByNameAsync("NoobDevTv").Result.Matches.First().Id;
-            FollowerService = new FollowerServiceNew(api, ChannelId, 10000);
+
+            bool initialId = true;
+            do
+            {
+                try
+                {
+                    ChannelId = api.Users.v5.GetUserByNameAsync("NoobDevTv").Result.Matches.First().Id;
+                    initialId = false;
+                }
+                catch(Exception ex)
+                {
+                    logger.LogError($"{ex.GetType().Name}: {ex.Message}");
+                    initialId = true;
+                    Thread.Sleep(1000);
+                }
+
+            } while (initialId);
+
+            FollowerService = new FollowerServiceNew(api, ChannelId, 10000, logger: logger);
 
             client.OnConnected += ClientOnConnected;
             client.OnDisconnected += ClientOnDisconnected;
