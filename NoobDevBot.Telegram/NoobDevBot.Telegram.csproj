@@ -8,8 +8,8 @@
 
   <ItemGroup>
     <PackageReference Include="CommandManagementSystem" Version="3.0.0-alpha2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.1.0-preview1-final" />
-    <PackageReference Include="Telegram.Bot" Version="14.4.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.1.1" />
+    <PackageReference Include="Telegram.Bot" Version="14.9.0" />
   </ItemGroup>
 
   <ItemGroup>
