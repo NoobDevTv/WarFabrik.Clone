@@ -19,13 +19,16 @@ namespace WarFabrik.Clone
     {
         public string ChannelId { get; }
 
-        public FollowerServiceNew FollowerService;
+        public FollowerServiceNew FollowerService { get; private set; }
+
+        public event EventHandler<(string Name, int Count)> OnHosted;
 
         internal BotCommandManager Manager;
 
         private TwitchClient client;
-        private readonly Logger<TwitchClient> logger;
         private JoinedChannel initialChannel;
+
+        private readonly Logger<TwitchClient> logger;
 
         private TwitchAPI api;
 
@@ -51,7 +54,7 @@ namespace WarFabrik.Clone
                     ChannelId = api.Users.v5.GetUserByNameAsync("NoobDevTv").Result.Matches.First().Id;
                     initialId = false;
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     logger.LogError($"{ex.GetType().Name}: {ex.Message}");
                     initialId = true;
@@ -65,12 +68,10 @@ namespace WarFabrik.Clone
             client.OnConnected += ClientOnConnected;
             client.OnDisconnected += ClientOnDisconnected;
             client.OnMessageReceived += ClientOnMessageReceived;
+            client.OnBeingHosted += ClientOnBeingHosted;
+            client.OnRaidNotification += ClientOnRaidNotification;
 
             FollowerService.OnNewFollowersDetected += FollowerServiceOnNewFollowersDetected;
-        }
-
-        private void ClientOnChatCommandReceived(object sender, OnChatCommandReceivedArgs e)
-        {
 
         }
 
@@ -81,6 +82,27 @@ namespace WarFabrik.Clone
         }
 
         public void Disconnect() => client.Disconnect();
+
+        public void FollowerServiceOnNewFollowersDetected(object sender, NewFollowerDetectedArgs e)
+        {
+            foreach (var item in e.NewFollowers)
+            {
+                var tempColor = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write(item.User.DisplayName + " has followed and ");
+
+                if (item.Notifications)
+                    Console.WriteLine("wants to be notified");
+                else
+                    Console.WriteLine("doesn't like to be notified");
+
+                Console.ForegroundColor = tempColor;
+
+                client.SendMessage(initialChannel, $"Der {item.User.DisplayName} hat sich verklickt. Vielen lieben dank dafür <3");
+                Manager.Dispatch("hype", new BotCommandArgs(this, api, null));
+            }
+
+        }
 
         internal void SendMessage(string v) => client.SendMessage(initialChannel, v);
 
@@ -110,38 +132,33 @@ namespace WarFabrik.Clone
             client.SendMessage(initialChannel, $"Bot is Online...");
         }
 
-        public void FollowerServiceOnNewFollowersDetected(object sender, NewFollowerDetectedArgs e)
-        {
-            foreach (var item in e.NewFollowers)
-            {
-                var tempColor = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write(item.User.DisplayName + " has followed and ");
-
-                if (item.Notifications)
-                    Console.WriteLine("wants to be notified");
-                else
-                    Console.WriteLine("doesn't like to be notified");
-
-                Console.ForegroundColor = tempColor;
-            }
-
-            Task.Run(() =>
-            {
-                using (var graphics = Graphics.FromHwnd(IntPtr.Zero))
-                {
-                    var font = new Font("Calibri", 12, FontStyle.Bold);
-                    graphics.FillRectangle(new SolidBrush(Color.Black), new Rectangle(0, 0, 200, 200));
-                    graphics.DrawString("Neuer Follower", font, new SolidBrush(Color.Red), new PointF(0, 0));
-                    Thread.Sleep(5000);
-                }
-            });
-        }
-
         private void ClientOnDisconnected(object sender, OnDisconnectedArgs e)
         {
             //logger.Info("Bot disconnect");
             client.SendMessage(initialChannel, "Ich gehe in den Standby bb");
+        }
+
+        private void ClientOnRaidNotification(object sender, OnRaidNotificationArgs e)
+        {
+            if (!int.TryParse(e.RaidNotificaiton.MsgParamViewerCount, out int count))
+                count = 0;
+        }
+
+        private void ClientOnBeingHosted(object sender, OnBeingHostedArgs e)
+        {
+            if (!e.BeingHostedNotification.IsAutoHosted)
+                return;
+
+            var channel = e.BeingHostedNotification.HostedByChannel;
+            var count = e.BeingHostedNotification.Viewers;
+
+            client.SendMessage(initialChannel, $"{channel} bring jede Menge Noobs mit, nämlich 1 bis {count}. Yippie");
+            OnHosted?.Invoke(this, (channel, count));
+        }
+
+        private void ClientOnChatCommandReceived(object sender, OnChatCommandReceivedArgs e)
+        {
+
         }
     }
 }

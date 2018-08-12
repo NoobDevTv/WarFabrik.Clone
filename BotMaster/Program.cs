@@ -22,12 +22,16 @@ namespace BotMaster
             twitchBot.Connect();
             
             twitchBot.FollowerService.OnNewFollowersDetected += TwitchNewFollower;
+            twitchBot.OnHosted += TwitchBotOnHosted;
             Console.CancelKeyPress += ConsoleCancelKeyPress;
             telegramBot.SendMessageToGroup("NoobDev", "Der Bot ist Online");
             //Console.ReadKey();
             manualReset.WaitOne();
 
         }
+
+        private static void TwitchBotOnHosted(object sender, (string Name, int Count) e) 
+            => telegramBot.SendMessageToGroup("NoobDev", $"We are hosted by {e.Name} with {e.Count} viewers");
 
         private static void ConsoleCancelKeyPress(object sender, ConsoleCancelEventArgs e)
         {
@@ -41,7 +45,7 @@ namespace BotMaster
         {
             string followerNames = "";
             e.NewFollowers.ForEach(x => followerNames += x.User.DisplayName + ", ");
-            telegramBot.SendMessageToGroup("NoobDev", "Following people just followed: " + followerNames);
+            telegramBot.SendMessageToGroup("NoobDev", "Following people just followed: " + followerNames.Trim(',').Trim());
         }
     }
 }
