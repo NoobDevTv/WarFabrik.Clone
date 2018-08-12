@@ -259,3 +259,12 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+/Wargame.Clone/Token.json
+/WarFabrik.Clone/Token.json
+/BotMaster/Token.json
+/BotMaster/Telegram_Token.txt
+/BotMaster/telegram.db
+/Token.json
+/Telegram_Token.txt
+/NoobDevBot.Telegram/key.txt
+/NoobDevBot.Telegram/Telegram_Token.txt
