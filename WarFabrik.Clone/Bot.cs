@@ -11,6 +11,7 @@ using TwitchLib.Api;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
+using TwitchLib.Communication.Events;
 using static WarFabrik.Clone.FollowerServiceNew;
 
 namespace WarFabrik.Clone
@@ -51,7 +52,7 @@ namespace WarFabrik.Clone
             {
                 try
                 {
-                    ChannelId = api.Users.v5.GetUserByNameAsync("NoobDevTv").Result.Matches.First().Id;
+                    ChannelId = api.V5.Users.GetUserByNameAsync("NoobDevTv").Result.Matches.First().Id;
                     initialId = false;
                 }
                 catch (Exception ex)
@@ -74,7 +75,7 @@ namespace WarFabrik.Clone
             FollowerService.OnNewFollowersDetected += FollowerServiceOnNewFollowersDetected;
 
         }
-
+        
         public void Connect()
         {
             client.Connect();
@@ -132,7 +133,7 @@ namespace WarFabrik.Clone
             client.SendMessage(initialChannel, $"Bot is Online...");
         }
 
-        private void ClientOnDisconnected(object sender, OnDisconnectedArgs e)
+        private void ClientOnDisconnected(object sender, OnDisconnectedEventArgs e)
         {
             //logger.Info("Bot disconnect");
             client.SendMessage(initialChannel, "Ich gehe in den Standby bb");

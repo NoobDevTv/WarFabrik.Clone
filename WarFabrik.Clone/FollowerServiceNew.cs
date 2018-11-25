@@ -8,8 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using TwitchLib;
 using TwitchLib.Api;
+using TwitchLib.Api.Core.Interfaces;
 using TwitchLib.Api.Interfaces;
-using TwitchLib.Api.Models.v5.Channels;
+using TwitchLib.Api.V5.Models.Channels;
 using TwitchLib.Client;
 using TwitchLib.Client.Models;
 
@@ -71,9 +72,9 @@ namespace WarFabrik.Clone
             {
                 try
                 {
-                    channel = api.Channels.v5.GetChannelByIDAsync(ChannelId).Result;
+                    channel = api.V5.Channels.GetChannelByIDAsync(ChannelId).Result;
                     Thread.Sleep(5000);
-                    channelFollowers.AddRange(api.Channels.v5.GetAllFollowersAsync(channel.Id).Result);
+                    channelFollowers.AddRange(api.V5.Channels.GetAllFollowersAsync(channel.Id).Result);
                     initial = false;
                 }
                 catch (Exception ex)
@@ -107,7 +108,7 @@ namespace WarFabrik.Clone
 
             try
             {
-                channelFollowers = await api.Channels.v5.GetChannelFollowersAsync(id, 100);
+                channelFollowers = await api.V5.Channels.GetChannelFollowersAsync(id, 100);
             }
             catch (Exception ex)
             {

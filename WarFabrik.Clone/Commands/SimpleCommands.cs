@@ -135,7 +135,7 @@ namespace WarFabrik.Clone.Commands
         private static async Task<bool> AsyncStuff(BotCommandArgs args)
         {
             string result = "";
-            var user = await args.TwitchAPI.Users.v5.GetUserByIDAsync(args.Message.UserId);
+            var user = await args.TwitchAPI.V5.Users.GetUserByIDAsync(args.Message.UserId);
 
             if (user == null)
             {
@@ -166,7 +166,7 @@ namespace WarFabrik.Clone.Commands
 
         private static async Task<bool> UptimeAsync(BotCommandArgs args)
         {
-            var uptime = await args.TwitchAPI.Streams.v5.GetUptimeAsync(args.Message.RoomId);
+            var uptime = await args.TwitchAPI.V5.Streams.GetUptimeAsync(args.Message.RoomId);
 
             if (uptime == null)
             {
