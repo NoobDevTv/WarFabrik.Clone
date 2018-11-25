@@ -66,7 +66,7 @@ namespace WarFabrik.Clone
         {
             bool initial = true;
 
-            List<ChannelFollow> channelFollowers = new List<ChannelFollow>();
+            var channelFollowers = new List<ChannelFollow>(); 
 
             do
             {

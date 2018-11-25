@@ -99,7 +99,7 @@ namespace WarFabrik.Clone
 
                 Console.ForegroundColor = tempColor;
 
-                client.SendMessage(initialChannel, $"Der {item.User.DisplayName} hat sich verklickt. Vielen lieben dank dafür <3");
+                client.SendMessage(initialChannel, $"{item.User.DisplayName} hat sich verklickt. Vielen lieben dank dafür <3");
                 Manager.Dispatch("hype", new BotCommandArgs(this, api, null));
             }
 
