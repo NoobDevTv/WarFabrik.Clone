@@ -1,6 +1,7 @@
 ﻿using NLog;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -20,7 +21,13 @@ namespace NoobDevBot.Telegram
         public TelegramBot()
         {
             logger = LogManager.GetCurrentClassLogger();
-            bot = new TelegramBotClient(System.IO.File.ReadAllText(@".\Telegram_Token.txt"));
+
+            var info = new FileInfo(Path.Combine(".", "additionalfiles", "Telegram_Token.txt"));
+
+            if (!info.Directory.Exists)
+                info.Directory.Create();
+
+            bot = new TelegramBotClient(System.IO.File.ReadAllText(info.FullName));
             manager = new TelegramCommandManager();
             DatabaseManager.Initialize();
             //DatabaseManager.CreateGroup("NoobDev");
