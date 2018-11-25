@@ -1,5 +1,9 @@
-﻿using NoobDevBot.Telegram;
+﻿using NLog;
+using NLog.Config;
+using NLog.Targets;
+using NoobDevBot.Telegram;
 using System;
+using System.IO;
 using System.Threading;
 using WarFabrik.Clone;
 using static WarFabrik.Clone.FollowerServiceNew;
@@ -8,12 +12,30 @@ namespace BotMaster
 {
     class Program
     {
+        private static Logger logger;
         private static ManualResetEvent manualReset;
         private static Bot twitchBot;
         private static TelegramBot telegramBot;
 
         static void Main(string[] args)
         {
+            var config = new LoggingConfiguration();
+
+            var info = new FileInfo(Path.Combine(".", "additionalfiles", "botmaster.log"));
+
+            if (!info.Directory.Exists)
+                info.Directory.Create();
+
+#if DEBUG
+            config.AddRule(LogLevel.Debug, LogLevel.Fatal, new ColoredConsoleTarget("botmaster.logconsole"));
+            config.AddRule(LogLevel.Trace, LogLevel.Fatal, new FileTarget("botmaster.logfile") { FileName = info.FullName });
+#else
+            config.AddRule(LogLevel.Info, LogLevel.Fatal, new FileTarget("botmaster.logfile") { FileName = info.FullName });
+#endif
+            LogManager.Configuration = config;
+            logger = LogManager.GetCurrentClassLogger();
+
+
             manualReset = new ManualResetEvent(false);
 
             telegramBot = new TelegramBot();
@@ -24,8 +46,8 @@ namespace BotMaster
             twitchBot.FollowerService.OnNewFollowersDetected += TwitchNewFollower;
             twitchBot.OnHosted += TwitchBotOnHosted;
             Console.CancelKeyPress += ConsoleCancelKeyPress;
+            logger.Info("Der Bot ist Online");
             telegramBot.SendMessageToGroup("NoobDev", "Der Bot ist Online");
-            //Console.ReadKey();
             manualReset.WaitOne();
 
         }
@@ -35,7 +57,7 @@ namespace BotMaster
 
         private static void ConsoleCancelKeyPress(object sender, ConsoleCancelEventArgs e)
         {
-            Console.WriteLine("Quit Bot master");
+            logger.Info("Quit Bot master");
             telegramBot.Exit();
             twitchBot.Disconnect();
             manualReset.Set();

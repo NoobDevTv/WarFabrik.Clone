@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,8 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using TwitchLib;
 using TwitchLib.Api;
+using TwitchLib.Api.Core.Interfaces;
 using TwitchLib.Api.Interfaces;
-using TwitchLib.Api.Models.v5.Channels;
+using TwitchLib.Api.V5.Models.Channels;
 using TwitchLib.Client;
 using TwitchLib.Client.Models;
 
@@ -27,7 +29,7 @@ namespace WarFabrik.Clone
         private readonly int timerInterval;
         private readonly object lockObject;
         private bool runningThread;
-        private readonly Logger<TwitchClient> logger;
+        private readonly Logger logger;
         private Channel channel;
 
         public string ChannelId { get; }
@@ -38,13 +40,13 @@ namespace WarFabrik.Clone
         /// <param name="api">Instance of the twitch api</param>
         /// <param name="channel">Name of your channel</param>
         /// <param name="period">time interval to check for new followers in miliseconds</param>
-        public FollowerServiceNew(TwitchAPI api, string channelId, int period, Logger<TwitchClient> logger)
+        public FollowerServiceNew(TwitchAPI api, string channelId, int period)
         {
             this.api = api;
             timerInterval = period;
             ChannelId = channelId;
             runningThread = true;
-            this.logger = logger;
+            logger = LogManager.GetCurrentClassLogger();
 
             thread = new Thread(() =>
             {
@@ -65,21 +67,21 @@ namespace WarFabrik.Clone
         {
             bool initial = true;
 
-            List<ChannelFollow> channelFollowers = new List<ChannelFollow>();
+            var channelFollowers = new List<ChannelFollow>();
 
             do
             {
                 try
                 {
-                    channel = api.Channels.v5.GetChannelByIDAsync(ChannelId).Result;
+                    channel = api.V5.Channels.GetChannelByIDAsync(ChannelId).Result;
                     Thread.Sleep(5000);
-                    channelFollowers.AddRange(api.Channels.v5.GetAllFollowersAsync(channel.Id).Result);
+                    channelFollowers.AddRange(api.V5.Channels.GetAllFollowersAsync(channel.Id).Result);
                     initial = false;
                 }
                 catch (Exception ex)
                 {
                     initial = true;
-                    logger.LogError($"{ex.GetType().Name}: {ex.Message}");
+                    logger.Error($"{ex.GetType().Name}: {ex.Message}");
                     Thread.Sleep(1000);
                 }
 
@@ -107,11 +109,11 @@ namespace WarFabrik.Clone
 
             try
             {
-                channelFollowers = await api.Channels.v5.GetChannelFollowersAsync(id, 100);
+                channelFollowers = await api.V5.Channels.GetChannelFollowersAsync(id, 100);
             }
             catch (Exception ex)
             {
-                logger.LogError($"{ex.GetType().Name}: {ex.Message}");
+                logger.Error($"{ex.GetType().Name}: {ex.Message}");
                 Thread.Sleep(1000);
                 return;
             }
