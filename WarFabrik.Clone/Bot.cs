@@ -37,7 +37,7 @@ namespace WarFabrik.Clone
         public Bot()
         {
             logger = LogManager.GetCurrentClassLogger();
-            var info = new FileInfo(Path.Combine(".", "additionalFiles", "Token.json"));
+            var info = new FileInfo(Path.Combine(".", "additionalfiles", "Token.json"));
 
             if (!info.Directory.Exists)
                 info.Directory.Create();

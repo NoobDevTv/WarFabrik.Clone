@@ -18,7 +18,7 @@ namespace NoobDevBot.Telegram
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var info = new FileInfo(Path.Combine(".", "additionalFiles", "telegram.db"));
+            var info = new FileInfo(Path.Combine(".", "additionalfiles", "telegram.db"));
 
             if (!info.Directory.Exists)
                 info.Directory.Create();

@@ -22,7 +22,7 @@ namespace NoobDevBot.Telegram
         {
             logger = LogManager.GetCurrentClassLogger();
 
-            var info = new FileInfo(Path.Combine(".", "additionalFiles", "Telegram_Token.txt"));
+            var info = new FileInfo(Path.Combine(".", "additionalfiles", "Telegram_Token.txt"));
 
             if (!info.Directory.Exists)
                 info.Directory.Create();

@@ -21,7 +21,7 @@ namespace BotMaster
         {
             var config = new LoggingConfiguration();
 
-            var info = new FileInfo(Path.Combine(".", "additionalFiles", "botmaster.log"));
+            var info = new FileInfo(Path.Combine(".", "additionalfiles", "botmaster.log"));
 
             if (!info.Directory.Exists)
                 info.Directory.Create();
