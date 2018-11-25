@@ -1,6 +1,7 @@
 ﻿using CommandManagementSystem;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using NLog;
 using System;
 using System.Drawing;
 using System.IO;
@@ -29,22 +30,22 @@ namespace WarFabrik.Clone
         private TwitchClient client;
         private JoinedChannel initialChannel;
 
-        private readonly Logger<TwitchClient> logger;
 
         private TwitchAPI api;
+        private readonly Logger logger;
 
         public Bot()
         {
+            logger = LogManager.GetCurrentClassLogger();
             var tokenFile = JsonConvert.DeserializeObject<TokenFile>(File.ReadAllText(@".\Token.json"));
             Manager = new BotCommandManager();
-            logger = new Logger<TwitchClient>(new LoggerFactory());
             api = new TwitchAPI();
             api.Settings.ClientId = tokenFile.ClientId;
             api.Settings.AccessToken = tokenFile.Token;
 
             var credentials = new ConnectionCredentials(tokenFile.Name, tokenFile.OAuth);
             //client = new TwitchClient(credentials, channel: "NoobDevTv", logging: true, logger: logger);
-            client = new TwitchClient(logger: logger);
+            client = new TwitchClient();
             client.Initialize(credentials, channel: "NoobDevTv", autoReListenOnExceptions: true);
 
             bool initialId = true;
@@ -57,14 +58,14 @@ namespace WarFabrik.Clone
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError($"{ex.GetType().Name}: {ex.Message}");
+                    logger.Error($"{ex.GetType().Name}: {ex.Message}");
                     initialId = true;
                     Thread.Sleep(1000);
                 }
 
             } while (initialId);
 
-            FollowerService = new FollowerServiceNew(api, ChannelId, 10000, logger: logger);
+            FollowerService = new FollowerServiceNew(api, ChannelId, 10000);
 
             client.OnConnected += ClientOnConnected;
             client.OnDisconnected += ClientOnDisconnected;
@@ -88,16 +89,14 @@ namespace WarFabrik.Clone
         {
             foreach (var item in e.NewFollowers)
             {
-                var tempColor = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write(item.User.DisplayName + " has followed and ");
+                var msg = item.User.DisplayName + " has followed and ";
 
                 if (item.Notifications)
-                    Console.WriteLine("wants to be notified");
+                    msg += "wants to be notified";
                 else
-                    Console.WriteLine("doesn't like to be notified");
+                    msg += "doesn't like to be notified";
 
-                Console.ForegroundColor = tempColor;
+                logger.Info(msg);
 
                 client.SendMessage(initialChannel, $"{item.User.DisplayName} hat sich verklickt. Vielen lieben dank dafür <3");
                 Manager.Dispatch("hype", new BotCommandArgs(this, api, null));
@@ -127,7 +126,7 @@ namespace WarFabrik.Clone
 
         private void ClientOnConnected(object sender, OnConnectedArgs e)
         {
-            //logger.Info("Connected to Twitch Channel {Channel}");
+            logger.Info($"Connected to Twitch Channel");
             initialChannel = client.JoinedChannels.FirstOrDefault();
             FollowerService.StartService();
             client.SendMessage(initialChannel, $"Bot is Online...");
@@ -135,7 +134,7 @@ namespace WarFabrik.Clone
 
         private void ClientOnDisconnected(object sender, OnDisconnectedEventArgs e)
         {
-            //logger.Info("Bot disconnect");
+            logger.Info("Bot disconnect");
             client.SendMessage(initialChannel, "Ich gehe in den Standby bb");
         }
 

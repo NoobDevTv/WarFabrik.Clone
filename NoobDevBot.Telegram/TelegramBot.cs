@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,11 +13,13 @@ namespace NoobDevBot.Telegram
 {
     public class TelegramBot
     {
+        private readonly Logger logger;
         private TelegramBotClient bot;
         private TelegramCommandManager manager;
 
         public TelegramBot()
         {
+            logger = LogManager.GetCurrentClassLogger();
             bot = new TelegramBotClient(System.IO.File.ReadAllText(@".\Telegram_Token.txt"));
             manager = new TelegramCommandManager();
             DatabaseManager.Initialize();
