@@ -3,6 +3,7 @@ using NLog.Config;
 using NLog.Targets;
 using NoobDevBot.Telegram;
 using System;
+using System.IO;
 using System.Threading;
 using WarFabrik.Clone;
 using static WarFabrik.Clone.FollowerServiceNew;
@@ -20,11 +21,16 @@ namespace BotMaster
         {
             var config = new LoggingConfiguration();
 
+            var info = new FileInfo(Path.Combine(".", "additionalFiles", "botmaster.log"));
+
+            if (!info.Directory.Exists)
+                info.Directory.Create();
+
 #if DEBUG
             config.AddRule(LogLevel.Debug, LogLevel.Fatal, new ColoredConsoleTarget("botmaster.logconsole"));
-            config.AddRule(LogLevel.Trace, LogLevel.Fatal, new FileTarget("botmaster.logfile") { FileName = "botmaster.log" });
+            config.AddRule(LogLevel.Trace, LogLevel.Fatal, new FileTarget("botmaster.logfile") { FileName = info.FullName });
 #else
-            config.AddRule(LogLevel.Info, LogLevel.Fatal, new FileTarget("botmaster.logfile") { FileName = "botmaster.log" });
+            config.AddRule(LogLevel.Info, LogLevel.Fatal, new FileTarget("botmaster.logfile") { FileName = info.FullName });
 #endif
             LogManager.Configuration = config;
             logger = LogManager.GetCurrentClassLogger();
