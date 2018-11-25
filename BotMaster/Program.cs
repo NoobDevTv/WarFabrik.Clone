@@ -1,4 +1,7 @@
-﻿using NoobDevBot.Telegram;
+﻿using NLog;
+using NLog.Config;
+using NLog.Targets;
+using NoobDevBot.Telegram;
 using System;
 using System.Threading;
 using WarFabrik.Clone;
@@ -8,12 +11,25 @@ namespace BotMaster
 {
     class Program
     {
+        private static Logger logger;
         private static ManualResetEvent manualReset;
         private static Bot twitchBot;
         private static TelegramBot telegramBot;
 
         static void Main(string[] args)
         {
+            var config = new LoggingConfiguration();
+
+#if DEBUG
+            config.AddRule(LogLevel.Debug, LogLevel.Fatal, new ColoredConsoleTarget("botmaster.logconsole"));
+            config.AddRule(LogLevel.Trace, LogLevel.Fatal, new FileTarget("botmaster.logfile") { FileName = "botmaster.log" });
+#else
+            config.AddRule(LogLevel.Info, LogLevel.Fatal, new FileTarget("botmaster.logfile") { FileName = "botmaster.log" });
+#endif
+            LogManager.Configuration = config;
+            logger = LogManager.GetCurrentClassLogger();
+
+
             manualReset = new ManualResetEvent(false);
 
             telegramBot = new TelegramBot();
@@ -24,8 +40,8 @@ namespace BotMaster
             twitchBot.FollowerService.OnNewFollowersDetected += TwitchNewFollower;
             twitchBot.OnHosted += TwitchBotOnHosted;
             Console.CancelKeyPress += ConsoleCancelKeyPress;
+            logger.Info("Der Bot ist Online");
             telegramBot.SendMessageToGroup("NoobDev", "Der Bot ist Online");
-            //Console.ReadKey();
             manualReset.WaitOne();
 
         }
@@ -35,7 +51,7 @@ namespace BotMaster
 
         private static void ConsoleCancelKeyPress(object sender, ConsoleCancelEventArgs e)
         {
-            Console.WriteLine("Quit Bot master");
+            logger.Info("Quit Bot master");
             telegramBot.Exit();
             twitchBot.Disconnect();
             manualReset.Set();

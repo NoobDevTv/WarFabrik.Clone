@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -28,7 +29,7 @@ namespace WarFabrik.Clone
         private readonly int timerInterval;
         private readonly object lockObject;
         private bool runningThread;
-        private readonly Logger<TwitchClient> logger;
+        private readonly Logger logger;
         private Channel channel;
 
         public string ChannelId { get; }
@@ -39,13 +40,13 @@ namespace WarFabrik.Clone
         /// <param name="api">Instance of the twitch api</param>
         /// <param name="channel">Name of your channel</param>
         /// <param name="period">time interval to check for new followers in miliseconds</param>
-        public FollowerServiceNew(TwitchAPI api, string channelId, int period, Logger<TwitchClient> logger)
+        public FollowerServiceNew(TwitchAPI api, string channelId, int period)
         {
             this.api = api;
             timerInterval = period;
             ChannelId = channelId;
             runningThread = true;
-            this.logger = logger;
+            logger = LogManager.GetCurrentClassLogger();
 
             thread = new Thread(() =>
             {
@@ -66,7 +67,7 @@ namespace WarFabrik.Clone
         {
             bool initial = true;
 
-            var channelFollowers = new List<ChannelFollow>(); 
+            var channelFollowers = new List<ChannelFollow>();
 
             do
             {
@@ -80,7 +81,7 @@ namespace WarFabrik.Clone
                 catch (Exception ex)
                 {
                     initial = true;
-                    logger.LogError($"{ex.GetType().Name}: {ex.Message}");
+                    logger.Error($"{ex.GetType().Name}: {ex.Message}");
                     Thread.Sleep(1000);
                 }
 
@@ -112,7 +113,7 @@ namespace WarFabrik.Clone
             }
             catch (Exception ex)
             {
-                logger.LogError($"{ex.GetType().Name}: {ex.Message}");
+                logger.Error($"{ex.GetType().Name}: {ex.Message}");
                 Thread.Sleep(1000);
                 return;
             }
