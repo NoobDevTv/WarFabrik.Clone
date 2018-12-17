@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2026
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28407.52
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WarFabrik.Clone", "WarFabrik.Clone\WarFabrik.Clone.csproj", "{52E7144A-2D6A-43BF-98EB-98730A197918}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoobDevBot.Telegram", "NoobDevBot.Telegram\NoobDevBot.Telegram.csproj", "{CE1D2188-72EE-4B5D-982A-7F1B07964E8E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotMaster", "BotMaster\BotMaster.csproj", "{516A2D11-D436-44CA-B2EF-1B31FCB7877A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster", "BotMaster\BotMaster.csproj", "{516A2D11-D436-44CA-B2EF-1B31FCB7877A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
