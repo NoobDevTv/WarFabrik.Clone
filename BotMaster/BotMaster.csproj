@@ -6,9 +6,11 @@
     <AssemblyVersion>0.4.0.0</AssemblyVersion>
     <FileVersion>0.3.0.0</FileVersion>
     <Version>0.3.0</Version>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.7.9" />
     <PackageReference Include="NLog" Version="4.5.11" />
   </ItemGroup>
 

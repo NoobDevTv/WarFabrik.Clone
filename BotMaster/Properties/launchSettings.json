@@ -3,6 +3,9 @@
     "BotMaster": {
       "commandName": "Project",
       "workingDirectory": "D:\\Projekte\\Visual 2017\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\netcoreapp2.0"
+    },
+    "Docker": {
+      "commandName": "Docker"
     }
   }
 }
