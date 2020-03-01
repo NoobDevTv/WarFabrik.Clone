@@ -37,9 +37,11 @@ namespace WarFabrik.Clone
         private readonly TwitchClient client;
         private readonly TwitchAPI api;
         private readonly Logger logger;
+        private bool disconnectRequested;
 
         public Bot()
         {
+            disconnectRequested = false;
             logger = LogManager.GetCurrentClassLogger();
             var info = new FileInfo(Path.Combine(".", "additionalfiles", "Token.json"));
 
@@ -69,7 +71,10 @@ namespace WarFabrik.Clone
             => client.Connect();
 
         public void Disconnect()
-            => client.Disconnect();
+        {
+            disconnectRequested = true;
+            client.Disconnect();
+        }
 
         public async Task Run(CancellationToken token)
         {
@@ -127,9 +132,14 @@ namespace WarFabrik.Clone
 
         private void ClientOnDisconnected(object sender, OnDisconnectedEventArgs e)
         {
+            if (!disconnectRequested)
+            {
+                Connect();
+                return;
+            }
+
             logger.Info("Bot disconnect");
             client.SendMessage(initialChannel, "Ich gehe in den Standby bb");
-            Connect();
         }
 
         private void ClientOnRaidNotification(object sender, OnRaidNotificationArgs e)
