@@ -4,22 +4,28 @@ using NLog.Targets;
 using NoobDevBot.Telegram;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using WarFabrik.Clone;
 using static WarFabrik.Clone.FollowerServiceNew;
 
 namespace BotMaster
 {
-    class Program
+    internal class Program
     {
         private static Logger logger;
-        private static ManualResetEvent manualReset;
+        private static CancellationTokenSource tokenSource;
         private static Bot twitchBot;
         private static TelegramBot telegramBot;
 
-        static void Main(string[] args)
+        private static ManualResetEvent resetEvent;
+
+        internal static async Task Main(string[] args)
         {
             var config = new LoggingConfiguration();
+            resetEvent = new ManualResetEvent(false);
+            tokenSource = new CancellationTokenSource();
 
             var info = new FileInfo(Path.Combine(".", "additionalfiles", "botmaster.log"));
 
@@ -34,40 +40,34 @@ namespace BotMaster
 #endif
             LogManager.Configuration = config;
             logger = LogManager.GetCurrentClassLogger();
-
-
-            manualReset = new ManualResetEvent(false);
+            Console.CancelKeyPress += ConsoleCancelKeyPress;
 
             telegramBot = new TelegramBot();
-
-            twitchBot = new Bot();
-            twitchBot.Connect();
             
+            twitchBot = new Bot();
             twitchBot.FollowerService.OnNewFollowersDetected += TwitchNewFollower;
-            twitchBot.OnHosted += TwitchBotOnHosted;
-            Console.CancelKeyPress += ConsoleCancelKeyPress;
+            twitchBot.OnRaid += TwitchBotOnHosted;
+
+            await twitchBot.Run(tokenSource.Token);
+            
             logger.Info("Der Bot ist Online");
             telegramBot.SendMessageToGroup("NoobDev", "Der Bot ist Online");
-            manualReset.WaitOne();
-
+            resetEvent.WaitOne();
         }
 
-        private static void TwitchBotOnHosted(object sender, (string Name, int Count) e) 
-            => telegramBot.SendMessageToGroup("NoobDev", $"We are hosted by {e.Name} with {e.Count} viewers");
+        private static void TwitchBotOnHosted(object sender, string message) 
+            => telegramBot.SendMessageToGroup("NoobDev", message);
 
         private static void ConsoleCancelKeyPress(object sender, ConsoleCancelEventArgs e)
         {
             logger.Info("Quit Bot master");
             telegramBot.Exit();
             twitchBot.Disconnect();
-            manualReset.Set();
+            tokenSource.Cancel();
+            resetEvent.Set();
         }
 
         private static void TwitchNewFollower(object sender, NewFollowerDetectedArgs e)
-        {
-            string followerNames = "";
-            e.NewFollowers.ForEach(x => followerNames += x.User.DisplayName + ", ");
-            telegramBot.SendMessageToGroup("NoobDev", "Following people just followed: " + followerNames.Trim(',').Trim());
-        }
+            => telegramBot.SendMessageToGroup("NoobDev", "Following people just followed: " + string.Join(", ", e.NewFollowers.Select(x=>x.UserName)));
     }
 }

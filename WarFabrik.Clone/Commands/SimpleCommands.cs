@@ -1,6 +1,7 @@
 ﻿using CommandManagementSystem.Attributes;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -145,19 +146,14 @@ namespace WarFabrik.Clone.Commands
 
             result += $"Hallo {user.DisplayName}. Du bist registriert seit {user.CreatedAt} und folgst uns ";
 
-            var follow = args.Bot.FollowerService.CurrentFollowers.FirstOrDefault(x => x.User.Id == user.Id);
-            if (follow == null)
+            var follow = (await args.TwitchAPI.Helix.Users.GetUsersFollowsAsync(fromId: args.Message.UserId, toId: args.Bot.ChannelId)).Follows.FirstOrDefault();
+            if (follow == default) 
             {
                 result += "leider nicht :(.";
             }
             else
             {
-                result += "seit dem " + follow.CreatedAt + ". Danke dafür :). ";
-
-                if (follow.Notifications)
-                    result += "Außerdem möchtest du benachrichtigt werden, wenn wir streamen :).";
-                else
-                    result += "Dich scheinen Benachrichtigungen in Form von Emails zu stören.";
+                result += "seit dem " + follow.FollowedAt + ". Danke dafür :). ";
             }
 
             args.Bot.SendMessage(result);

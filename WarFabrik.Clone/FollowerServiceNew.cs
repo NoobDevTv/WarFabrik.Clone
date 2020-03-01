@@ -7,9 +7,11 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using TwitchLib;
 using TwitchLib.Api;
 using TwitchLib.Api.Core.Interfaces;
+using TwitchLib.Api.Helix.Models.Users;
 using TwitchLib.Api.Interfaces;
 using TwitchLib.Api.V5.Models.Channels;
 using TwitchLib.Client;
@@ -17,22 +19,19 @@ using TwitchLib.Client.Models;
 
 namespace WarFabrik.Clone
 {
-    public class FollowerServiceNew
+    public class FollowerServiceNew : IDisposable
     {
-        public List<IFollow> CurrentFollowers;
+        private readonly List<FollowInformation> currentFollowers;
 
         public event EventHandler<NewFollowerDetectedArgs> OnNewFollowersDetected;
 
-        private TwitchAPI api;
-        private List<string> currentFollowerIds;
-        private Thread thread;
+        private readonly TwitchAPI api;
         private readonly int timerInterval;
-        private readonly object lockObject;
-        private bool runningThread;
         private readonly Logger logger;
-        private Channel channel;
 
-        public string ChannelId { get; }
+        private bool firstCall;
+
+        private readonly System.Timers.Timer timer;
 
         /// <summary>
         /// Creates a new instance for the follower service. StartService has to be calles seperately
@@ -40,101 +39,70 @@ namespace WarFabrik.Clone
         /// <param name="api">Instance of the twitch api</param>
         /// <param name="channel">Name of your channel</param>
         /// <param name="period">time interval to check for new followers in miliseconds</param>
-        public FollowerServiceNew(TwitchAPI api, string channelId, int period)
+        public FollowerServiceNew(TwitchAPI api, int period)
         {
+            timer = new System.Timers.Timer();
+
             this.api = api;
             timerInterval = period;
-            ChannelId = channelId;
-            runningThread = true;
             logger = LogManager.GetCurrentClassLogger();
-
-            thread = new Thread(() =>
-            {
-                do
-                {
-                    Thread.Sleep(timerInterval);
-                    TimerTick().Wait();
-
-                } while (runningThread);
-            });
-
-            lockObject = new object();
-            thread.Name = "ChannelListener";
-            thread.IsBackground = true;
+            firstCall = true;
+            currentFollowers = new List<FollowInformation>();
         }
 
-        public void StartService()
+        public void StartService(string userId, CancellationToken token)
         {
-            bool initial = true;
-
-            var channelFollowers = new List<ChannelFollow>();
-
-            do
+            timer.Elapsed += (s, e) =>
             {
-                try
-                {
-                    channel = api.V5.Channels.GetChannelByIDAsync(ChannelId).Result;
-                    Thread.Sleep(5000);
-                    channelFollowers.AddRange(api.V5.Channels.GetAllFollowersAsync(channel.Id).Result);
-                    initial = false;
-                }
-                catch (Exception ex)
-                {
-                    initial = true;
-                    logger.Error($"{ex.GetType().Name}: {ex.Message}");
-                    Thread.Sleep(1000);
-                }
-
-            } while (initial);
-
-            lock (lockObject)
-            {
-                CurrentFollowers = channelFollowers.Select(x => (IFollow)x).ToList();
-                currentFollowerIds = CurrentFollowers.Select(x => x.User.Id).ToList();
-            }
-
-            //thread.Change(0, timerInterval);
-            thread.Start();
+                var task = Task.Run(async () => await Loop(userId, token));
+                task.Wait();
+            };
+            timer.Interval = timerInterval;
+            timer.Start();
         }
 
-
-        private async Task TimerTick()
+        private async Task<IEnumerable<FollowInformation>> GetFollowsAsync(string userId)
         {
-            ChannelFollowers channelFollowers;
-            string id;
+            var followerResponse = await api.Helix.Users.GetUsersFollowsAsync(toId: userId);
+            return followerResponse.Follows.Select(f => new FollowInformation(f.FromUserName, f.FromUserId, f.FollowedAt));
+        }
 
-            lock (lockObject)
-                id = channel.Id;
-
-
+        private async Task Loop(string userId, CancellationToken token)
+        {
+            IEnumerable<FollowInformation> followInformations;
             try
             {
-                channelFollowers = await api.V5.Channels.GetChannelFollowersAsync(id, 100);
+                followInformations = await GetFollowsAsync(userId);
             }
             catch (Exception ex)
             {
                 logger.Error($"{ex.GetType().Name}: {ex.Message}");
-                Thread.Sleep(1000);
                 return;
             }
 
-            var newFollowers = channelFollowers.Follows.Where(x => !currentFollowerIds.Contains(x.User.Id)).ToList();
+            var newFollowers = followInformations.Except(currentFollowers).ToList();
 
-            if (newFollowers.Count > 0)
+            if (newFollowers.Count() > 0)
             {
-                lock (lockObject)
-                {
-                    CurrentFollowers.AddRange(newFollowers);
-                    currentFollowerIds.AddRange(newFollowers.Select(x => x.User.Id));
-                }
+                currentFollowers.AddRange(newFollowers);
 
-                OnNewFollowersDetected?.Invoke(this, new NewFollowerDetectedArgs { NewFollowers = newFollowers });
+                if (!firstCall)
+                    OnNewFollowersDetected?.Invoke(this, new NewFollowerDetectedArgs { NewFollowers = newFollowers });
             }
+
+            if (firstCall)
+                firstCall = false;
+        }
+
+        public void Dispose()
+        {
+            timer.Stop();
+            timer.Dispose();
         }
 
         public class NewFollowerDetectedArgs
         {
-            public List<IFollow> NewFollowers { get; internal set; }
+            public List<FollowInformation> NewFollowers { get; internal set; }
         }
     }
 

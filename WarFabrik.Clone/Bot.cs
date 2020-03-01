@@ -3,14 +3,19 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using NLog;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using TwitchLib.Api;
+using TwitchLib.Api.Helix;
+using TwitchLib.Api.Helix.Models.Users;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
+using TwitchLib.Client.Exceptions;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Events;
 using static WarFabrik.Clone.FollowerServiceNew;
@@ -19,19 +24,18 @@ namespace WarFabrik.Clone
 {
     public class Bot
     {
-        public string ChannelId { get; }
+        public string ChannelId { get; private set; }
 
         public FollowerServiceNew FollowerService { get; private set; }
 
-        public event EventHandler<(string Name, int Count)> OnHosted;
+        public event EventHandler<string> OnRaid;
 
         internal BotCommandManager Manager;
 
-        private TwitchClient client;
         private JoinedChannel initialChannel;
 
-
-        private TwitchAPI api;
+        private readonly TwitchClient client;
+        private readonly TwitchAPI api;
         private readonly Logger logger;
 
         public Bot()
@@ -49,67 +53,52 @@ namespace WarFabrik.Clone
             api.Settings.AccessToken = tokenFile.Token;
 
             var credentials = new ConnectionCredentials(tokenFile.Name, tokenFile.OAuth);
-            //client = new TwitchClient(credentials, channel: "NoobDevTv", logging: true, logger: logger);
             client = new TwitchClient();
             client.Initialize(credentials, channel: "NoobDevTv", autoReListenOnExceptions: true);
-
-            bool initialId = true;
-            do
-            {
-                try
-                {
-                    ChannelId = api.V5.Users.GetUserByNameAsync("NoobDevTv").Result.Matches.First().Id;
-                    initialId = false;
-                }
-                catch (Exception ex)
-                {
-                    logger.Error($"{ex.GetType().Name}: {ex.Message}");
-                    initialId = true;
-                    Thread.Sleep(1000);
-                }
-
-            } while (initialId);
-
-            FollowerService = new FollowerServiceNew(api, ChannelId, 10000);
 
             client.OnConnected += ClientOnConnected;
             client.OnDisconnected += ClientOnDisconnected;
             client.OnMessageReceived += ClientOnMessageReceived;
-            client.OnBeingHosted += ClientOnBeingHosted;
             client.OnRaidNotification += ClientOnRaidNotification;
 
+            FollowerService = new FollowerServiceNew(api, 10000);
             FollowerService.OnNewFollowersDetected += FollowerServiceOnNewFollowersDetected;
-
         }
-        
+
         public void Connect()
+            => client.Connect();
+
+        public void Disconnect()
+            => client.Disconnect();
+
+        public async Task Run(CancellationToken token)
         {
-            client.Connect();
-
+            var users = await GetUsersAsync("NoobDevTv");
+            ChannelId = users.FirstOrDefault()?.Id; //TODO: Multiple Results????
+            
+            Connect();
+            FollowerService.StartService(ChannelId, token);
         }
-
-        public void Disconnect() => client.Disconnect();
 
         public void FollowerServiceOnNewFollowersDetected(object sender, NewFollowerDetectedArgs e)
         {
             foreach (var item in e.NewFollowers)
             {
-                var msg = item.User.DisplayName + " has followed and ";
+                logger.Info(item.UserName + " has followed.");
 
-                if (item.Notifications)
-                    msg += "wants to be notified";
-                else
-                    msg += "doesn't like to be notified";
-
-                logger.Info(msg);
-
-                client.SendMessage(initialChannel, $"{item.User.DisplayName} hat sich verklickt. Vielen lieben dank dafür <3");
+                client.SendMessage(initialChannel, $"{item.UserName} hat sich verklickt. Vielen lieben Dank dafür <3");
                 Manager.Dispatch("hype", new BotCommandArgs(this, api, null));
             }
-
         }
 
-        internal void SendMessage(string v) => client.SendMessage(initialChannel, v);
+        internal void SendMessage(string v)
+            => client.SendMessage(initialChannel, v);
+
+        private async Task<IEnumerable<User>> GetUsersAsync(params string[] logins)
+        {
+            var userResponse = await api.Helix.Users.GetUsersAsync(logins: logins.ToList());
+            return userResponse.Users;
+        }
 
         private void ClientOnMessageReceived(object sender, OnMessageReceivedArgs e)
         {
@@ -133,7 +122,6 @@ namespace WarFabrik.Clone
         {
             logger.Info($"Connected to Twitch Channel");
             initialChannel = client.JoinedChannels.FirstOrDefault();
-            FollowerService.StartService();
             client.SendMessage(initialChannel, $"Bot is Online...");
         }
 
@@ -141,24 +129,18 @@ namespace WarFabrik.Clone
         {
             logger.Info("Bot disconnect");
             client.SendMessage(initialChannel, "Ich gehe in den Standby bb");
+            Connect();
         }
 
         private void ClientOnRaidNotification(object sender, OnRaidNotificationArgs e)
         {
-            if (!int.TryParse(e.RaidNotificaiton.MsgParamViewerCount, out int count))
+            if (!int.TryParse(e.RaidNotification.MsgParamViewerCount, out int count))
                 count = 0;
-        }
 
-        private void ClientOnBeingHosted(object sender, OnBeingHostedArgs e)
-        {
-            if (!e.BeingHostedNotification.IsAutoHosted)
-                return;
+            var channel = e.RaidNotification.MsgParamDisplayName;
 
-            var channel = e.BeingHostedNotification.HostedByChannel;
-            var count = e.BeingHostedNotification.Viewers;
-
-            client.SendMessage(initialChannel, $"{channel} bring jede Menge Noobs mit, nämlich 1 bis {count}. Yippie");
-            OnHosted?.Invoke(this, (channel, count));
+            client.SendMessage(initialChannel, $"{channel} bringt jede Menge Noobs mit, nämlich 1 bis {count}. Yippie");
+            OnRaid?.Invoke(this, e.RaidNotification.SystemMsgParsed);
         }
 
         private void ClientOnChatCommandReceived(object sender, OnChatCommandReceivedArgs e)
