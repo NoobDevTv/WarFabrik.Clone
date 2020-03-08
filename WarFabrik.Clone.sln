@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoobDevBot.Telegram", "Noob
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster", "BotMaster\BotMaster.csproj", "{516A2D11-D436-44CA-B2EF-1B31FCB7877A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotMaster.Betterplace", "BotMaster.Betterplace\BotMaster.Betterplace.csproj", "{99D5F016-072D-4915-8347-C0783E99CCDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotMaster.Core", "BotMaster.Core\BotMaster.Core.csproj", "{003E0D76-74C1-4DFE-B4BE-5BEF92E6CC42}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{516A2D11-D436-44CA-B2EF-1B31FCB7877A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{516A2D11-D436-44CA-B2EF-1B31FCB7877A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{516A2D11-D436-44CA-B2EF-1B31FCB7877A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99D5F016-072D-4915-8347-C0783E99CCDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99D5F016-072D-4915-8347-C0783E99CCDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99D5F016-072D-4915-8347-C0783E99CCDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99D5F016-072D-4915-8347-C0783E99CCDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{003E0D76-74C1-4DFE-B4BE-5BEF92E6CC42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{003E0D76-74C1-4DFE-B4BE-5BEF92E6CC42}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{003E0D76-74C1-4DFE-B4BE-5BEF92E6CC42}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{003E0D76-74C1-4DFE-B4BE-5BEF92E6CC42}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

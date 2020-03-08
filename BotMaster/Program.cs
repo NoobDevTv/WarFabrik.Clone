@@ -1,4 +1,6 @@
-﻿using NLog;
+﻿using BotMaster.Betterplace;
+using BotMaster.Betterplace.Model;
+using NLog;
 using NLog.Config;
 using NLog.Targets;
 using NoobDevBot.Telegram;
@@ -18,7 +20,7 @@ namespace BotMaster
         private static CancellationTokenSource tokenSource;
         private static Bot twitchBot;
         private static TelegramBot telegramBot;
-
+        private static BetterplaceService betterplaceService;
         private static ManualResetEvent resetEvent;
 
         internal static async Task Main(string[] args)
@@ -43,6 +45,7 @@ namespace BotMaster
             Console.CancelKeyPress += ConsoleCancelKeyPress;
 
             telegramBot = new TelegramBot();
+            betterplaceService = new BetterplaceService();
             
             twitchBot = new Bot();
             twitchBot.FollowerService.OnNewFollowersDetected += TwitchNewFollower;
@@ -52,7 +55,17 @@ namespace BotMaster
             
             logger.Info("Der Bot ist Online");
             telegramBot.SendMessageToGroup("NoobDev", "Der Bot ist Online");
+
+            using var sub = betterplaceService.Opinions.Subscribe(OnNewOpinion);
+
             resetEvent.WaitOne();
+        }
+
+        private static void OnNewOpinion(Opinion obj)
+        {
+            var message = $"{(string.IsNullOrWhiteSpace(obj.Author?.Name) ? "Anonymer Noob" : obj.Author.Name)} hat {obj.Donated_amount_in_cents} Geld gespendet";
+            telegramBot.SendMessageToGroup("NoobDev", message);
+            twitchBot.SendMessage(message);
         }
 
         private static void TwitchBotOnHosted(object sender, string message) 

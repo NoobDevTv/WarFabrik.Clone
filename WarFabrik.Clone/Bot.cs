@@ -96,8 +96,8 @@ namespace WarFabrik.Clone
             }
         }
 
-        internal void SendMessage(string v)
-            => client.SendMessage(initialChannel, v);
+        public void SendMessage(string message)
+            => client.SendMessage(initialChannel, message);
 
         private async Task<IEnumerable<User>> GetUsersAsync(params string[] logins)
         {
@@ -118,7 +118,7 @@ namespace WarFabrik.Clone
             if (end < 1)
                 end = message.Length;
 
-            var command = message.Substring(index, end - index).Trim().TrimStart('!').ToLower();
+            var command = message[index..end].Trim().TrimStart('!').ToLower();
 
             Manager.DispatchAsync(command, new BotCommandArgs(this, api, e.ChatMessage));
         }
