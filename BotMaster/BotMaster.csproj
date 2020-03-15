@@ -15,9 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BotMaster.Betterplace\BotMaster.Betterplace.csproj" />
-    <ProjectReference Include="..\NoobDevBot.Telegram\NoobDevBot.Telegram.csproj" />
-    <ProjectReference Include="..\WarFabrik.Clone\WarFabrik.Clone.csproj" />
+    <ProjectReference Include="..\BotMaster.Runtime\BotMaster.Runtime.csproj" />
   </ItemGroup>
 
 </Project>

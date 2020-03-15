@@ -1,0 +1,14 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace BotMaster.Web.Model
+{
+    public sealed class Alert
+    {
+        public string Name { get; set; }
+        public string Message { get; set; }
+        public int Amount { get; set; }
+    }
+}

@@ -9,9 +9,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoobDevBot.Telegram", "Noob
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster", "BotMaster\BotMaster.csproj", "{516A2D11-D436-44CA-B2EF-1B31FCB7877A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotMaster.Betterplace", "BotMaster.Betterplace\BotMaster.Betterplace.csproj", "{99D5F016-072D-4915-8347-C0783E99CCDA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Betterplace", "BotMaster.Betterplace\BotMaster.Betterplace.csproj", "{99D5F016-072D-4915-8347-C0783E99CCDA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotMaster.Core", "BotMaster.Core\BotMaster.Core.csproj", "{003E0D76-74C1-4DFE-B4BE-5BEF92E6CC42}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Core", "BotMaster.Core\BotMaster.Core.csproj", "{003E0D76-74C1-4DFE-B4BE-5BEF92E6CC42}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotMaster.Web", "BotMaster.Web\BotMaster.Web.csproj", "{979B8CEF-3A9A-4A95-B1DC-2594AC9DDBD5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotMaster.Runtime", "BotMaster.Runtime\BotMaster.Runtime.csproj", "{9808CB35-450C-4FCB-B578-E2707D551DD5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +43,14 @@ Global
 		{003E0D76-74C1-4DFE-B4BE-5BEF92E6CC42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{003E0D76-74C1-4DFE-B4BE-5BEF92E6CC42}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{003E0D76-74C1-4DFE-B4BE-5BEF92E6CC42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{979B8CEF-3A9A-4A95-B1DC-2594AC9DDBD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{979B8CEF-3A9A-4A95-B1DC-2594AC9DDBD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{979B8CEF-3A9A-4A95-B1DC-2594AC9DDBD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{979B8CEF-3A9A-4A95-B1DC-2594AC9DDBD5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9808CB35-450C-4FCB-B578-E2707D551DD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9808CB35-450C-4FCB-B578-E2707D551DD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9808CB35-450C-4FCB-B578-E2707D551DD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9808CB35-450C-4FCB-B578-E2707D551DD5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

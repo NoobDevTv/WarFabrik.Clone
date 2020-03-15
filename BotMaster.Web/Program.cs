@@ -1,19 +1,21 @@
-﻿using BotMaster.Runtime;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace BotMaster
+namespace BotMaster.Web
 {
-    internal class Program
+    public class Program
     {
-        internal static async Task Main(string[] args)
+        public static void Main(string[] args)
         {
-
             var config = new LoggingConfiguration();
 
             var info = new FileInfo(Path.Combine(".", "additionalfiles", "botmaster.log"));
@@ -28,12 +30,19 @@ namespace BotMaster
             config.AddRule(LogLevel.Info, LogLevel.Fatal, new FileTarget("botmaster.logfile") { FileName = info.FullName });
 #endif
             LogManager.Configuration = config;
-            var logger = LogManager.GetCurrentClassLogger();
 
-            using var resetEvent = new ManualResetEvent(false);
-            Console.CancelKeyPress += (s, e) => resetEvent.Set();
-            await new Service().Run();
-            resetEvent.WaitOne();
+
+
+            CreateHostBuilder(args).Build().Run();
         }
+
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder
+                    .UseStartup<Startup>()
+                    .UseKestrel();
+                });
     }
 }

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alert</title>
+    <style type="text/css">
+        .no-display{
+            display: none;
+        }
+    </style>
+  </head>
+  <body>
+    <div id="alert" class="alert no-display">
+      <div id="name" class="name"></div>
+      <div id="message" class="message"></div>
+      <div id="amount" class="money"></div>
+    </div>
+  </body>
+  <script type="text/javascript">
+    const name = document.getElementById("name");
+    const message = document.getElementById("message");
+    const amount = document.getElementById("amount");
+    const alertBox = document.getElementById("alert");
+
+    setInterval(() => {
+      let request = new XMLHttpRequest();
+      request.open("GET", "/betterplace/alert");
+      request.addEventListener("loadend", event => {
+        if (request.status < 200 && request.status > 300)
+          return;
+
+        let alert = JSON.parse(request.response);
+
+        if(alert.amount < 1)
+        {            
+          if (!alertBox.classList.contains("no-display"))
+            alertBox.classList.add("no-display");
+            return;
+        }
+        name.innerHTML = alert.name;
+        message.innerHTML = alert.message;
+        amount.innerHTML = alert.amount;
+        alertBox.classList.remove("no-display");
+      });
+      request.send();
+    }, 5000);
+  </script>
+</html>
