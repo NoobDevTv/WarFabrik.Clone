@@ -9,6 +9,7 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WarFabrik.Clone;
@@ -18,7 +19,7 @@ namespace BotMaster.Runtime
 {
     public sealed class Service
     {
-        public ConcurrentQueue<Opinion> Opinions { get;  }
+        public ConcurrentDictionary<int, Opinion> Opinions { get;  }
 
         private readonly Logger logger;
         private readonly CancellationTokenSource tokenSource;
@@ -30,7 +31,7 @@ namespace BotMaster.Runtime
         public Service()
         {
             logger = LogManager.GetCurrentClassLogger();
-            Opinions = new ConcurrentQueue<Opinion>();
+            Opinions = new ConcurrentDictionary<int, Opinion>();
             telegramBot = new TelegramBot();
             betterplaceService = new BetterplaceService();
             tokenSource = new CancellationTokenSource();
@@ -68,8 +69,13 @@ namespace BotMaster.Runtime
         {
             var message = $"{(string.IsNullOrWhiteSpace(obj.Author?.Name) ? "Anonymer Noob" : obj.Author.Name)} hat {obj.Donated_amount_in_cents} Geld gespendet";
             telegramBot.SendMessageToGroup("NoobDev", message);
+            twitchBot.Hype();
             twitchBot.SendMessage(message);
-            Opinions.Enqueue(obj);
+            twitchBot.Hype();
+            var toRemove = Opinions.Values.Where(o => o.Created_at < DateTime.Now - TimeSpan.FromMinutes(5)).ToArray();
+            toRemove.ForEach(o => Opinions.TryRemove(o.Id, out var value));
+            Opinions.TryAdd(obj.Id, obj);
+
         }
 
         private void TwitchBotOnHosted(object sender, string message)

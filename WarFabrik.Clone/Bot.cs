@@ -92,8 +92,13 @@ namespace WarFabrik.Clone
                 logger.Info(item.UserName + " has followed.");
 
                 client.SendMessage(initialChannel, $"{item.UserName} hat sich verklickt. Vielen lieben Dank dafür <3");
-                Manager.Dispatch("hype", new BotCommandArgs(this, api, null));
+                Hype();
             }
+        }
+
+        public void Hype()
+        {
+            Manager.Dispatch("hype", new BotCommandArgs(this, api, null));
         }
 
         public void SendMessage(string message)
