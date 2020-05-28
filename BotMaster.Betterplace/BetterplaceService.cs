@@ -22,7 +22,7 @@ namespace BotMaster.Betterplace
                 .GetOpinionsPage(TimeSpan.FromMinutes(1))
                 .Retry()
                 .SelectMany(p => p.Data)
-                .Where(o => o.Created_at > DateTime.Now.Subtract(TimeSpan.FromMinutes(1)))
+                .Where(o => o.Created_at > DateTime.Now.Subtract(TimeSpan.FromMinutes(4)))
                 .Publish()
                 .RefCount();
         }
