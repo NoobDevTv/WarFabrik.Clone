@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using TwitchLib.Api;
@@ -43,20 +45,11 @@ namespace WarFabrik.Clone
         {
             disconnectRequested = false;
             logger = LogManager.GetCurrentClassLogger();
-            var info = new FileInfo(Path.Combine(".", "additionalfiles", "Token.json"));
-
-            if (!info.Directory.Exists)
-                info.Directory.Create();
-
-            var tokenFile = JsonConvert.DeserializeObject<TokenFile>(File.ReadAllText(info.FullName));
+            
             Manager = new BotCommandManager();
             api = new TwitchAPI();
-            api.Settings.ClientId = tokenFile.ClientId;
-            api.Settings.AccessToken = tokenFile.Token;
-
-            var credentials = new ConnectionCredentials(tokenFile.Name, tokenFile.OAuth);
-            client = new TwitchClient();
-            client.Initialize(credentials, channel: "NoobDevTv", autoReListenOnExceptions: true);
+            
+            client = new TwitchClient();            
 
             client.OnConnected += ClientOnConnected;
             client.OnDisconnected += ClientOnDisconnected;
@@ -78,9 +71,24 @@ namespace WarFabrik.Clone
 
         public async Task Run(CancellationToken token)
         {
+            var info = new FileInfo(Path.Combine(".", "additionalfiles", "Token.json"));
+
+            if (!info.Directory.Exists)
+                info.Directory.Create();
+
+            var tokenFile = JsonConvert.DeserializeObject<TokenFile>(File.ReadAllText(info.FullName));
+
+            var accessToken = await GetAccessToken(new FileInfo(Path.Combine(".", "additionalfiles", "access.json")), tokenFile);
+            api.Settings.ClientId = tokenFile.ClientId;
+            api.Settings.AccessToken = accessToken.Token;
+
+            var credentials = new ConnectionCredentials(tokenFile.Name, tokenFile.OAuth);
+            client.Initialize(credentials, channel: "NoobDevTv", autoReListenOnExceptions: true);
+
+
             var users = await GetUsersAsync("NoobDevTv");
             ChannelId = users.FirstOrDefault()?.Id; //TODO: Multiple Results????
-            
+
             Connect();
             FollowerService.StartService(ChannelId, token);
         }
@@ -103,7 +111,7 @@ namespace WarFabrik.Clone
 
         public void SendMessage(string message)
             => client.SendMessage(initialChannel, message);
-
+        
         private async Task<IEnumerable<User>> GetUsersAsync(params string[] logins)
         {
             var userResponse = await api.Helix.Users.GetUsersAsync(logins: logins.ToList());
@@ -161,6 +169,37 @@ namespace WarFabrik.Clone
         private void ClientOnChatCommandReceived(object sender, OnChatCommandReceivedArgs e)
         {
 
+        }
+
+        private static async Task<AccessToken> GetAccessToken(FileInfo info, TokenFile tokenFile)
+        {
+            AccessToken token;
+            if (info.Exists)
+            {
+                token = JsonConvert.DeserializeObject<AccessToken>(await File.ReadAllTextAsync(info.FullName));
+
+                if (!token.IsExpired)
+                    return token;
+            }
+
+            token = await CreateToken(tokenFile);
+            await File.WriteAllTextAsync(info.FullName, JsonConvert.SerializeObject(token));
+            return token;
+        }
+
+        private static async Task<AccessToken> CreateToken(TokenFile tokenFile)
+        {
+            var client = new HttpClient();
+            using var content = new StringContent(string.Empty);
+            var url = $"https://id.twitch.tv/oauth2/token?client_id={tokenFile.ClientId}&client_secret={tokenFile.ClientSecret}&grant_type=client_credentials";
+            using var response = await client.PostAsync(url, null);
+
+            response.EnsureSuccessStatusCode();
+            
+            var str = await response.Content.ReadAsStringAsync();
+            var token = JsonConvert.DeserializeObject<AccessToken>(str);
+            token.CreatedAt = DateTime.Now;
+            return token;
         }
     }
 }
