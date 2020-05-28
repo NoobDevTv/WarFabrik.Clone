@@ -19,7 +19,7 @@ namespace BotMaster.Runtime
 {
     public sealed class Service
     {
-        public ConcurrentDictionary<int, Opinion> Opinions { get;  }
+        public ConcurrentDictionary<int, Opinion> Opinions { get; }
 
         private readonly Logger logger;
         private readonly CancellationTokenSource tokenSource;
@@ -39,17 +39,25 @@ namespace BotMaster.Runtime
         }
 
         public async Task Run()
-        {          
+        {
             twitchBot.FollowerService.OnNewFollowersDetected += TwitchNewFollower;
             twitchBot.OnRaid += TwitchBotOnHosted;
+            var twitchWorks = true;
+            try
+            {
+                await twitchBot.Run(tokenSource.Token);
+            }
+            catch (Exception ex)
+            {
+                twitchWorks = false;
+                logger.Error(ex, $"Error on creating Twitch bot: {ex.Message}");
+            }
 
-            await twitchBot.Run(tokenSource.Token);
-
-            logger.Info("Der Bot ist Online");
+            logger.Info($"Der Bot ist Online{(twitchWorks ? "" : ". Without Twitch")}");
             telegramBot.SendMessageToGroup("NoobDev", "Der Bot ist Online");
 
             betterplaceSub = betterplaceService.Opinions.Subscribe(OnNewOpinion);
-            
+
         }
 
         public void Stop()
@@ -67,7 +75,11 @@ namespace BotMaster.Runtime
 
         private void OnNewOpinion(Opinion obj)
         {
+            if (Opinions.ContainsKey(obj.Id))
+                return;
+
             var message = $"{(string.IsNullOrWhiteSpace(obj.Author?.Name) ? "Anonymer Noob" : obj.Author.Name)} hat {obj.Donated_amount_in_cents} Geld gespendet";
+
             telegramBot.SendMessageToGroup("NoobDev", message);
             twitchBot.Hype();
             twitchBot.SendMessage(message);
