@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Copyright by Miro Knejp / @mknejp
+ * https://github.com/mknejp
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Concurrency;
@@ -9,7 +14,7 @@ using System.Threading.Tasks;
 namespace BotMaster.Core
 {
     public static class IObservableExtension
-    {        
+    {
 
         /// <summary>
         ///     Repeats the source observable sequence until it completes successfully unless the predicate returns false.
