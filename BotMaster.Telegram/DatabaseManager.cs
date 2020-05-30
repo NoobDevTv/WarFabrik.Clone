@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using NoobDevBot.Telegram.DatabaseModels;
 using System;
 using System.Collections.Generic;
@@ -136,12 +137,7 @@ namespace NoobDevBot.Telegram
             if (group == null)
                 return null;
 
-            var usergroup = Context.Group_User.Where(x => x.GroupId == group.Id).ToList();
-
-            group.Member.Clear();
-            foreach (var item in usergroup)
-                group.Member.Add(Context.User.FirstOrDefault(x => x.Id == item.UserId));
-
+            Context.User.Load();
             return group;
         }
 

@@ -11,7 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BotMaster.Betterplace\BotMaster.Betterplace.csproj" />
     <ProjectReference Include="..\BotMaster.Core\BotMaster.Core.csproj" />
-    <ProjectReference Include="..\NoobDevBot.Telegram\NoobDevBot.Telegram.csproj" />
+    <ProjectReference Include="..\BotMaster.Telegram\BotMaster.Telegram.csproj" />
     <ProjectReference Include="..\WarFabrik.Clone\WarFabrik.Clone.csproj" />
   </ItemGroup>
 
