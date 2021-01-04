@@ -13,7 +13,7 @@ namespace BotMaster.Web.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class BetterplaceController : ControllerBase
+    public class FollowerController : ControllerBase
     {
         private readonly FileExtensionContentTypeProvider contentTypeProvider;
         private readonly Service botmasterService;
@@ -22,7 +22,7 @@ namespace BotMaster.Web.Controllers
         private static volatile int demoId;
 #endif
 
-        public BetterplaceController(Service service)
+        public FollowerController(Service service)
         {
             contentTypeProvider = new FileExtensionContentTypeProvider();
             botmasterService = service;
@@ -56,7 +56,7 @@ namespace BotMaster.Web.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            var file = new FileInfo(Path.Combine(".", "web", "alert-betterplace.html"));
+            var file = new FileInfo(Path.Combine(".", "web", "alert-follower.html"));
             contentTypeProvider.TryGetContentType(file.FullName, out var fileType);
             return File(file.OpenRead(), fileType);
         }
