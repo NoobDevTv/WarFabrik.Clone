@@ -15,28 +15,6 @@ namespace NoobDevBot.Telegram.Commands
             args.Bot.SendTextMessageAsync(args.Message.Chat.Id, "Wilkommen! Weitere Hilfe kommt mit der nächsten Version");
 
             return true;
-        }
-
-        [Command("mygroups")]
-        public static bool MyGroups(TelegramCommandArgs args)
-        {
-            var user = DatabaseManager.GetUserById(args.Message.From.Id);
-
-            if (user == null)
-                return false;
-
-            var groups = DatabaseManager.GetGroupsFromUser(user);
-
-            string s = "Die Gruppen denen du angehörig bist: ";
-            groups.Select(x => x.Name + ", ").ToList().ForEach(x => s += x);
-            args.Bot.SendTextMessageAsync(args.Message.Chat.Id, s.Substring(0, s.Length - 2));
-            return true;
-        }
-
-        [Command("addusertogroup")]
-        public static bool AddUserToGroup(TelegramCommandArgs args)
-        {
-            return true;
-        }
+        }        
     }
 }
