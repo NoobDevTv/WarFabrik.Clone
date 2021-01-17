@@ -51,7 +51,7 @@ namespace BotMaster.Web
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers();               
+                endpoints.MapControllers();
             });
         }
     }
