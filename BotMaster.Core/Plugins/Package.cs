@@ -9,40 +9,31 @@ namespace BotMaster.Core.Plugins
 {
     public readonly struct Package
     {
-        private const int headerSize = sizeof(PackageType) + sizeof(ulong) + sizeof(int);
+        public const int HeaderSize = sizeof(int);
 
-        public readonly PackageType Type { get; }
-        public readonly ulong Id { get; }
         public readonly IReadOnlyList<byte> Content => content;
+
+        public int Length => HeaderSize + content.Length;
 
         private readonly byte[] content;
 
-        public Package(PackageType type, ulong id, byte[] content)
+        public Package(byte[] content)
         {
-            Type = type;
-            Id = id;
             this.content = content;
+        }
+        public Package(ReadOnlySpan<byte> buffer)
+        {
+            content = buffer.ToArray();
         }
 
         public int ToBytes(Span<byte> buffer)
         {
-            buffer[0] = (byte)Type;
-            BitConverter.TryWriteBytes(buffer[1..], Id);
-            BitConverter.TryWriteBytes(buffer[9..], Content.Count);
-            content.CopyTo(buffer[13..]);
-            return headerSize + Content.Count;
+            BitConverter.TryWriteBytes(buffer[0..], Content.Count);
+            content.CopyTo(buffer[HeaderSize..]);
+            return Length;
         }
 
-        internal static Package FromMemory(Span<byte> data)
-        {
-            var type = (PackageType)data[0];
-            var id = BitConverter.ToUInt64(data[1..]);
-            var contentSize = BitConverter.ToInt32(data[9..]);
-            var content = data[13..].ToArray();
-
-            //auto package = reinterpret_cast<const Package*>(&data)[0];
-
-            return new Package(type, id, content);
-        }
+        public ReadOnlySpan<byte> AsSpan()
+            => content.AsSpan();
     }
 }
