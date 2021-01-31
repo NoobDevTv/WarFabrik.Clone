@@ -12,14 +12,8 @@ namespace BotMaster.Core.Plugins
         public static IObservable<Package> Create(string id, IObservable<Package> sendPipe)
           => PluginConnection<NamedPipeServerStream>.Create(id, sendPipe, CreateServer);
 
-        private static NamedPipeServerStream CreateServer(string id)
-        {
-            var client = new NamedPipeServerStream(id, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+        private static NamedPipeServerStream CreateServer(string id) 
+            => new(id, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
 
-            client.WaitForConnection();
-
-            return client;
-        }
-     
     }
 }
