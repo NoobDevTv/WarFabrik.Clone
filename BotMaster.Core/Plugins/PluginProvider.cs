@@ -16,24 +16,27 @@ namespace BotMaster.Core.Plugins
     {
         public static IObservable<PluginServiceInstance> Watch(DirectoryInfo directory, FileInfo pluginHost)
             => GetPluginManifests(directory)
-                   .Select(e =>
+                   .Select(manifest =>
                     {
-                        var processInfo = new ProcessStartInfo(pluginHost.FullName);
-                        processInfo.ArgumentList.Add($"-l \"{e.fileInfo.FullName}\"");
                         Process process = new()
                         {
-                            StartInfo = processInfo
+                            StartInfo = new(pluginHost.FullName, $"-l \"{manifest.CurrentFileInfo.FullName}\"")
+                            {
+                                WorkingDirectory = manifest.CurrentFileInfo.Directory.FullName
+
+                            },
+
                         };
 
                         var instance = new PluginServiceInstance(
-                            e.manifest,
+                            manifest,
                             process,
-                            packages => PluginServer.Create(e.manifest.Id, packages));
+                            packages => PluginServer.Create(manifest.Id, packages));
 
                         return instance;
                     });
 
-        private static IObservable<(FileInfo fileInfo, PluginManifest manifest)> GetPluginManifests(DirectoryInfo directory)
+        private static IObservable<PluginManifest> GetPluginManifests(DirectoryInfo directory)
             => Observable
                 .Merge(
                     directory
@@ -55,10 +58,16 @@ namespace BotMaster.Core.Plugins
                         )
                         .Select(e => new FileInfo(e.EventArgs.FullPath))
                 )
-                .Select(file => (file, JsonSerializer.Deserialize<PluginManifest>(File.ReadAllText(file.FullName), new JsonSerializerOptions
+                .Select(file =>
                 {
-                    PropertyNameCaseInsensitive = true
-                })));
+                    var manifest = JsonSerializer.Deserialize<PluginManifest>(
+                        File.ReadAllText(file.FullName),
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    manifest.CurrentFileInfo = file;
+                    return manifest;
+                })
+                .DistinctUntilChanged();
 
         private static IObservable<EventPattern<FileSystemEventArgs>> CreateChangedEvents(FileSystemWatcher watcher)
             => Observable

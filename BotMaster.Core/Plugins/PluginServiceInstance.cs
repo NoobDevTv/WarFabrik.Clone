@@ -32,7 +32,8 @@ namespace BotMaster.Core.Plugins
         public override void Start()
         {
             base.Start();
-            //process.Start();
+            process.Start();
+            process.Refresh();
         }
     }
 }
