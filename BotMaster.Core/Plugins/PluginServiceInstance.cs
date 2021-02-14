@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reactive.Disposables;
@@ -10,12 +10,14 @@ namespace BotMaster.Core.Plugins
     public class PluginServiceInstance : PluginInstance
     {
         private readonly Process process;
+        private readonly CompositeDisposable compositeDisposable;
 
         public PluginServiceInstance(
             PluginManifest manifest, Process process, Func<IObservable<Package>, IObservable<Package>> createServer)
             : base(manifest, createServer)
         {
             this.process = process;
+            compositeDisposable = new CompositeDisposable();
         }
 
         internal void Kill()
@@ -35,5 +37,13 @@ namespace BotMaster.Core.Plugins
             process.Start();
             process.Refresh();
         }
+
+        public override void Dispose()
+        {
+            compositeDisposable.Dispose();
+            process.Dispose();
+            base.Dispose();
+        }
+
     }
 }

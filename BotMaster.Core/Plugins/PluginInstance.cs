@@ -38,7 +38,7 @@ namespace BotMaster.Core.Plugins
             => packages
                    .Do(p => sendPackages.OnNext(p));
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             disposables.Dispose();
         }
