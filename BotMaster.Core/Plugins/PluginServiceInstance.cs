@@ -1,3 +1,4 @@
+﻿using BotMaster.Core.Messages;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -45,5 +46,16 @@ namespace BotMaster.Core.Plugins
             base.Dispose();
         }
 
+        internal void ReceiveMessages(Func<string, IObservable<Message>> subscribeAsReceiver)
+        {
+            var sendPackages = Send(MessageConvert.ToPackage(subscribeAsReceiver(Id)));
+            compositeDisposable.Add(sendPackages.Subscribe());
+        }
+
+        internal void SendMessages(Func<IObservable<Message>, IDisposable> subscribeAsSender)
+        {
+            var receivedMessages = MessageConvert.ToMessage(ReceivedPackages);
+            compositeDisposable.Add(subscribeAsSender(receivedMessages));
+        }
     }
 }
