@@ -14,7 +14,7 @@ namespace DemoPlugin
             => Observable.Merge(
                 Observable
                     .Interval(TimeSpan.FromSeconds(5))
-                    .Select(i => new Package(PackageType.Complete, (ulong)i, Encoding.UTF8.GetBytes("Hello"))),
+                    .Select(i => new Package(Encoding.UTF8.GetBytes("Hello"))),
                     receivedPackages.Where(f => false)
                 );
     }
