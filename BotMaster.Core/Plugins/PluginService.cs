@@ -11,15 +11,17 @@ namespace BotMaster.Core.Plugins
     {
         private readonly Dictionary<string, PluginServiceInstance> plugins;
         private readonly IObservable<PluginServiceInstance> instances;
-
+        private readonly MessageHub messageHub;
         private IDisposable subscription;
 
-        public PluginService(IObservable<PluginServiceInstance> instances)
+        public PluginService(MessageHub messageHub, IObservable<PluginServiceInstance> instances)
         {
             plugins = new Dictionary<string, PluginServiceInstance>();
             this.instances = instances;
+            this.messageHub = messageHub;
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Wrong Usage", "DF0021:Marks undisposed objects assinged to a field, originated from method invocation.", Justification = "<Ausstehend>")]
         public void Start()
         {
             subscription = instances
@@ -34,12 +36,16 @@ namespace BotMaster.Core.Plugins
 
                                       value.Dispose();
 
-                                      plugins[instance.Id] = instance;
+                                      using (var oldInstance = plugins[instance.Id])
+                                        plugins[instance.Id] = instance;
                                   }
                                   else
                                   {
                                       plugins.Add(instance.Id, instance);
                                   }
+
+                                  instance.ReceiveMessages(messageHub.SubscribeAsReceiver);
+                                  instance.SendMessages(messageHub.SubscribeAsSender);
                               })
                               .Subscribe();
         }
