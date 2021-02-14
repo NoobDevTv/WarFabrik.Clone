@@ -27,7 +27,8 @@ namespace DemoPluginServer
             {
                 Console.WriteLine(Encoding.UTF8.GetString(package.Content.ToArray()));
             }
-            
+
+            Console.WriteLine("Finish");
             manualReset.WaitOne();
         }
     }

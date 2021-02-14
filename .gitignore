@@ -269,3 +269,4 @@ __pycache__/
 /BotMaster.Telegram/key.txt
 /BotMaster.Telegram/Telegram_Token.txt
 /BotMaster.Web/additionalfiles
+/BotMaster.Twitch/Token.json

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28407.52
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WarFabrik.Clone", "WarFabrik.Clone\WarFabrik.Clone.csproj", "{52E7144A-2D6A-43BF-98EB-98730A197918}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Twitch", ""BotMaster.Twitch\BotMaster.Twitch.csproj", "{52E7144A-2D6A-43BF-98EB-98730A197918}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Telegram", "BotMaster.Telegram\BotMaster.Telegram.csproj", "{CE1D2188-72EE-4B5D-982A-7F1B07964E8E}"
 EndProject
