@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BotMaster.Core.Plugins
+namespace BotMaster.PluginSystem
 {
     public readonly struct Package
     {

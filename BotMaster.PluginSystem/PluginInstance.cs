@@ -4,7 +4,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
-namespace BotMaster.Core.Plugins
+namespace BotMaster.PluginSystem
 {
     public class PluginInstance : IDisposable, IEquatable<PluginServiceInstance>
     {

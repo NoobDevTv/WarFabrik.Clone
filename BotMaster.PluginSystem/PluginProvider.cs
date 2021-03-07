@@ -10,7 +10,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace BotMaster.Core.Plugins
+namespace BotMaster.PluginSystem
 {
     public static class PluginProvider
     {

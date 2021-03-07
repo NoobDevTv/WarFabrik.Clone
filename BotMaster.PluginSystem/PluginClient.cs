@@ -8,7 +8,7 @@ using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BotMaster.Core.Plugins
+namespace BotMaster.PluginSystem
 {
     public static class PluginClient
     {

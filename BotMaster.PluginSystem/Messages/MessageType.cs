@@ -1,4 +1,4 @@
-﻿namespace BotMaster.Core.Messages
+﻿namespace BotMaster.PluginSystem.Messages
 {
     public enum MessageType : byte
     {

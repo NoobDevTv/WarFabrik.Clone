@@ -1,4 +1,4 @@
-﻿using BotMaster.Core.Plugins;
+using BotMaster.PluginSystem;
 using System;
 using System.IO;
 using System.Linq;

@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BotMaster.Core.Plugins
+namespace BotMaster.PluginSystem
 {
     internal static class PluginConnection<T> where T : PipeStream
     {

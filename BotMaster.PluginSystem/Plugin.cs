@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotMaster.Core.Plugins
+namespace BotMaster.PluginSystem
 {
     public abstract class Plugin
     {

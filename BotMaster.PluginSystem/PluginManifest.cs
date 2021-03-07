@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace BotMaster.Core.Plugins
+namespace BotMaster.PluginSystem
 {
     public sealed class PluginManifest : IEquatable<PluginManifest>
     {

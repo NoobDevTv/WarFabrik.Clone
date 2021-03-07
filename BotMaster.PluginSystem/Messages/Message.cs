@@ -1,9 +1,9 @@
-﻿using BotMaster.Core.Plugins;
+﻿using BotMaster.PluginSystem;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotMaster.Core.Messages
+namespace BotMaster.PluginSystem.Messages
 {
     public class Message
     {
@@ -50,6 +50,9 @@ namespace BotMaster.Core.Messages
 
             return new(array);
         }
+
+        public ReadOnlySpan<byte> DataAsSpan()
+            => data;
 
         public static Message FromPackage(Package package)
         {

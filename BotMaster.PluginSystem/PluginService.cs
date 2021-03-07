@@ -5,7 +5,7 @@ using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BotMaster.Core.Plugins
+namespace BotMaster.PluginSystem
 {
     public sealed class PluginService : IDisposable
     {
@@ -44,6 +44,7 @@ namespace BotMaster.Core.Plugins
                                       plugins.Add(instance.Id, instance);
                                   }
 
+                                  instance.Start();
                                   instance.ReceiveMessages(messageHub.SubscribeAsReceiver);
                                   instance.SendMessages(messageHub.SubscribeAsSender);
                               })
