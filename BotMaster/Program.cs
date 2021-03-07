@@ -17,6 +17,8 @@ namespace BotMaster
             var config = new LoggingConfiguration();
 
             var info = new FileInfo(Path.Combine(".", "additionalfiles", "botmaster.log"));
+            var pluginInfo = new DirectoryInfo(Path.Combine(".", "plugins"));
+            var pluginHost = new FileInfo(Path.Combine(".", "pluginhost", "BotMaster.PluginHost.exe"));
 
             if (!info.Directory.Exists)
                 info.Directory.Create();
