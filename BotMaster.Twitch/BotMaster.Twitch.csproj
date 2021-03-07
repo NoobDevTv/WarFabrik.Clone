@@ -17,6 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BotMaster.MessageContract\BotMaster.MessageContract.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="Command Management System">
       <HintPath>CoMaS\Command Management System.dll</HintPath>
     </Reference>

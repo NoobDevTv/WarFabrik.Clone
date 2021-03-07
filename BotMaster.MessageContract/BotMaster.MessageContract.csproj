@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="NonSucking.Framework.Extension.Rx" Version="1.0.0-alpha.45-fa2fc8d" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\BotMaster.PluginSystem\BotMaster.PluginSystem.csproj" />
   </ItemGroup>
+
 </Project>

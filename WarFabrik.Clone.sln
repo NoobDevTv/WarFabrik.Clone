@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DemoPluginServer", "DemoPlu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DemoPlugin", "DemoPlugin\DemoPlugin.csproj", "{30646D0A-7C59-435C-9583-12CB6D656070}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.MessageContract", "BotMaster.MessageContract\BotMaster.MessageContract.csproj", "{73C0829C-176D-4BC8-AC41-0A44FC3AD6A1}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotMaster.PluginSystem", "BotMaster.PluginSystem\BotMaster.PluginSystem.csproj", "{578076E8-1E59-4D8C-828B-F0957928188A}"
 EndProject
 Global
