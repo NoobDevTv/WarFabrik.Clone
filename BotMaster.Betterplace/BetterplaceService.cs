@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Reactive.Linq;
 using BotMaster.Core;
+using BotMaster.PluginSystem;
 
 namespace BotMaster.Betterplace
 {
-    public sealed class BetterplaceService
+    public sealed class BetterplaceService : Plugin
     {
         public IObservable<Opinion> Opinions { get; private set; }
         private readonly BetterplaceClient client;
@@ -26,5 +27,8 @@ namespace BotMaster.Betterplace
                 .Publish()
                 .RefCount();
         }
+
+        public override IObservable<Package> Start(IObservable<Package> receivedPackages) => throw new NotImplementedException();
+
     }
 }

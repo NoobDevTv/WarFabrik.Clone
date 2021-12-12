@@ -1,100 +1,52 @@
-﻿using BotMaster.Betterplace;
-using BotMaster.Betterplace.Model;
+﻿using BotMaster.PluginSystem;
 using NLog;
-using NLog.Config;
-using NLog.Fluent;
-using NLog.Targets;
-using NoobDevBot.Telegram;
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reactive.Linq;
-using System.Threading;
+using System.Reactive.Disposables;
+using System.Text;
 using System.Threading.Tasks;
-using WarFabrik.Clone;
-using static WarFabrik.Clone.FollowerServiceNew;
 
 namespace BotMaster.Runtime
 {
-    public sealed class Service
+    public class Service : IDisposable
     {
-        public ConcurrentDictionary<int, Opinion> Opinions { get; }
+        private readonly PluginService pluginService;
+        private readonly MessageHub messageHub;
 
-        private readonly Logger logger;
-        private readonly CancellationTokenSource tokenSource;
-        private readonly TelegramBot telegramBot;
-        private readonly BetterplaceService betterplaceService;
-        private readonly Bot twitchBot;
-        private IDisposable betterplaceSub;
+        private readonly IDisposable disposable;
+        private readonly ILogger logger;
 
-        public Service()
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Wrong Usage", "DF0020:Marks undisposed objects assinged to a field, originated in an object creation.", Justification = "<Ausstehend>")]
+        public Service(ILogger logger, DirectoryInfo pluginFolder, FileInfo pluginHost)
         {
-            logger = LogManager.GetCurrentClassLogger();
-            Opinions = new ConcurrentDictionary<int, Opinion>();
-            telegramBot = new TelegramBot();
-            betterplaceService = new BetterplaceService();
-            tokenSource = new CancellationTokenSource();
-            twitchBot = new Bot();
+            messageHub = new MessageHub();
+
+            var packages = 
+                PluginProvider
+                    .Watch(pluginFolder, pluginHost);
+
+            pluginService = new PluginService(messageHub, packages);
+            disposable = StableCompositeDisposable.Create(pluginService, messageHub);
+            this.logger = logger;
         }
 
-        public async Task Run()
+        public void Start()
         {
-            twitchBot.FollowerService.OnNewFollowersDetected += TwitchNewFollower;
-            twitchBot.OnRaid += TwitchBotOnHosted;
-            var twitchWorks = true;
-            try
-            {
-                await twitchBot.Run(tokenSource.Token);
-            }
-            catch (Exception ex)
-            {
-                twitchWorks = false;
-                logger.Error(ex, $"Error on creating Twitch bot: {ex.Message}");
-            }
-
-            logger.Info($"Der Bot ist Online{(twitchWorks ? "" : ". Without Twitch")}");
-            telegramBot.SendMessageToGroup("NoobDev", "Der Bot ist Online");
-
-            betterplaceSub = betterplaceService.Opinions.Subscribe(OnNewOpinion);
-
+            pluginService.Start();
         }
 
         public void Stop()
         {
-            logger.Info("Quit Bot master");
-
-            twitchBot.FollowerService.OnNewFollowersDetected -= TwitchNewFollower;
-            twitchBot.OnRaid -= TwitchBotOnHosted;
-
-            telegramBot.Exit();
-            twitchBot.Disconnect();
-            tokenSource.Cancel();
-            betterplaceSub.Dispose();
+            pluginService.Stop();
         }
 
-        private void OnNewOpinion(Opinion obj)
+        public void Dispose()
         {
-            if (Opinions.ContainsKey(obj.Id))
-                return;
-
-            var message = $"{(string.IsNullOrWhiteSpace(obj.Author?.Name) ? "Anonymer Noob" : obj.Author.Name)} hat {obj.Donated_amount_in_cents} Geld gespendet";
-
-            telegramBot.SendMessageToGroup("NoobDev", message);
-            twitchBot.Hype();
-            twitchBot.SendMessage(message);
-            twitchBot.Hype();
-            var toRemove = Opinions.Values.Where(o => o.Created_at < DateTime.Now - TimeSpan.FromMinutes(5)).ToArray();
-            toRemove.ForEach(o => Opinions.TryRemove(o.Id, out var value));
-            Opinions.TryAdd(obj.Id, obj);
-
+            Stop();
+            disposable.Dispose();
         }
-
-        private void TwitchBotOnHosted(object sender, string message)
-            => telegramBot.SendMessageToGroup("NoobDev", message);
-
-
-        private void TwitchNewFollower(object sender, NewFollowerDetectedArgs e)
-            => telegramBot.SendMessageToGroup("NoobDev", "Following people just followed: " + string.Join(", ", e.NewFollowers.Select(x => x.UserName)));
     }
 }

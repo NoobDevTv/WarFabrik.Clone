@@ -40,8 +40,8 @@ namespace BotMaster.MessageContract
 
         public Message ToMessage()
             => Map(
-                    textMessage => new Message(MessageType.Defined, textMessage.ToArray(), TargetId),
-                    number => new Message(MessageType.Defined, null)
+                    textMessage => new Message(Contract.Id, MessageType.Defined, textMessage.ToArray(), TargetId),
+                    number => new Message(Contract.Id, MessageType.Defined, null)
                );
 
 

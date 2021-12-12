@@ -21,7 +21,7 @@ namespace BotMaster.PluginSystem
         private static IObservable<Package> CreateSendPipe(T clientStream, IObservable<Package> sendPipe)
             => sendPipe
                 .Where(p => clientStream.IsConnected)
-                .SelectMany(p =>
+                .Select(p =>
                 {
                     using var buffer = MemoryPool<byte>.Shared.Rent(p.Length);
                     var span = buffer.Memory.Span;
@@ -33,6 +33,7 @@ namespace BotMaster.PluginSystem
                                 .Do(i => clientStream.Flush())
                                 .Select(i => p);
                 })
+                .Concat()
                 .Where(p => false);
 
         private static IObservable<Package> CreateReceivedPipe(T clientStream)
@@ -57,12 +58,13 @@ namespace BotMaster.PluginSystem
                             }
 
                             await ReadHeader(clientStream, headerMemory, token);
-
-                            var packageSize = BitConverter.ToInt32(headerBuffer, 0);
+                            
+                            var contractId = BitConverter.ToInt32(headerBuffer, 0);
+                            var packageSize = BitConverter.ToInt32(headerBuffer, sizeof(int));
                             using var buffer = MemoryPool<byte>.Shared.Rent(packageSize);
                             var size = await ReadContent(clientStream, packageSize, buffer, token);
 
-                            observer.OnNext(new(buffer.Memory.Span[..size]));
+                            observer.OnNext(new(contractId, buffer.Memory.Span[..size]));
                         }
                         catch (Exception ex)
                         {
@@ -80,6 +82,7 @@ namespace BotMaster.PluginSystem
             {
                 size += await clientStream.ReadAsync(buffer.Memory[size..packageSize], token);
             } while (size < packageSize);
+
             return size;
         }
 

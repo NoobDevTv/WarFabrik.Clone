@@ -10,21 +10,24 @@ namespace BotMaster.PluginSystem.Messages
         public const int HeaderSize = sizeof(MessageType) + sizeof(int) + sizeof(int);
         public static Encoding Encoding { get; } = Encoding.UTF8;
 
-        public MessageType Type { get; set; }
+        public MessageType Type { get; }
 
         /// <summary>
         /// Taget null or Empty = Broadcast
         /// 'Server id' => Server listens as Plugin
         ///
         /// </summary>
-        public string TargetId { get; set; }
+        public string TargetId { get; }
+
+        public int ContractUID { get;  }
 
         public IReadOnlyList<byte> Data => data;
 
         private readonly byte[] data;
 
-        public Message(MessageType type, byte[] data, string targetId = null)
+        public Message(int contractId, MessageType type, byte[] data, string targetId = null)
         {
+            ContractUID = contractId;
             Type = type;
             TargetId = targetId;
             this.data = data;
@@ -48,7 +51,7 @@ namespace BotMaster.PluginSystem.Messages
             Encoding.GetBytes(targetId, span[HeaderSize..]);
             data.CopyTo(span[(HeaderSize + targetIdCount)..]);
 
-            return new(array);
+            return new(ContractUID, array);
         }
 
         public ReadOnlySpan<byte> DataAsSpan()
@@ -65,7 +68,7 @@ namespace BotMaster.PluginSystem.Messages
             var target = Encoding.GetString(span[HeaderSize..targetSize]);
             var data = span[targetSize..(targetSize + dataLength)];
 
-            return new Message(type, data.ToArray(), target);
+            return new Message(package.ContractId, type, data.ToArray(), target);
         }
 
     }

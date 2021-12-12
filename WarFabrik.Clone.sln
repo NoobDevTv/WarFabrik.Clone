@@ -1,9 +1,9 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28407.52
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Twitch", ""BotMaster.Twitch\BotMaster.Twitch.csproj", "{52E7144A-2D6A-43BF-98EB-98730A197918}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Twitch", "BotMaster.Twitch\BotMaster.Twitch.csproj", "{52E7144A-2D6A-43BF-98EB-98730A197918}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Telegram", "BotMaster.Telegram\BotMaster.Telegram.csproj", "{CE1D2188-72EE-4B5D-982A-7F1B07964E8E}"
 EndProject
@@ -27,7 +27,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DemoPlugin", "DemoPlugin\De
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.MessageContract", "BotMaster.MessageContract\BotMaster.MessageContract.csproj", "{73C0829C-176D-4BC8-AC41-0A44FC3AD6A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotMaster.PluginSystem", "BotMaster.PluginSystem\BotMaster.PluginSystem.csproj", "{578076E8-1E59-4D8C-828B-F0957928188A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.PluginSystem", "BotMaster.PluginSystem\BotMaster.PluginSystem.csproj", "{578076E8-1E59-4D8C-828B-F0957928188A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotMaster.Betterplace.MessageContract", "BotMaster.Betterplace.MessageContract\BotMaster.Betterplace.MessageContract.csproj", "{18594AAC-4A00-4697-BF71-DE3B16D76809}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -87,6 +89,10 @@ Global
 		{578076E8-1E59-4D8C-828B-F0957928188A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{578076E8-1E59-4D8C-828B-F0957928188A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{578076E8-1E59-4D8C-828B-F0957928188A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18594AAC-4A00-4697-BF71-DE3B16D76809}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18594AAC-4A00-4697-BF71-DE3B16D76809}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18594AAC-4A00-4697-BF71-DE3B16D76809}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18594AAC-4A00-4697-BF71-DE3B16D76809}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

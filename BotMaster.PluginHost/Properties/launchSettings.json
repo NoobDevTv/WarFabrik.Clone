@@ -2,7 +2,7 @@
   "profiles": {
     "BotMaster.PluginHost": {
       "commandName": "Project",
-      "commandLineArgs": "-l \"D:\\Projekte\\Visual 2019\\WarFabrik.Clone\\DemoPluginServer\\bin\\Debug\\net5.0\\Plugins\\DemoPlugin\\net5.0\\manifest.json\""
+      "commandLineArgs": "-l \"D:\\Projekte\\Visual 2019\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net5.0\\plugins\\BotMaster.Twitch\\manifest.json\""
     }
   }
 }

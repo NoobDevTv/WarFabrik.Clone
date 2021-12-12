@@ -1,9 +1,10 @@
-using BotMaster.Runtime;
+﻿using BotMaster.Runtime;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
 using System;
 using System.IO;
+using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -40,6 +41,9 @@ namespace BotMaster
             Console.CancelKeyPress += (s, e) => resetEvent.Set();
 
             var serviceLogger = LogManager.GetLogger($"{nameof(BotMaster)}.{nameof(Service)}");
+            using var service = new Service(serviceLogger, pluginInfo, pluginHost);
+            service.Start();
+
             resetEvent.WaitOne();
         }
     }

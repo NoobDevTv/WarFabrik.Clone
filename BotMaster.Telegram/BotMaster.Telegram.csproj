@@ -20,6 +20,8 @@
   <ItemGroup>
     <ProjectReference Include="..\BotMaster.Core\BotMaster.Core.csproj" />
     <ProjectReference Include="..\BotMaster.Database\BotMaster.Database.csproj" />
+    <ProjectReference Include="..\BotMaster.MessageContract\BotMaster.MessageContract.csproj" />
+    <ProjectReference Include="..\BotMaster.PluginSystem\BotMaster.PluginSystem.csproj" />
   </ItemGroup>
 
   <ItemGroup>

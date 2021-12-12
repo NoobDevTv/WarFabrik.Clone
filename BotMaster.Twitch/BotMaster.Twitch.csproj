@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BotMaster.Betterplace.MessageContract\BotMaster.Betterplace.MessageContract.csproj" />
     <ProjectReference Include="..\BotMaster.Core\BotMaster.Core.csproj" />
     <ProjectReference Include="..\BotMaster.MessageContract\BotMaster.MessageContract.csproj" />
   </ItemGroup>
@@ -28,6 +29,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Token.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

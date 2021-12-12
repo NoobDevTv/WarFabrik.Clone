@@ -10,6 +10,13 @@ namespace BotMaster.MessageContract
 {
     public static class Contract
     {
+        public static readonly Guid UID = new("A4B5EF4B-248B-4831-A6F4-6EB1ED6088D2");
+        public static int Id { get; private set; } = -1;
+
+        public static void SetId(int id)
+        {
+            Id = id;
+        }
 
         public static bool CanConvert(Message message)
             => message.Type == MessageType.Defined;

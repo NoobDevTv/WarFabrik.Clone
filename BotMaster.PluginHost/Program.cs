@@ -1,4 +1,4 @@
-using BotMaster.PluginSystem;
+﻿using BotMaster.PluginSystem;
 using System;
 using System.IO;
 using System.Linq;
@@ -12,6 +12,8 @@ using System.Reactive.Disposables;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
+using System.Collections.Generic;
+using BotMaster.Core.NLog;
 
 namespace BotMaster.PluginHost
 {
@@ -39,11 +41,12 @@ namespace BotMaster.PluginHost
 #endif
             LogManager.Configuration = config;
             var logger = LogManager.GetCurrentClassLogger();
+            var plugins = new List<Plugin>();
             try
             {
                 logger.Info("Start plugin host");
                 using var manualReset = new ManualResetEvent(false);
-                IDisposable pluginSub = default;
+                using var pluginSub = new CompositeDisposable();
                 for (int i = 0; i < args.Length; i++)
                 {
                     if (args[i] == "-l")
@@ -51,7 +54,9 @@ namespace BotMaster.PluginHost
                         logger.Info("Load Manifest");
                         
                         i++;                        
-                        pluginSub = Load(args[i], () => manualReset.Set(), logger);
+                        var sub = Load(args[i], () => manualReset.Set(), logger, out var p);
+                        plugins.AddRange(p);
+                        pluginSub.Add(sub);
                     }
                 }
 
@@ -67,7 +72,7 @@ namespace BotMaster.PluginHost
             }
         }
 
-        private static IDisposable Load(string fullName, Action reset, ILogger logger)
+        private static IDisposable Load(string fullName, Action reset, ILogger logger, out List<Plugin> plugins )
         {
             logger.Debug("Load manifest from " + fullName);
             var manifestFileInfo = new FileInfo(fullName);
@@ -98,18 +103,24 @@ namespace BotMaster.PluginHost
             pluginInstance.Start();
 
             logger.Trace("Get Assembly types");
-            var plugins = pluginAssembly
-                                    .GetTypes()
-                                    .Where(t => t.IsAssignableTo(typeof(Plugin)))
-                                    .Select(t => t.GetActivationDelegate<Plugin>()())
-                                    .Do(p => p.Register(typecontainer))
-                                    .ToObservable()
-                                    .SelectMany(p => p.Start(pluginInstance.ReceivedPackages));
+            plugins =
+                pluginAssembly
+                    .GetTypes()
+                    .Where(t => t.IsAssignableTo(typeof(Plugin)))
+                    .Select(t => t.GetActivationDelegate<Plugin>()())
+                    .Do(p => p.Register(typecontainer))
+                    .ToList();
+
+            var packages = 
+                    plugins
+                        .ToObservable()
+                        .SelectMany(p => p.Start(pluginInstance.ReceivedPackages));
 
             logger.Debug("Subscribe process");
             var sub = pluginInstance
-                                        .Send(plugins)
-                                        .Subscribe(p => { }, ex => reset(), reset);
+                                        .Send(packages)
+                                        .Log(logger, "Plugin_"+manifest.Name, onError: LogLevel.Fatal)
+                                        .Subscribe(p => { }, ex => reset(),reset);
 
             return StableCompositeDisposable.Create(sub, typecontainer, pluginInstance);
         }

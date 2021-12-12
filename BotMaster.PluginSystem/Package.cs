@@ -9,26 +9,32 @@ namespace BotMaster.PluginSystem
 {
     public readonly struct Package
     {
-        public const int HeaderSize = sizeof(int);
+        public const int HeaderSize = sizeof(int) + sizeof(int);
 
         public readonly IReadOnlyList<byte> Content => content;
 
-        public int Length => HeaderSize + content.Length;
+        public int ContractId { get; }
+        public int Length { get; }
 
         private readonly byte[] content;
 
-        public Package(byte[] content)
+        public Package(int contractId, byte[] content)
         {
-            this.content = content;
+            ContractId = contractId;
+            this.content = content;    
+            Length = HeaderSize + content.Length;
         }
-        public Package(ReadOnlySpan<byte> buffer)
+        public Package(int contractId, ReadOnlySpan<byte> buffer)
         {
+            ContractId = contractId;
             content = buffer.ToArray();
+            Length = HeaderSize + content.Length;
         }
 
         public int ToBytes(Span<byte> buffer)
         {
-            BitConverter.TryWriteBytes(buffer[0..], Content.Count);
+            BitConverter.TryWriteBytes(buffer[0..], ContractId);
+            BitConverter.TryWriteBytes(buffer[sizeof(int)..], Content.Count);
             content.CopyTo(buffer[HeaderSize..]);
             return Length;
         }

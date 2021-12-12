@@ -189,12 +189,12 @@ namespace WarFabrik.Clone
 
         private static async Task<AccessToken> CreateToken(TokenFile tokenFile)
         {
-            var client = new HttpClient();
+            using var client = new HttpClient();
             using var content = new StringContent(string.Empty);
             var url = $"https://id.twitch.tv/oauth2/token?client_id={tokenFile.ClientId}&client_secret={tokenFile.ClientSecret}&grant_type=client_credentials";
             using var response = await client.PostAsync(url, null);
 
-            response.EnsureSuccessStatusCode();
+            using var status = response.EnsureSuccessStatusCode();
             
             var str = await response.Content.ReadAsStringAsync();
             var token = JsonConvert.DeserializeObject<AccessToken>(str);

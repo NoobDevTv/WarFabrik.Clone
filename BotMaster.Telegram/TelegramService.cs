@@ -1,5 +1,6 @@
 ﻿using BotMaster.Core.NLog;
-using BotMaster.Core.Notifications;
+using BotMaster.Database.Model;
+using BotMaster.MessageContract;
 using NLog;
 using NLog.Fluent;
 using NoobDevBot.Telegram.Model;
@@ -14,8 +15,8 @@ using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using MessageNotification = BotMaster.Core.Notifications.MessageNotification;
 using MessageType = Telegram.Bot.Types.Enums.MessageType;
+using PluginMessage = BotMaster.PluginSystem.Messages.Message;
 
 namespace NoobDevBot.Telegram
 {
@@ -23,14 +24,14 @@ namespace NoobDevBot.Telegram
     {
         //TODO: var info = new FileInfo(Path.Combine(".", "additionalfiles", "Telegram_Token.txt"));
         //TODO: Handle commands  
-        public static IObservable<Notification> Create(IObservable<Notification> notifications)
-            => Observable.Create<Notification>(observer =>
+        public static IObservable<PluginMessage> Create(IObservable<PluginMessage> notifications)
+            => Observable.Create<PluginMessage>(observer =>
             {
                 Logger logger = LogManager.GetCurrentClassLogger();
                 var client = new TelegramBotClient("");
                 IObservable<(string, TelegramCommandArgs)> commands = CreateCommands(client);
-                IObservable<(Group, MessageNotification n)> adminMessages = notifications
-                                    .OfType<MessageNotification>()
+                IObservable<(Group, DefinedMessage.TextMessage n)> adminMessages = notifications
+                                    .OfType<DefinedMessage.TextMessage>()
                                     .Where(n => n.Type.Administrative)
                                     .Select(n => (DatabaseManager.GetGroupByName("NoobDev"), n));
 
@@ -48,7 +49,7 @@ namespace NoobDevBot.Telegram
                     .Where(message => message.Text.StartsWith('/'))
                     .Select(message => (message.Text.TrimStart('/').ToLower(), new TelegramCommandArgs(message, client)));
 
-        private static IDisposable SendMessageToGroup(IObservable<(Group Group, MessageNotification Message)> groupMessages,
+        private static IDisposable SendMessageToGroup(IObservable<(Group Group, DefinedMessage.TextMessage Message)> groupMessages,
             ILogger logger, TelegramBotClient client) =>
             groupMessages
                    .Select(messages => (messages.Group.User, messages.Message))
