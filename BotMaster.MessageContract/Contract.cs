@@ -1,4 +1,5 @@
-﻿using BotMaster.PluginSystem.Messages;
+﻿using BotMaster.PluginSystem;
+using BotMaster.PluginSystem.Messages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,10 +9,12 @@ using System.Threading.Tasks;
 
 namespace BotMaster.MessageContract
 {
-    public static class Contract
+    public sealed class Contract : IMessageContract<DefinedMessage>
     {
         public static readonly Guid UID = new("A4B5EF4B-248B-4831-A6F4-6EB1ED6088D2");
         public static int Id { get; private set; } = -1;
+
+        private Contract() { }
 
         public static void SetId(int id)
         {

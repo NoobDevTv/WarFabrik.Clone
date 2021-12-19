@@ -1,17 +1,11 @@
-﻿using BotMaster.PluginSystem.Messages;
-using BotMaster.PluginSystem;
+﻿using BotMaster.Betterplace.MessageContract;
 using BotMaster.MessageContract;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using BotMaster.PluginSystem;
+using BotMaster.PluginSystem.Messages;
 using System.Reactive.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WarFabrik.Clone;
 using static WarFabrik.Clone.FollowerServiceNew;
-using BotMaster.Betterplace.MessageContract;
 using DefinedMessageContract = BotMaster.MessageContract.Contract;
-using BetterplaceMessageContract = BotMaster.Betterplace.MessageContract.Contract;
 
 namespace BotMaster.Twitch
 {
@@ -28,22 +22,22 @@ namespace BotMaster.Twitch
         }
 
         public override IObservable<Package> Start(IObservable<Package> receivedPackages)
-            => Observable.Using(CreateBot, 
+            => Observable.Using(CreateBot,
                 botInstance
                     => MessageConvert
                         .ToPackage(
                             Observable
-                            .FromAsync(async token=> await botInstance.Bot.Run(token))
-                            .SelectMany(u => GetMessage(botInstance.NewFollower, botInstance.Raids))
+                            .FromAsync(token => botInstance.Bot.Run(token))
+                            .SelectMany(_ => GetMessage(botInstance.NewFollower, botInstance.Raids))
                         )
                 );
 
-        public override IEnumerable<IMessageContractInfo> ConsumeContracts() 
+        public override IEnumerable<IMessageContractInfo> ConsumeContracts()
             => messageContracts;
 
         private static IObservable<Message> GetMessage(IObservable<NewFollowerDetectedArgs> newFollower, IObservable<string> raids)
         {
-            var rawMessages = 
+            var rawMessages =
                 Observable
                 .Merge(
                     raids,
