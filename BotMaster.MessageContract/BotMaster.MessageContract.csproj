@@ -24,6 +24,7 @@
 
 	<ItemGroup>
 	  <Folder Include="GeneratedFiles\" />
+	  <Folder Include="GeneratedFiles\NonSucking.Framework.Serialization\NonSucking.Framework.Serialization.NoosonGenerator\" />
 	</ItemGroup>
 
 

@@ -1,31 +1,23 @@
 ﻿using BotMaster.Core.NLog;
 using BotMaster.Database.Model;
 using BotMaster.MessageContract;
+using BotMaster.PluginSystem;
+using BotMaster.PluginSystem.Messages;
+
 using NLog;
-using NLog.Fluent;
-using NoobDevBot.Telegram.Model;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reactive.Disposables;
+
 using System.Reactive.Linq;
-using System.Text;
+using System.Reactive.Threading.Tasks;
+
 using Telegram.Bot;
-using Telegram.Bot.Args;
+using Telegram.Bot.Requests;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Exceptions;
+
+using DefinedMessageContract = BotMaster.MessageContract.Contract;
 using MessageType = Telegram.Bot.Types.Enums.MessageType;
 using PluginMessage = BotMaster.PluginSystem.Messages.Message;
-using System.Threading;
-using Telegram.Bot.Requests;
-using System.Reactive;
-using Telegram.Bot.Extensions.Polling;
-using Newtonsoft.Json.Linq;
-using BotMaster.PluginSystem;
-using BotMaster.Betterplace.MessageContract;
-using BotMaster.PluginSystem.Messages;
+using TelegramMessage = Telegram.Bot.Types.Message;
 
 namespace NoobDevBot.Telegram
 {
@@ -35,10 +27,6 @@ namespace NoobDevBot.Telegram
 
         public TelegramService()
         {
-            messageContracts = new[]
-            {
-                (IMessageContractInfo)BetterplaceMessageContractInfo.Create()
-            };
         }
 
         public override IObservable<Package> Start(IObservable<Package> receivedPackages)
@@ -48,10 +36,8 @@ namespace NoobDevBot.Telegram
                 botInstance
                     => MessageConvert
                         .ToPackage(
-                            Observable
-                            .FromAsync(token => botInstance.Client.Run(token))
-                            .SelectMany(_ => GetMessage(botInstance.NewFollower, botInstance.Raids))
-                    )
+                            Create(MessageConvert.ToMessage(receivedPackages), botInstance.Client)
+                        )
             );
 
         private BotInstance CreateBot()
@@ -69,22 +55,33 @@ namespace NoobDevBot.Telegram
 
         //TODO: var info = new FileInfo(Path.Combine(".", "additionalfiles", "Telegram_Token.txt"));
         //TODO: Handle commands  
-        public static IObservable<PluginMessage> Create(IObservable<PluginMessage> notifications)
-            => Observable.Create<PluginMessage>(observer =>
-            {
-                Logger logger = LogManager.GetCurrentClassLogger();
-                
-                IObservable<(string, TelegramCommandArgs)> commands = CreateCommands(client);
-                IObservable<(Group, TextMessage n)> adminMessages = notifications
-                                    .OfType<TextMessage>()
-                                    .Where(n => n.Type.Administrative)
-                                    .Select(n => (DatabaseManager.GetGroupByName("NoobDev"), n));
+        public static IObservable<PluginMessage> Create(IObservable<PluginMessage> notifications, TelegramBotClient client)
+        {
+            Logger logger = LogManager.GetCurrentClassLogger();
 
-                var updates = ;
-                IDisposable disposable = SendMessageToGroup(adminMessages, logger, client);
 
-                return new CompositeDisposable { disposable, Disposable.Create(() => client.StopReceiving()) };
-            });
+            //Messages from other plugins
+            IObservable<(Group, TextMessage n)> pluginMessageWithGroups
+                = DefinedMessageContract
+                    .ToDefineMessages(notifications)
+                    .Match<TextMessage>(n => n)
+                    .Select(n => (DatabaseManager.GetGroupByName("NoobDev"), n));
+
+            var textMessages = SendMessageToGroup(pluginMessageWithGroups, logger, client);
+
+            //Messages from User from telegram
+            IObservable<(string, TelegramCommandArgs)> chatMessages = CreateCommands(client);
+
+            var commandMessages = chatMessages
+              .Select(x => (x.Item2.Message.Text, x.Item2.Message.Text.Split(' ')[1..]))
+              .Select(x => DefinedMessage.CreateCommandMessage(x.Text, x.Item2));
+
+            var incomming = DefinedMessageContract.ToMessages(commandMessages);
+
+
+            return Observable.Using(() => textMessages.Subscribe(), _ => incomming);
+        }
+
 
         private static IObservable<(string, TelegramCommandArgs)> CreateCommands(TelegramBotClient client) =>
             StartReceivingMessageUpdates(client, TimeSpan.FromSeconds(30))
@@ -93,18 +90,16 @@ namespace NoobDevBot.Telegram
                     .Where(message => message.Text.StartsWith('/'))
                     .Select(message => (message.Text.TrimStart('/').ToLower(), new TelegramCommandArgs(message, client)));
 
-        private static IDisposable SendMessageToGroup(IObservable<(Group Group, TextMessage Message)> groupMessages,
+        private static IObservable<TelegramMessage> SendMessageToGroup(IObservable<(Group Group, TextMessage Message)> groupMessages,
             ILogger logger, TelegramBotClient client) =>
             groupMessages
-                   .Select(messages => (messages.Group.User, messages.Message))
-                   .Do(m => m
-                             .User
-                             .Select(x => client.SendTextMessageAsync(x.ChatId, m.Message.Content))
-                             .Select(t => t.ConfigureAwait(false).GetAwaiter())
-                             .ForEach(a => a.GetResult())
-                       )
-                   .OnError(logger, ex => $"Error on {nameof(SendMessageToGroup)}: {ex.Message}")
-                   .Subscribe();
+                    .Select(messages => (messages.Group.User, messages.Message))
+                    .Select(m => m
+                                .User
+                                .Select(x => client.SendTextMessageAsync(new ChatId(x.Name), m.Message.Text).ToObservable())
+                                .Concat())
+                    .Concat()
+                    .OnError(logger, ex => $"Error on {nameof(SendMessageToGroup)}: {ex.Message}");
 
         private static IObservable<Update> StartReceivingMessageUpdates(TelegramBotClient botClient, TimeSpan pollingInterval)
         {

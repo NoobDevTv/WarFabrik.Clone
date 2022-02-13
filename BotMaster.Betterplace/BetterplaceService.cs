@@ -1,12 +1,10 @@
-﻿using BotMaster.Betterplace.Model;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using System.Timers;
-using System.Reactive.Linq;
+﻿using BotMaster.Betterplace.MessageContract;
+using BotMaster.Betterplace.Model;
 using BotMaster.Core;
 using BotMaster.PluginSystem;
+using BotMaster.PluginSystem.Messages;
+
+using System.Reactive.Linq;
 
 namespace BotMaster.Betterplace
 {
@@ -28,7 +26,14 @@ namespace BotMaster.Betterplace
                 .RefCount();
         }
 
-        public override IObservable<Package> Start(IObservable<Package> receivedPackages) => throw new NotImplementedException();
-
+        public override IObservable<Package> Start(IObservable<Package> receivedPackages)
+          => MessageConvert
+                .ToPackage(
+                    Contract
+                        .ToMessages(
+                            Opinions
+                                .Select(x => new BetterplaceMessage(x.ToDonation()))
+                        )
+                );
     }
 }

@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BotMaster.Betterplace.MessageContract\BotMaster.Betterplace.MessageContract.csproj" />
     <ProjectReference Include="..\BotMaster.Core\BotMaster.Core.csproj" />
     <ProjectReference Include="..\BotMaster.PluginSystem\BotMaster.PluginSystem.csproj" />
   </ItemGroup>

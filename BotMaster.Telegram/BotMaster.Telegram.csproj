@@ -1,15 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <Version>0.3.0</Version>
     <AssemblyVersion>0.4.0.0</AssemblyVersion>
     <FileVersion>0.3.0.0</FileVersion>
-
-	  <EnablePreviewFeatures>True</EnablePreviewFeatures>
-	  <ImplicitUsings>enable</ImplicitUsings>
+    <EnablePreviewFeatures>True</EnablePreviewFeatures>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Commands\SimpleCommands.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommandManagementSystem" Version="3.0.0-alpha2" />
@@ -22,7 +25,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BotMaster.Betterplace.MessageContract\BotMaster.Betterplace.MessageContract.csproj" />
     <ProjectReference Include="..\BotMaster.Core\BotMaster.Core.csproj" />
     <ProjectReference Include="..\BotMaster.Database\BotMaster.Database.csproj" />
     <ProjectReference Include="..\BotMaster.MessageContract\BotMaster.MessageContract.csproj" />
@@ -33,6 +35,10 @@
     <None Update="Telegram_Token.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Commands\" />
   </ItemGroup>
 
 </Project>
