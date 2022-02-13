@@ -10,8 +10,8 @@
   <ItemGroup>
     <PackageReference Include="NLog" Version="4.7.13" />
     <PackageReference Include="NonSucking.Framework.Extension" Version="1.0.0-alpha.46-74a9158" />
-    <PackageReference Include="System.Interactive" Version="5.1.0" />
-    <PackageReference Include="System.Interactive.Async" Version="5.1.0" />
+    <PackageReference Include="System.Interactive" Version="6.0.1" />
+    <PackageReference Include="System.Interactive.Async" Version="6.0.1" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
   </ItemGroup>
 

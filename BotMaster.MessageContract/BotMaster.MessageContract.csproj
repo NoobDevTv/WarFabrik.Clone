@@ -15,7 +15,7 @@
 
 	<ItemGroup Condition="'$(DesignTimeBuild)'!='false'">
 		<PackageReference Include="dotVariant" Version="0.5.0" />
-		<PackageReference Include="NonSucking.Framework.Serialization" Version="0.1.0.35-alpha" />
+		<PackageReference Include="NonSucking.Framework.Serialization" Version="0.1.0.67-alpha" />
 	</ItemGroup>
 
 	<ItemGroup>
