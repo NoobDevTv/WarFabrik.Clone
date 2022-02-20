@@ -1,7 +1,8 @@
-﻿using Telegram.Bot;
+﻿
+using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace NoobDevBot.Telegram
+namespace BotMaster.Telegram
 {
     public class TelegramCommandArgs
     {

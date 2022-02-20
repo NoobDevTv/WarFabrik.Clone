@@ -1,19 +1,17 @@
-﻿using BotMaster.PluginSystem;
-using System;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text.Json;
-using NonSucking.Framework.Extension.Activation;
-using NonSucking.Framework.Extension.IoC;
-using System.Reactive.Linq;
-using System.Threading;
-using System.Reactive.Disposables;
+﻿using BotMaster.Core.NLog;
+using BotMaster.PluginSystem;
+
 using NLog;
 using NLog.Config;
 using NLog.Targets;
-using System.Collections.Generic;
-using BotMaster.Core.NLog;
+
+using NonSucking.Framework.Extension.Activation;
+using NonSucking.Framework.Extension.IoC;
+
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Reflection;
+using System.Text.Json;
 
 namespace BotMaster.PluginHost
 {
@@ -52,8 +50,8 @@ namespace BotMaster.PluginHost
                     if (args[i] == "-l")
                     {
                         logger.Info("Load Manifest");
-                        
-                        i++;                        
+
+                        i++;
                         var sub = Load(args[i], () => manualReset.Set(), logger, out var p);
                         plugins.AddRange(p);
                         pluginSub.Add(sub);
@@ -72,7 +70,7 @@ namespace BotMaster.PluginHost
             }
         }
 
-        private static IDisposable Load(string fullName, Action reset, ILogger logger, out List<Plugin> plugins )
+        private static IDisposable Load(string fullName, Action reset, ILogger logger, out List<Plugin> plugins)
         {
             logger.Debug("Load manifest from " + fullName);
             var manifestFileInfo = new FileInfo(fullName);
@@ -111,7 +109,7 @@ namespace BotMaster.PluginHost
                     .Do(p => p.Register(typecontainer))
                     .ToList();
 
-            var packages = 
+            var packages =
                     plugins
                         .ToObservable()
                         .SelectMany(p => p.Start(pluginInstance.ReceivedPackages));
@@ -119,8 +117,8 @@ namespace BotMaster.PluginHost
             logger.Debug("Subscribe process");
             var sub = pluginInstance
                                         .Send(packages)
-                                        .Log(logger, "Plugin_"+manifest.Name, onError: LogLevel.Fatal)
-                                        .Subscribe(p => { }, ex => reset(),reset);
+                                        .Log(logger, "Plugin_" + manifest.Name, onError: LogLevel.Fatal, onErrorMessage: (ex) => ex.ToString())
+                                        .Subscribe(p => { }, ex => reset(), reset);
 
             return StableCompositeDisposable.Create(sub, typecontainer, pluginInstance);
         }

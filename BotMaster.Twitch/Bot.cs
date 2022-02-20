@@ -1,25 +1,14 @@
-﻿using CommandManagementSystem;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+
 using NLog;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
+
 using TwitchLib.Api;
-using TwitchLib.Api.Helix;
-using TwitchLib.Api.Helix.Models.Users;
+using TwitchLib.Api.Helix.Models.Users.GetUsers;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
-using TwitchLib.Client.Exceptions;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Events;
+
 using static WarFabrik.Clone.FollowerServiceNew;
 
 namespace WarFabrik.Clone
@@ -45,11 +34,11 @@ namespace WarFabrik.Clone
         {
             disconnectRequested = false;
             logger = LogManager.GetCurrentClassLogger();
-            
+
             Manager = new BotCommandManager();
             api = new TwitchAPI();
-            
-            client = new TwitchClient();            
+
+            client = new TwitchClient();
 
             client.OnConnected += ClientOnConnected;
             client.OnDisconnected += ClientOnDisconnected;
@@ -111,7 +100,7 @@ namespace WarFabrik.Clone
 
         public void SendMessage(string message)
             => client.SendMessage(initialChannel, message);
-        
+
         private async Task<IEnumerable<User>> GetUsersAsync(params string[] logins)
         {
             var userResponse = await api.Helix.Users.GetUsersAsync(logins: logins.ToList());
@@ -195,7 +184,7 @@ namespace WarFabrik.Clone
             using var response = await client.PostAsync(url, null);
 
             using var status = response.EnsureSuccessStatusCode();
-            
+
             var str = await response.Content.ReadAsStringAsync();
             var token = JsonConvert.DeserializeObject<AccessToken>(str);
             token.CreatedAt = DateTime.Now;

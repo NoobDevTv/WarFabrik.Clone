@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BotMaster.Database.Model
 {
@@ -14,7 +10,7 @@ namespace BotMaster.Database.Model
         public virtual List<GroupMember> GroupMembers { get; set; }
 
         [NotMapped]
-        public IEnumerable<User> User => GroupMembers.Select(m => m.User);
+        public IEnumerable<User> Users => GroupMembers.Select(m => m.User);
 
     }
 }

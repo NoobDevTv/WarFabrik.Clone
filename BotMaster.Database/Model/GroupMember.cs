@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BotMaster.Database.Model
+﻿namespace BotMaster.Database.Model
 {
-    public sealed class GroupMember : Entity
+    public class GroupMember : IdEntity<int>
     {
-        public User User { get; set; }
-        public Group Group { get; set; }
+        public virtual User User { get; set; }
+        public virtual Group Group { get; set; }
     }
 }

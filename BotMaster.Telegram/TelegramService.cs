@@ -3,6 +3,7 @@ using BotMaster.Database.Model;
 using BotMaster.MessageContract;
 using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.Messages;
+using BotMaster.Telegram.Database;
 
 using NLog;
 
@@ -19,11 +20,12 @@ using MessageType = Telegram.Bot.Types.Enums.MessageType;
 using PluginMessage = BotMaster.PluginSystem.Messages.Message;
 using TelegramMessage = Telegram.Bot.Types.Message;
 
-namespace NoobDevBot.Telegram
+namespace BotMaster.Telegram
 {
     internal class TelegramService : Plugin
     {
         private readonly IMessageContractInfo[] messageContracts;
+        private static Logger logger;
 
         public TelegramService()
         {
@@ -42,7 +44,12 @@ namespace NoobDevBot.Telegram
 
         private BotInstance CreateBot()
         {
-            var client = new TelegramBotClient("");
+            var info = new FileInfo(Path.Combine(".", "additionalfiles", "Token.txt"));
+            if (!info.Directory.Exists)
+                info.Directory.Create();
+
+            var token = System.IO.File.ReadAllText(info.FullName);
+            var client = new TelegramBotClient(token);
             return new(client);
         }
 
@@ -53,19 +60,31 @@ namespace NoobDevBot.Telegram
             }
         }
 
-        //TODO: var info = new FileInfo(Path.Combine(".", "additionalfiles", "Telegram_Token.txt"));
         //TODO: Handle commands  
         public static IObservable<PluginMessage> Create(IObservable<PluginMessage> notifications, TelegramBotClient client)
         {
-            Logger logger = LogManager.GetCurrentClassLogger();
+            logger = LogManager.GetCurrentClassLogger();
 
+            using var context = new TelegramContext();
+            context.Database.EnsureCreated();
+            var telegramUsers
+                = context.Set<Group>()
+                    .FirstOrDefault(x => x.Name == "NoobDev")
+                    ?.Users
+                    .Join(context.TelegramUsers, x => x.Id, x => x.User.Id, (_, user) => user.Id)
+                    .ToList();
 
             //Messages from other plugins
-            IObservable<(Group, TextMessage n)> pluginMessageWithGroups
+            IObservable<(List<long>, TextMessage n)> pluginMessageWithGroups
                 = DefinedMessageContract
                     .ToDefineMessages(notifications)
                     .Match<TextMessage>(n => n)
-                    .Select(n => (DatabaseManager.GetGroupByName("NoobDev"), n));
+                    .Select(n => (telegramUsers, n));
+
+            foreach (var id in telegramUsers)
+            {
+                _ = client.SendTextMessageAsync(new ChatId(id), "New Bot started :)");
+            }
 
             var textMessages = SendMessageToGroup(pluginMessageWithGroups, logger, client);
 
@@ -84,19 +103,19 @@ namespace NoobDevBot.Telegram
 
 
         private static IObservable<(string, TelegramCommandArgs)> CreateCommands(TelegramBotClient client) =>
-            StartReceivingMessageUpdates(client, TimeSpan.FromSeconds(30))
+            StartReceivingMessageUpdates(client, TimeSpan.FromSeconds(1))
                     .Select(args => args.Message)
                     .Where(message => message.Type == MessageType.Text && !string.IsNullOrWhiteSpace(message.Text))
+                    .Do(message => logger.Debug($"Got Message: {message.Text}"))
                     .Where(message => message.Text.StartsWith('/'))
                     .Select(message => (message.Text.TrimStart('/').ToLower(), new TelegramCommandArgs(message, client)));
 
-        private static IObservable<TelegramMessage> SendMessageToGroup(IObservable<(Group Group, TextMessage Message)> groupMessages,
+        private static IObservable<TelegramMessage> SendMessageToGroup(IObservable<(List<long> userIds, TextMessage Message)> groupMessages,
             ILogger logger, TelegramBotClient client) =>
             groupMessages
-                    .Select(messages => (messages.Group.User, messages.Message))
                     .Select(m => m
-                                .User
-                                .Select(x => client.SendTextMessageAsync(new ChatId(x.Name), m.Message.Text).ToObservable())
+                                .userIds
+                                .Select(x => client.SendTextMessageAsync(new ChatId(x), m.Message.Text).ToObservable())
                                 .Concat())
                     .Concat()
                     .OnError(logger, ex => $"Error on {nameof(SendMessageToGroup)}: {ex.Message}");
@@ -106,6 +125,7 @@ namespace NoobDevBot.Telegram
             var limit = 0;
             var emptyUpdates = Array.Empty<Update>();
             var timeout = botClient.Timeout.TotalSeconds;
+            bool startNew = true;
 
             return
                 Observable
@@ -114,6 +134,7 @@ namespace NoobDevBot.Telegram
                     context =>
                         Observable
                             .Interval(pollingInterval)
+                            .Where(x => startNew)
                             .Select(_ =>
                                 new GetUpdatesRequest
                                 {
@@ -126,13 +147,18 @@ namespace NoobDevBot.Telegram
                             .Select(request =>
                                 Observable
                                     .FromAsync(token =>
-                                        botClient.MakeRequestAsync(request: request, cancellationToken: token)
-                                    )
-                                    .Do(updates => context.MessageOffset = updates[^0].Id + 1)
+                                    {
+                                        return botClient.MakeRequestAsync(request: request, cancellationToken: token);
+                                    })
+                                    .Where(x => x.Length > 0)
+                                    .Do(updates => context.MessageOffset = updates[^1].Id + 1)
                             )
+                            .Do(x => startNew = false)
                             .Concat()
+                            .Do(x => startNew = true)
                             .SelectMany(u => u)
                 );
+            ;
         }
 
         public class UpdateContext : IDisposable

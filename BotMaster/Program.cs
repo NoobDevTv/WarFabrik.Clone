@@ -1,12 +1,10 @@
 ﻿using BotMaster.Runtime;
+
 using NLog;
 using NLog.Config;
 using NLog.Targets;
-using System;
-using System.IO;
+
 using System.Reactive.Disposables;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace BotMaster
 {
@@ -23,6 +21,8 @@ namespace BotMaster
 
             if (!info.Directory.Exists)
                 info.Directory.Create();
+            if (!pluginInfo.Exists)
+                pluginInfo.Create();
 
             using var fileTarget = new FileTarget("botmaster.logfile") { FileName = info.FullName };
 #if DEBUG
@@ -34,7 +34,7 @@ namespace BotMaster
 #endif
             LogManager.Configuration = config;
 
-            using var managerDispose = Disposable.Create(() => LogManager.Shutdown()); 
+            using var managerDispose = Disposable.Create(() => LogManager.Shutdown());
             var logger = LogManager.GetCurrentClassLogger();
 
             using var resetEvent = new ManualResetEvent(false);
