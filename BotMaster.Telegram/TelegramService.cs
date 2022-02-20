@@ -103,7 +103,7 @@ namespace BotMaster.Telegram
 
 
         private static IObservable<(string, TelegramCommandArgs)> CreateCommands(TelegramBotClient client) =>
-            StartReceivingMessageUpdates(client, TimeSpan.FromSeconds(1))
+            StartReceivingMessageUpdates(client)
                     .Select(args => args.Message)
                     .Where(message => message.Type == MessageType.Text && !string.IsNullOrWhiteSpace(message.Text))
                     .Do(message => logger.Debug($"Got Message: {message.Text}"))
@@ -120,45 +120,43 @@ namespace BotMaster.Telegram
                     .Concat()
                     .OnError(logger, ex => $"Error on {nameof(SendMessageToGroup)}: {ex.Message}");
 
-        private static IObservable<Update> StartReceivingMessageUpdates(TelegramBotClient botClient, TimeSpan pollingInterval)
+        private static IObservable<Update> StartReceivingMessageUpdates(TelegramBotClient botClient)
         {
             var limit = 0;
             var emptyUpdates = Array.Empty<Update>();
             var timeout = botClient.Timeout.TotalSeconds;
-            bool startNew = true;
+
+            IObservable<Update[]> RequestUpdate(UpdateContext updateContext)
+            {
+                return Observable
+                    .Defer(() => {
+                        var request 
+                            = new GetUpdatesRequest
+                            {
+                                Limit = limit,
+                                Offset = updateContext.MessageOffset,
+                                Timeout = (int)timeout,
+                                AllowedUpdates = new[] { UpdateType.Message }
+                            };
+
+                        return Observable
+                                .FromAsync(token => botClient.MakeRequestAsync(request: request, cancellationToken: token));
+                      }
+                    )
+                    .Where(x => x.Length > 0)
+                    .Do(updates => updateContext.MessageOffset = updates[^1].Id + 1);
+            }
+
 
             return
                 Observable
                 .Using(
                     () => new UpdateContext(0),
-                    context =>
-                        Observable
-                            .Interval(pollingInterval)
-                            .Where(x => startNew)
-                            .Select(_ =>
-                                new GetUpdatesRequest
-                                {
-                                    Limit = limit,
-                                    Offset = context.MessageOffset,
-                                    Timeout = (int)timeout,
-                                    AllowedUpdates = new[] { UpdateType.Message }
-                                }
-                            )
-                            .Select(request =>
-                                Observable
-                                    .FromAsync(token =>
-                                    {
-                                        return botClient.MakeRequestAsync(request: request, cancellationToken: token);
-                                    })
-                                    .Where(x => x.Length > 0)
-                                    .Do(updates => context.MessageOffset = updates[^1].Id + 1)
-                            )
-                            .Do(x => startNew = false)
-                            .Concat()
-                            .Do(x => startNew = true)
-                            .SelectMany(u => u)
+                    context => 
+                        RequestUpdate(context)
+                        .Repeat()
+                        .SelectMany(u => u)
                 );
-            ;
         }
 
         public class UpdateContext : IDisposable
