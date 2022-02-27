@@ -1,13 +1,10 @@
 ﻿using BotMaster.PluginSystem;
+
 using NLog;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+
+using NonSucking.Framework.Extension.IoC;
+
 using System.Reactive.Disposables;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BotMaster.Runtime
 {
@@ -20,13 +17,13 @@ namespace BotMaster.Runtime
         private readonly ILogger logger;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Wrong Usage", "DF0020:Marks undisposed objects assinged to a field, originated in an object creation.", Justification = "<Ausstehend>")]
-        public Service(ILogger logger, DirectoryInfo pluginFolder, FileInfo pluginHost)
+        public Service(ITypeContainer typeContainer, ILogger logger, DirectoryInfo pluginFolder, FileInfo pluginHost)
         {
             messageHub = new MessageHub();
 
-            var packages = 
+            var packages =
                 PluginProvider
-                    .Watch(pluginFolder, pluginHost);
+                    .Watch(typeContainer, pluginFolder, pluginHost);
 
             pluginService = new PluginService(messageHub, packages);
             disposable = StableCompositeDisposable.Create(pluginService, messageHub);

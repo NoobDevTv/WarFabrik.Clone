@@ -50,7 +50,7 @@ namespace BotMaster.MessageContract
                 throw new NotSupportedException("Custom messages are not supported by DefinedMessage");
 
             var data = message.DataAsSpan();
-            var id = BitConverter.ToInt32(data[..1]);
+            var id = BitConverter.ToInt32(data[..4]);
 
             using var memory = new MemoryStream(data.ToArray());
             using var binaryReader = new BinaryReader(memory);

@@ -1,58 +1,46 @@
 ﻿using BotMaster.PluginSystem.Messages;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 
 namespace BotMaster.PluginSystem
 {
+
     public class PluginServiceInstance : PluginInstance
     {
-        private readonly Process process;
         private readonly CompositeDisposable compositeDisposable;
+        private readonly IObservable<Package> packages;
+        private IDisposable packageDisposable;
 
         public PluginServiceInstance(
-            PluginManifest manifest, Process process, Func<IObservable<Package>, IObservable<Package>> createServer)
+            PluginManifest manifest, Func<IObservable<Package>, IObservable<Package>> createServer, IObservable<Package> packages)
             : base(manifest, createServer)
         {
-            this.process = process;
             compositeDisposable = new CompositeDisposable();
+            this.packages = packages;
         }
 
-        internal void Kill()
-        {
-            process.Kill(true);
-            process.WaitForExit(1000);
-        }
-
-        internal bool TryStop()
-        {
-            return process.WaitForExit(10000);
-        }
 
         public override void Start()
         {
             base.Start();
-            process.Start();
-            process.Refresh();
+            packageDisposable = packages.Subscribe();
         }
 
         public override void Dispose()
         {
             compositeDisposable.Dispose();
-            process.Dispose();
+            packageDisposable.Dispose();
             base.Dispose();
         }
 
-        internal void ReceiveMessages(Func<string, IObservable<Message>> subscribeAsReceiver)
+        internal override void ReceiveMessages(Func<string, IObservable<Message>> subscribeAsReceiver)
         {
             var sendPackages = Send(MessageConvert.ToPackage(subscribeAsReceiver(Id)));
             compositeDisposable.Add(sendPackages.Subscribe());
         }
 
-        internal void SendMessages(Func<IObservable<Message>, IDisposable> subscribeAsSender)
+        internal override void SendMessages(Func<IObservable<Message>, IDisposable> subscribeAsSender)
         {
             var receivedMessages = MessageConvert.ToMessage(ReceivedPackages);
             compositeDisposable.Add(subscribeAsSender(receivedMessages));

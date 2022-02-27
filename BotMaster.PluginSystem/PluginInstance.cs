@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
+using BotMaster.PluginSystem.Messages;
+
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
 namespace BotMaster.PluginSystem
 {
-    public class PluginInstance : IDisposable, IEquatable<PluginServiceInstance>
+    public class PluginInstance : IDisposable, IEquatable<PluginProcessServiceInstance>
     {
         public string Id => manifest.Id;
 
@@ -37,6 +38,8 @@ namespace BotMaster.PluginSystem
         public IObservable<Package> Send(IObservable<Package> packages)
             => packages
                    .Do(p => sendPackages.OnNext(p));
+        internal virtual void SendMessages(Func<IObservable<Message>, IDisposable> subscribeAsSender) { }
+        internal virtual void ReceiveMessages(Func<string, IObservable<Message>> subscribeAsReceiver) { }
 
         public virtual void Dispose()
         {
@@ -44,9 +47,9 @@ namespace BotMaster.PluginSystem
         }
 
         public override bool Equals(object obj)
-            => Equals(obj as PluginServiceInstance);
+            => Equals(obj as PluginProcessServiceInstance);
 
-        public bool Equals(PluginServiceInstance other)
+        public bool Equals(PluginProcessServiceInstance other)
             => other != null
                && manifest.Id == other.manifest.Id;
 

@@ -17,6 +17,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\BotMaster.PluginHost\BotMaster.PluginHost.csproj" />
 		<ProjectReference Include="..\BotMaster.Runtime\BotMaster.Runtime.csproj" />
 	</ItemGroup>
 

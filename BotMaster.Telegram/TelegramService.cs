@@ -97,7 +97,6 @@ namespace BotMaster.Telegram
 
             var incomming = DefinedMessageContract.ToMessages(commandMessages);
 
-
             return Observable.Using(() => textMessages.Subscribe(), _ => incomming);
         }
 
@@ -118,7 +117,7 @@ namespace BotMaster.Telegram
                                 .Select(x => client.SendTextMessageAsync(new ChatId(x), m.Message.Text).ToObservable())
                                 .Concat())
                     .Concat()
-                    .OnError(logger, ex => $"Error on {nameof(SendMessageToGroup)}: {ex.Message}");
+                    .OnError(logger, ex => $"Error on {nameof(SendMessageToGroup)}: {ex.Message}\n{ex.StackTrace}");
 
         private static IObservable<Update> StartReceivingMessageUpdates(TelegramBotClient botClient)
         {
@@ -129,8 +128,9 @@ namespace BotMaster.Telegram
             IObservable<Update[]> RequestUpdate(UpdateContext updateContext)
             {
                 return Observable
-                    .Defer(() => {
-                        var request 
+                    .Defer(() =>
+                    {
+                        var request
                             = new GetUpdatesRequest
                             {
                                 Limit = limit,
@@ -141,7 +141,7 @@ namespace BotMaster.Telegram
 
                         return Observable
                                 .FromAsync(token => botClient.MakeRequestAsync(request: request, cancellationToken: token));
-                      }
+                    }
                     )
                     .Where(x => x.Length > 0)
                     .Do(updates => updateContext.MessageOffset = updates[^1].Id + 1);
@@ -152,7 +152,7 @@ namespace BotMaster.Telegram
                 Observable
                 .Using(
                     () => new UpdateContext(0),
-                    context => 
+                    context =>
                         RequestUpdate(context)
                         .Repeat()
                         .SelectMany(u => u)

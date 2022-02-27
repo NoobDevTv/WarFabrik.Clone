@@ -111,7 +111,7 @@ namespace WarFabrik.Clone
         {
             var message = e.ChatMessage.Message;
 
-            if (!e.ChatMessage.Message.Contains("!") && !e.ChatMessage.IsMe)
+            if (!e.ChatMessage.Message.Contains('!') && !e.ChatMessage.IsMe)
                 return;
 
             var index = message.IndexOf('!');

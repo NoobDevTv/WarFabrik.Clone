@@ -1,36 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+﻿using NonSucking.Framework.Extension.IoC;
+
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace BotMaster.PluginSystem
 {
     public static class PluginProvider
     {
-        public static IObservable<PluginServiceInstance> Watch(DirectoryInfo directory, FileInfo pluginHost)
+        public static IObservable<PluginInstance> Watch(ITypeContainer typeContainer, DirectoryInfo directory, FileInfo pluginHost)
             => GetPluginManifests(directory)
                    .Select(manifest =>
                     {
-                        Process process = new()
-                        {
-                            StartInfo = new(pluginHost.FullName, $"-l \"{manifest.CurrentFileInfo.FullName}\"")
-                            {
-                                WorkingDirectory = manifest.CurrentFileInfo.Directory.FullName
+                        var pluginCreator = typeContainer.Get<IPluginInstanceCreator>();
 
-                            },
-
-                        };
-
-                        var instance = new PluginServiceInstance(
+                        var instance = pluginCreator.Create(
                             manifest,
-                            process,
+                            pluginHost,
                             packages => PluginServer.Create(manifest.Id, packages));
 
                         return instance;

@@ -2,79 +2,34 @@
 using BotMaster.PluginSystem;
 
 using NLog;
-using NLog.Config;
-using NLog.Targets;
 
 using NonSucking.Framework.Extension.Activation;
 using NonSucking.Framework.Extension.IoC;
 
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Text.Json;
 
 namespace BotMaster.PluginHost
 {
-    class Program
+    public static class PluginHoster
     {
-        static void Main(string[] args)
+        public static IObservable<Package> LoadAll(ILogger logger, IReadOnlyCollection<FileInfo> paths)
         {
-            using var logManager = Disposable.Create(() => LogManager.Shutdown());
-            var config = new LoggingConfiguration();
+            logger.Info("Start plugin host");
 
-            var info = new FileInfo(Path.Combine(".", "logs", $"pluginhost-{DateTime.Now:ddMMyyyy-HHmmss_fff}.log"));
-
-            if (!info.Directory.Exists)
-                info.Directory.Create();
-
-            using var consoleTarget = new ColoredConsoleTarget("pluginhost.logconsole");
-            using var fileTarget = new FileTarget("pluginhost.logfile") { FileName = info.FullName };
-
-#if DEBUG
-            config.AddRule(LogLevel.Debug, LogLevel.Fatal, consoleTarget);
-            config.AddRule(LogLevel.Trace, LogLevel.Fatal, fileTarget);
-#else
-            config.AddRule(LogLevel.Info, LogLevel.Fatal, consoleTarget);
-            config.AddRule(LogLevel.Info, LogLevel.Fatal, fileTarget);
-#endif
-            LogManager.Configuration = config;
-            var logger = LogManager.GetCurrentClassLogger();
-            var plugins = new List<Plugin>();
-            try
+            return Observable.Merge(paths.Select(info =>
             {
-                logger.Info("Start plugin host");
-                using var manualReset = new ManualResetEvent(false);
-                using var pluginSub = new CompositeDisposable();
-                for (int i = 0; i < args.Length; i++)
-                {
-                    if (args[i] == "-l")
-                    {
-                        logger.Info("Load Manifest");
-
-                        i++;
-                        var sub = Load(args[i], () => manualReset.Set(), logger, out var p);
-                        plugins.AddRange(p);
-                        pluginSub.Add(sub);
-                    }
-                }
-
-                using var b = pluginSub;
-
-                manualReset.WaitOne();
-
-            }
-            catch (Exception ex)
-            {
-                logger.Fatal(ex, "Fatal Crash in application");
-                throw;
-            }
+                logger.Info("Load Manifest");
+                return Load(info, logger);
+            }));
         }
 
-        private static IDisposable Load(string fullName, Action reset, ILogger logger, out List<Plugin> plugins)
+        private static IObservable<Package> Load(FileInfo manifestFileInfo, ILogger logger)
         {
-            logger.Debug("Load manifest from " + fullName);
-            var manifestFileInfo = new FileInfo(fullName);
-            var manifest = JsonSerializer.Deserialize<PluginManifest>(File.ReadAllText(fullName), new JsonSerializerOptions
+            logger.Debug("Load manifest from " + manifestFileInfo.FullName);
+            var manifest = JsonSerializer.Deserialize<PluginManifest>(File.ReadAllText(manifestFileInfo.FullName), new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
@@ -86,11 +41,17 @@ namespace BotMaster.PluginHost
             else
                 assemblyFileInfo = new(Path.Combine(manifestFileInfo.Directory.FullName, manifest.File));
 
+
             logger.Info($"Load {assemblyFileInfo.FullName}");
-            var pluginAssembly = Assembly.LoadFrom(assemblyFileInfo.FullName);
+            var pluginContext = new AssemblyLoadContext(manifest.Name);
+            var resolver = new ReaderLoadContext(manifest.Name, assemblyFileInfo.FullName);
+
+            var pluginAssembly = resolver.LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(assemblyFileInfo.Name)));
+            //var pluginAssembly = pluginContext.LoadFromAssemblyPath(assemblyFileInfo.FullName);
+
 
             logger.Trace("Get Typecontainer");
-            var typecontainer = TypeContainer.Get<ITypeContainer>();
+            var typecontainer = new StandaloneTypeContainer();
 
             logger.Trace("Create plugin instance");
             var pluginInstance = new PluginInstance(
@@ -100,27 +61,94 @@ namespace BotMaster.PluginHost
             logger.Info("Start plugin");
             pluginInstance.Start();
 
+            var types = pluginAssembly
+                    .GetTypes()
+                    .Where(t => t.IsAssignableTo(typeof(Plugin)))
+                    .ToList();
+
             logger.Trace("Get Assembly types");
-            plugins =
+            var plugins =
                 pluginAssembly
                     .GetTypes()
                     .Where(t => t.IsAssignableTo(typeof(Plugin)))
                     .Select(t => t.GetActivationDelegate<Plugin>()())
                     .Do(p => p.Register(typecontainer))
-                    .ToList();
+                    .Select(plugin => plugin.Start(pluginInstance.ReceivedPackages));
 
-            var packages =
-                    plugins
-                        .ToObservable()
-                        .SelectMany(p => p.Start(pluginInstance.ReceivedPackages));
+            var packages = Observable.Merge(plugins);
 
             logger.Debug("Subscribe process");
-            var sub = pluginInstance
-                                        .Send(packages)
-                                        .Log(logger, "Plugin_" + manifest.Name, onError: LogLevel.Fatal, onErrorMessage: (ex) => ex.ToString())
-                                        .Subscribe(p => { }, ex => reset(), reset);
+            return Observable.Using(() => new PluginContext(typecontainer, pluginInstance), (c) =>
+                                          c.PluginInstance
+                                          .Send(packages)
+                                          .Log(logger, "Plugin_" + manifest.Name, onError: LogLevel.Fatal, onErrorMessage: (ex) => ex.ToString()));
 
-            return StableCompositeDisposable.Create(sub, typecontainer, pluginInstance);
+        }
+
+        public class ReaderLoadContext : AssemblyLoadContext
+        {
+            private AssemblyDependencyResolver _resolver;
+
+            public ReaderLoadContext(string name, string readerLocation) : base(name)
+            {
+                _resolver = new AssemblyDependencyResolver(readerLocation);
+            }
+
+            protected override Assembly Load(AssemblyName assemblyName)
+            {
+                var existing = Default.Assemblies.FirstOrDefault(x => x.FullName == assemblyName.FullName);
+                if (existing is not null)
+                    return existing;
+
+                string assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
+
+                if (assemblyPath != null)
+                {
+
+                    return LoadFromAssemblyPath(assemblyPath);
+                }
+
+                return null;
+            }
+
+            protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
+            {
+                string libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
+
+                if (libraryPath != null)
+                {
+                    return LoadUnmanagedDllFromPath(libraryPath);
+                }
+
+                return IntPtr.Zero;
+            }
+        }
+
+        private record PluginContext(ITypeContainer TypeContainer, PluginInstance PluginInstance) : IDisposable
+        {
+            private bool disposedValue;
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!disposedValue)
+                {
+                    if (disposing)
+                    {
+                        TypeContainer.Dispose();
+                        PluginInstance.Dispose();
+                    }
+
+                    disposedValue = true;
+                }
+            }
+
+
+
+            public void Dispose()
+            {
+                Dispose(disposing: true);
+                GC.SuppressFinalize(this);
+            }
         }
     }
 }

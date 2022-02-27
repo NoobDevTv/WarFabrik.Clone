@@ -1,8 +1,12 @@
-﻿using BotMaster.Runtime;
+﻿using BotMaster.PluginCreator;
+using BotMaster.PluginSystem;
+using BotMaster.Runtime;
 
 using NLog;
 using NLog.Config;
 using NLog.Targets;
+
+using NonSucking.Framework.Extension.IoC;
 
 using System.Reactive.Disposables;
 
@@ -17,7 +21,8 @@ namespace BotMaster
 
             var info = new FileInfo(Path.Combine(".", "additionalfiles", "botmaster.log"));
             var pluginInfo = new DirectoryInfo(Path.Combine(".", "plugins"));
-            var pluginHost = new FileInfo(Path.Combine(".", "pluginhost", "BotMaster.PluginHost.exe"));
+            var pluginHost = new FileInfo(Path.Combine(".", "pluginhost", "BotMaster.PluginHostProcessRunner.exe"));
+
 
             if (!info.Directory.Exists)
                 info.Directory.Create();
@@ -39,9 +44,16 @@ namespace BotMaster
 
             using var resetEvent = new ManualResetEvent(false);
             Console.CancelKeyPress += (s, e) => resetEvent.Set();
+            var typeContainer = TypeContainer.Get<ITypeContainer>();
+
+#if DEBUG
+            typeContainer.Register<IPluginInstanceCreator>(new PluginServiceInstanceCreator());
+#else
+            typeContainer.Register<IPluginInstanceCreator>(new PluginProcessServiceInstanceCreator());
+#endif
 
             var serviceLogger = LogManager.GetLogger($"{nameof(BotMaster)}.{nameof(Service)}");
-            using var service = new Service(serviceLogger, pluginInfo, pluginHost);
+            using var service = new Service(typeContainer, serviceLogger, pluginInfo, pluginHost);
             service.Start();
 
             resetEvent.WaitOne();

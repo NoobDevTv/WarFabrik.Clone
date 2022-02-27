@@ -1,22 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reactive.Linq;
 
 namespace BotMaster.PluginSystem
 {
     public sealed class PluginService : IDisposable
     {
-        private readonly Dictionary<string, PluginServiceInstance> plugins;
-        private readonly IObservable<PluginServiceInstance> instances;
+        private readonly Dictionary<string, PluginInstance> plugins;
+        private readonly IObservable<PluginInstance> instances;
         private readonly MessageHub messageHub;
         private IDisposable subscription;
 
-        public PluginService(MessageHub messageHub, IObservable<PluginServiceInstance> instances)
+        public PluginService(MessageHub messageHub, IObservable<PluginInstance> instances)
         {
-            plugins = new Dictionary<string, PluginServiceInstance>();
+            plugins = new Dictionary<string, PluginInstance>();
             this.instances = instances;
             this.messageHub = messageHub;
         }
@@ -27,17 +22,18 @@ namespace BotMaster.PluginSystem
             subscription = instances
                               .Do(instance =>
                               {
-                                  if(plugins.TryGetValue(instance.Id, out var value))
+                                  if (plugins.TryGetValue(instance.Id, out var value))
                                   {
-                                      if (!value.TryStop())
-                                      {
-                                          value.Kill();
-                                      }
+                                      if (value is PluginProcessServiceInstance instanceProcess)
+                                          if (!instanceProcess.TryStop())
+                                          {
+                                              instanceProcess.Kill();
+                                          }
 
                                       value.Dispose();
 
                                       using (var oldInstance = plugins[instance.Id])
-                                        plugins[instance.Id] = instance;
+                                          plugins[instance.Id] = instance;
                                   }
                                   else
                                   {
