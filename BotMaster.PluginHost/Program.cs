@@ -67,21 +67,21 @@ namespace BotMaster.PluginHost
                     .ToList();
 
             logger.Trace("Get Assembly types");
-            var plugins =
+            var packages =
                 pluginAssembly
                     .GetTypes()
                     .Where(t => t.IsAssignableTo(typeof(Plugin)))
                     .Select(t => t.GetActivationDelegate<Plugin>()())
                     .Do(p => p.Register(typecontainer))
-                    .Select(plugin => plugin.Start(pluginInstance.ReceivedPackages));
-
-            var packages = Observable.Merge(plugins);
+                    .Select(plugin => plugin.Start(pluginInstance.ReceivedPackages))
+                    .Merge();
 
             logger.Debug("Subscribe process");
             return Observable.Using(() => new PluginContext(typecontainer, pluginInstance), (c) =>
                                           c.PluginInstance
                                           .Send(packages)
-                                          .Log(logger, "Plugin_" + manifest.Name, onError: LogLevel.Fatal, onErrorMessage: (ex) => ex.ToString()));
+                                          .Log(logger, "Plugin_" + manifest.Name, onError: LogLevel.Fatal, onErrorMessage: (ex) => ex.ToString())
+                                          );
 
         }
 

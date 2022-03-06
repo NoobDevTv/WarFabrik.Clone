@@ -38,8 +38,7 @@ namespace BotMaster.Telegram
                 botInstance
                     => MessageConvert
                         .ToPackage(
-                            Create(MessageConvert.ToMessage(receivedPackages), botInstance.Client)
-                        )
+                            Create(MessageConvert.ToMessage(receivedPackages), botInstance.Client))
             );
 
         private BotInstance CreateBot()
@@ -83,7 +82,7 @@ namespace BotMaster.Telegram
 
             foreach (var id in telegramUsers)
             {
-                _ = client.SendTextMessageAsync(new ChatId(id), "New Bot started :)");
+                //_ = client.SendTextMessageAsync(new ChatId(id), "New Bot started :)");
             }
 
             var textMessages = SendMessageToGroup(pluginMessageWithGroups, logger, client);
@@ -92,8 +91,11 @@ namespace BotMaster.Telegram
             IObservable<(string, TelegramCommandArgs)> chatMessages = CreateCommands(client);
 
             var commandMessages = chatMessages
-              .Select(x => (x.Item2.Message.Text, x.Item2.Message.Text.Split(' ')[1..]))
-              .Select(x => DefinedMessage.CreateCommandMessage(x.Text, x.Item2));
+              .Select(x =>
+              {
+                  string[] split = x.Item2.Message.Text.TrimStart('/').Split(' ');
+                  return DefinedMessage.CreateCommandMessage(split[0].ToLower(), split[1..]);
+              });
 
             var incomming = DefinedMessageContract.ToMessages(commandMessages);
 
@@ -110,14 +112,16 @@ namespace BotMaster.Telegram
                     .Select(message => (message.Text.TrimStart('/').ToLower(), new TelegramCommandArgs(message, client)));
 
         private static IObservable<TelegramMessage> SendMessageToGroup(IObservable<(List<long> userIds, TextMessage Message)> groupMessages,
-            ILogger logger, TelegramBotClient client) =>
-            groupMessages
-                    .Select(m => m
-                                .userIds
-                                .Select(x => client.SendTextMessageAsync(new ChatId(x), m.Message.Text).ToObservable())
-                                .Concat())
-                    .Concat()
-                    .OnError(logger, ex => $"Error on {nameof(SendMessageToGroup)}: {ex.Message}\n{ex.StackTrace}");
+            ILogger logger, TelegramBotClient client)
+        {
+            return groupMessages
+                .Select(m => m
+                            .userIds
+                            .Select(x => client.SendTextMessageAsync(new ChatId(x), m.Message.Text).ToObservable())
+                            .Concat())
+                .Concat()
+                .OnError(logger, ex => $"Error on {nameof(SendMessageToGroup)}: {ex.Message}\n{ex.StackTrace}");
+        }
 
         private static IObservable<Update> StartReceivingMessageUpdates(TelegramBotClient botClient)
         {

@@ -11,12 +11,14 @@ namespace BotMaster.PluginSystem
         private readonly CompositeDisposable compositeDisposable;
         private readonly IObservable<Package> packages;
         private IDisposable packageDisposable;
+        private readonly CancellationTokenSource cancellationTokenSource;
 
         public PluginServiceInstance(
             PluginManifest manifest, Func<IObservable<Package>, IObservable<Package>> createServer, IObservable<Package> packages)
             : base(manifest, createServer)
         {
             compositeDisposable = new CompositeDisposable();
+            cancellationTokenSource = new();
             this.packages = packages;
         }
 
@@ -24,13 +26,15 @@ namespace BotMaster.PluginSystem
         public override void Start()
         {
             base.Start();
-            packageDisposable = packages.Subscribe();
+            Task.Run(() => packageDisposable = packages.Subscribe(), cancellationTokenSource.Token);
         }
 
         public override void Dispose()
         {
             compositeDisposable.Dispose();
             packageDisposable.Dispose();
+            cancellationTokenSource.Cancel();
+            cancellationTokenSource.Dispose();
             base.Dispose();
         }
 

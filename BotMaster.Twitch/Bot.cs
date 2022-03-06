@@ -129,7 +129,7 @@ namespace WarFabrik.Clone
         {
             logger.Info($"Connected to Twitch Channel");
             initialChannel = client.JoinedChannels.FirstOrDefault();
-            client.SendMessage(initialChannel, $"Bot is Online...");
+            //client.SendMessage(initialChannel, $"Bot is Online...");
         }
 
         private void ClientOnDisconnected(object sender, OnDisconnectedEventArgs e)

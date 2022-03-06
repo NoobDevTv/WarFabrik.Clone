@@ -59,13 +59,13 @@ namespace BotMaster.PluginSystem
             base.Dispose();
         }
 
-        internal void ReceiveMessages(Func<string, IObservable<Message>> subscribeAsReceiver)
+        internal override void ReceiveMessages(Func<string, IObservable<Message>> subscribeAsReceiver)
         {
             var sendPackages = Send(MessageConvert.ToPackage(subscribeAsReceiver(Id)));
             compositeDisposable.Add(sendPackages.Subscribe());
         }
 
-        internal void SendMessages(Func<IObservable<Message>, IDisposable> subscribeAsSender)
+        internal override void SendMessages(Func<IObservable<Message>, IDisposable> subscribeAsSender)
         {
             var receivedMessages = MessageConvert.ToMessage(ReceivedPackages);
             compositeDisposable.Add(subscribeAsSender(receivedMessages));

@@ -12,6 +12,7 @@ namespace BotMaster.PluginHostProcessRunner
 {
     class Program
     {
+
         static void Main(string[] args)
         {
             using var logManager = Disposable.Create(() => LogManager.Shutdown());

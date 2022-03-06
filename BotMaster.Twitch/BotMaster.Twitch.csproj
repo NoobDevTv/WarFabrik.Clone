@@ -39,4 +39,22 @@
 		</None>
 	</ItemGroup>
 
+
+	<Target Name="CopyDLLs" AfterTargets="Build">
+		<Message Text="Executing CopyDLLs task ($(SolutionDir)BotMaster\$(OutDir)plugins\$(ProjectName))" Importance="High" />
+		<Message Text="Executing CopyDLLs $(TargetDir)" Importance="High" />
+
+		<ItemGroup>
+			<MySourceFiles Include="$(TargetDir)\**\*.*"/>
+		</ItemGroup>
+
+		<Copy
+		  SourceFiles="@(MySourceFiles)"
+		DestinationFiles="@(MySourceFiles->'$(SolutionDir)BotMaster\$(OutDir)plugins\$(ProjectName)\%(RecursiveDir)%(Filename)%(Extension)')"
+/>
+
+		<Message Text="Copied build files" Importance="High" />
+
+	</Target>
+
 </Project>

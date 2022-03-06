@@ -1,10 +1,13 @@
-﻿using BotMaster.Betterplace.MessageContract;
-using BotMaster.MessageContract;
+﻿using BotMaster.MessageContract;
 using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.Messages;
+
 using System.Reactive.Linq;
+
 using WarFabrik.Clone;
+
 using static WarFabrik.Clone.FollowerServiceNew;
+
 using DefinedMessageContract = BotMaster.MessageContract.Contract;
 
 namespace BotMaster.Twitch
@@ -17,20 +20,34 @@ namespace BotMaster.Twitch
         {
             messageContracts = new[]
             {
-                (IMessageContractInfo)BetterplaceMessageContractInfo.Create()
+                (IMessageContractInfo)Betterplace.MessageContract.BetterplaceMessageContractInfo.Create()
             };
         }
 
         public override IObservable<Package> Start(IObservable<Package> receivedPackages)
             => Observable.Using(CreateBot,
                 botInstance
-                    => MessageConvert
-                        .ToPackage(
-                            Observable
-                            .FromAsync(token => botInstance.Bot.Run(token))
-                            .SelectMany(_ => GetMessage(botInstance.NewFollower, botInstance.Raids))
-                        )
+                    => MessageConvert.ToPackage(Create(MessageConvert.ToMessage(receivedPackages), botInstance))
                 );
+
+        private static IObservable<Message> Create(IObservable<Message> notifications, BotInstance botInstance)
+        {
+            var messages = DefinedMessageContract
+                   .ToDefineMessages(notifications)
+                   .VisitMany(
+                        textMessage => textMessage
+                            .Do(message => botInstance.Bot.SendMessage(message.Text)).Select(x => (DefinedMessage)x),
+                        commandMessage => commandMessage.Where(message => message.Command == "twitch")
+                            .Do(x => botInstance.Bot.SendMessage(string.Join(' ', x.Parameter)))
+                            .Select(x => (DefinedMessage)x)
+                       );
+
+            return Observable.Using(
+                () => messages.Subscribe(),
+                _ => Observable
+                    .FromAsync(botInstance.Bot.Run)
+                    .SelectMany(_ => GetMessage(botInstance.NewFollower, botInstance.Raids)));
+        }
 
         public override IEnumerable<IMessageContractInfo> ConsumeContracts()
             => messageContracts;

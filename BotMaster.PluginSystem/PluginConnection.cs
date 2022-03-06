@@ -1,13 +1,7 @@
-﻿using System;
-using System.Buffers;
-using System.Collections.Generic;
+﻿using System.Buffers;
 using System.IO.Pipes;
-using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace BotMaster.PluginSystem
 {
@@ -16,7 +10,7 @@ namespace BotMaster.PluginSystem
         public static IObservable<Package> Create(string id, IObservable<Package> sendPipe, Func<string, T> createPipe)
             => Observable.Using(
                 () => createPipe(id),
-                pipeClient => Observable.Merge(CreateReceivedPipe(pipeClient), CreateSendPipe(pipeClient, sendPipe)));
+                pipeClient => Observable.Merge(CreateReceiverPipe(pipeClient), CreateSendPipe(pipeClient, sendPipe)));
 
         private static IObservable<Package> CreateSendPipe(T clientStream, IObservable<Package> sendPipe)
             => sendPipe
@@ -36,7 +30,7 @@ namespace BotMaster.PluginSystem
                 .Concat()
                 .Where(p => false);
 
-        private static IObservable<Package> CreateReceivedPipe(T clientStream)
+        private static IObservable<Package> CreateReceiverPipe(T clientStream)
             => Observable
                 .Create<Package>((observer, token) => Task.Run(async () =>
                 {
@@ -58,7 +52,7 @@ namespace BotMaster.PluginSystem
                             }
 
                             await ReadHeader(clientStream, headerMemory, token);
-                            
+
                             var contractId = BitConverter.ToInt32(headerBuffer, 0);
                             var packageSize = BitConverter.ToInt32(headerBuffer, sizeof(int));
                             using var buffer = MemoryPool<byte>.Shared.Rent(packageSize);
