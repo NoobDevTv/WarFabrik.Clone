@@ -1,4 +1,5 @@
 ﻿using NLog;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace BotMaster.Core.NLog
 {
     public static class IObservableExtension
     {
-               
+
         public static IObservable<T> Trace<T>(this IObservable<T> observable, ILogger logger)
             => observable.Do(e => logger.Trace(e));
 
@@ -96,11 +97,11 @@ namespace BotMaster.Core.NLog
                 logger.Fatal(logLine.Item2, logLine.Item1);
             });
 
-        public static IObservable<T> OnError<T>(this IObservable<T> observable, ILogger logger)
-            => observable.Do(e => { }, ex => logger.Error(ex));
+        public static IObservable<T> OnError<T>(this IObservable<T> observable, ILogger logger, string name)
+            => Log(observable, logger, name, onError: LogLevel.Error);
 
-        public static IObservable<T> OnError<T>(this IObservable<T> observable, ILogger logger, Func<Exception, string> logFunc)
-            => observable.Do(e => { }, ex => logger.Error(ex, logFunc(ex)));
+        public static IObservable<T> OnError<T>(this IObservable<T> observable, ILogger logger, string name, Func<Exception, string> logFunc)
+            => Log(observable, logger, name, onError: LogLevel.Error, onErrorMessage: logFunc);
 
         public static IObservable<T> Log<T>(
            this IObservable<T> source,
@@ -114,7 +115,7 @@ namespace BotMaster.Core.NLog
            Func<Exception, string> onErrorMessage = null,
            LogLevel onCompleted = default,
            Func<string> onCompletedMessage = null)
-        {            
+        {
             var logged =
                 source
                 .Do(x => log.Log(onNext ?? LogLevel.Off, $"{name}: {(onNextMessage == null ? x.ToString() : onNextMessage(x))}"),

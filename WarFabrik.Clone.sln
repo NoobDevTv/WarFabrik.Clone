@@ -34,6 +34,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.PluginHostProcessRunner", "BotMaster.PluginHostProcessRunner\BotMaster.PluginHostProcessRunner.csproj", "{4FA0519D-EB38-4D22-872C-3FF1262D2AA9}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Twitch.MessageContract", "BotMaster.Twitch.MessageContract\BotMaster.Twitch.MessageContract.csproj", "{674A3B86-9F2F-4D2D-9A1E-68A90F5CDF2E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -92,6 +94,10 @@ Global
 		{4FA0519D-EB38-4D22-872C-3FF1262D2AA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4FA0519D-EB38-4D22-872C-3FF1262D2AA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4FA0519D-EB38-4D22-872C-3FF1262D2AA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{674A3B86-9F2F-4D2D-9A1E-68A90F5CDF2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{674A3B86-9F2F-4D2D-9A1E-68A90F5CDF2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{674A3B86-9F2F-4D2D-9A1E-68A90F5CDF2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{674A3B86-9F2F-4D2D-9A1E-68A90F5CDF2E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

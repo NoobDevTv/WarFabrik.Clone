@@ -2,6 +2,10 @@
 
 using NLog;
 
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
+
 using TwitchLib.Api;
 using TwitchLib.Api.Helix.Models.Users.GetUsers;
 using TwitchLib.Client;
@@ -9,15 +13,15 @@ using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Events;
 
-using static WarFabrik.Clone.FollowerServiceNew;
-
 namespace WarFabrik.Clone
 {
     public class Bot
     {
         public string ChannelId { get; private set; }
 
-        public FollowerServiceNew FollowerService { get; private set; }
+        public IObservable<FollowInformation> FollowerObservable { get; private set; }
+
+        public Subject<FollowInformation> FollowerSubject { get; private set; } = new();
 
         public event EventHandler<string> OnRaid;
 
@@ -44,9 +48,6 @@ namespace WarFabrik.Clone
             client.OnDisconnected += ClientOnDisconnected;
             client.OnMessageReceived += ClientOnMessageReceived;
             client.OnRaidNotification += ClientOnRaidNotification;
-
-            FollowerService = new FollowerServiceNew(api, 10000);
-            FollowerService.OnNewFollowersDetected += FollowerServiceOnNewFollowersDetected;
         }
 
         public void Connect()
@@ -79,18 +80,18 @@ namespace WarFabrik.Clone
             ChannelId = users.FirstOrDefault()?.Id; //TODO: Multiple Results????
 
             Connect();
-            FollowerService.StartService(ChannelId, token);
+            FollowerObservable = FollowerService.GetFollowerUpdates(api, ChannelId, TimeSpan.FromSeconds(10), Scheduler.Default).Publish().RefCount();
+            FollowerSubject.Subscribe(FollowerServiceOnNewFollowersDetected);
+            FollowerObservable.Subscribe(FollowerSubject);
         }
 
-        public void FollowerServiceOnNewFollowersDetected(object sender, NewFollowerDetectedArgs e)
+        public void FollowerServiceOnNewFollowersDetected(FollowInformation follower)
         {
-            foreach (var item in e.NewFollowers)
-            {
-                logger.Info(item.UserName + " has followed.");
+            logger.Info(follower.UserName + " has followed.");
 
-                client.SendMessage(initialChannel, $"{item.UserName} hat sich verklickt. Vielen lieben Dank dafür <3");
-                Hype();
-            }
+            client.SendMessage(initialChannel, $"{follower.UserName} hat sich verklickt. Vielen lieben Dank dafür <3");
+            Hype();
+
         }
 
         public void Hype()

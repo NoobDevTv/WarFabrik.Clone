@@ -6,7 +6,6 @@ using System.Reactive.Linq;
 
 using WarFabrik.Clone;
 
-using static WarFabrik.Clone.FollowerServiceNew;
 
 using DefinedMessageContract = BotMaster.MessageContract.Contract;
 
@@ -52,16 +51,16 @@ namespace BotMaster.Twitch
         public override IEnumerable<IMessageContractInfo> ConsumeContracts()
             => messageContracts;
 
-        private static IObservable<Message> GetMessage(IObservable<NewFollowerDetectedArgs> newFollower, IObservable<string> raids)
+        private static IObservable<Message> GetMessage(IObservable<FollowInformation> newFollower, IObservable<string> raids)
         {
             var rawMessages =
                 Observable
                 .Merge(
                     raids,
                     newFollower
-                        .Select(follow => "Following people just followed: " + string.Join(", ", follow.NewFollowers.Select(x => x.UserName)))
+                        .Select(follow => "Following person just followed: " + follow.UserName)
                 )
-                .Select(s => DefinedMessage.CreateTextMessage(s));
+                .Select(DefinedMessage.CreateTextMessage);
 
             return DefinedMessageContract.ToMessages(rawMessages);
         }
@@ -69,11 +68,6 @@ namespace BotMaster.Twitch
         private static BotInstance CreateBot()
         {
             var bot = new Bot();
-            var newFollower =
-                Observable.FromEventPattern<NewFollowerDetectedArgs>(
-                    add => bot.FollowerService.OnNewFollowersDetected += add,
-                    remove => bot.FollowerService.OnNewFollowersDetected -= remove)
-                .Select(args => args.EventArgs);
 
             var raids =
                 Observable.FromEventPattern<string>(
@@ -81,10 +75,10 @@ namespace BotMaster.Twitch
                     remove => bot.OnRaid -= remove)
                 .Select(args => args.EventArgs);
 
-            return new(bot, newFollower, raids);
+            return new(bot, bot.FollowerSubject, raids);
         }
 
-        private record BotInstance(Bot Bot, IObservable<NewFollowerDetectedArgs> NewFollower, IObservable<string> Raids) : IDisposable
+        private record BotInstance(Bot Bot, IObservable<FollowInformation> NewFollower, IObservable<string> Raids) : IDisposable
         {
             public void Dispose()
             {

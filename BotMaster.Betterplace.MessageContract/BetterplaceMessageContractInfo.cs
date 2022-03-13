@@ -1,4 +1,5 @@
 ﻿using BotMaster.PluginSystem;
+
 using System;
 
 namespace BotMaster.Betterplace.MessageContract
@@ -7,7 +8,7 @@ namespace BotMaster.Betterplace.MessageContract
     {
         public static BetterplaceMessageContractInfo Create()
             => new(
-                new Guid("524FED8B-38C6-4241-B5A0-84752A6964AD"),
+                Contract.UID,
                 nameof(BetterplaceMessageContractInfo));
     }
 }

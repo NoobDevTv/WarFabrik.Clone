@@ -77,6 +77,7 @@ namespace BotMaster.Telegram
             IObservable<(List<long>, TextMessage n)> pluginMessageWithGroups
                 = DefinedMessageContract
                     .ToDefineMessages(notifications)
+                    .Log(logger, nameof(TelegramService) + " Incomming", onNext: LogLevel.Debug)
                     .Match<TextMessage>(n => n)
                     .Select(n => (telegramUsers, n));
 
@@ -120,7 +121,7 @@ namespace BotMaster.Telegram
                             .Select(x => client.SendTextMessageAsync(new ChatId(x), m.Message.Text).ToObservable())
                             .Concat())
                 .Concat()
-                .OnError(logger, ex => $"Error on {nameof(SendMessageToGroup)}: {ex.Message}\n{ex.StackTrace}");
+                .OnError(logger, nameof(SendMessageToGroup), ex => $"{ex.Message}\n{ex.StackTrace}");
         }
 
         private static IObservable<Update> StartReceivingMessageUpdates(TelegramBotClient botClient)
