@@ -1,4 +1,5 @@
 ﻿using BotMaster.Core.NLog;
+using BotMaster.Twitch.MessageContract;
 
 using NLog;
 
@@ -45,7 +46,6 @@ namespace WarFabrik.Clone
 
             public void Dispose()
             {
-
             }
         }
     }

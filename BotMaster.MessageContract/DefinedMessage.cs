@@ -7,7 +7,7 @@ namespace BotMaster.MessageContract
     [Variant]
     public partial class DefinedMessage
     {
-        static partial void VariantOf(TextMessage textMessage, CommandMessage commandMessage);
+        static partial void VariantOf(TextMessage textMessage, CommandMessage commandMessage, ChatMessage chatMessage);
 
         public string TargetId { get; }
 
@@ -16,6 +16,10 @@ namespace BotMaster.MessageContract
             TargetId = targetId;
         }
         public DefinedMessage(CommandMessage commandMessage, string targetId) : this(commandMessage)
+        {
+            TargetId = targetId;
+        }
+        public DefinedMessage(ChatMessage chatMessage, string targetId) : this(chatMessage)
         {
             TargetId = targetId;
         }
@@ -34,6 +38,11 @@ namespace BotMaster.MessageContract
                         {
                             commandMessage.Serialize(writer);
                             return new Message(Contract.Id, MessageType.Defined, memory.ToArray(), TargetId);
+                        },
+                        chatMessage =>
+                        {
+                            chatMessage.Serialize(writer);
+                            return new Message(Contract.Id, MessageType.Defined, memory.ToArray(), TargetId);
                         }
             );
         }
@@ -43,6 +52,9 @@ namespace BotMaster.MessageContract
 
         public static DefinedMessage CreateCommandMessage(string command, IReadOnlyCollection<string> parameter)
             => new CommandMessage(command, parameter);
+
+        public static DefinedMessage CreateChatMessage(string username, string text)
+            => new ChatMessage(username, text);
 
         public static DefinedMessage FromMessage(Message message)
         {
@@ -59,6 +71,7 @@ namespace BotMaster.MessageContract
             {
                 TextMessage.TypeId => new(TextMessage.Deserialize(binaryReader), message.TargetId),
                 CommandMessage.TypeId => new(CommandMessage.Deserialize(binaryReader), message.TargetId),
+                ChatMessage.TypeId => new(ChatMessage.Deserialize(binaryReader), message.TargetId),
                 _ => throw new NotSupportedException($"message {id} is a unknown message type in DefinedMessage"),
             };
         }

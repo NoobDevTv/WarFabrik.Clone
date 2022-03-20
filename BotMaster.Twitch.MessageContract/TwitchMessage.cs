@@ -1,8 +1,9 @@
 ﻿using BotMaster.PluginSystem.Messages;
+using BotMaster.Twitch.MessageContract;
 
 using dotVariant;
 
-namespace BotMaster.Betterplace.MessageContract
+namespace BotMaster.Twitch.MessageContract
 {
     [Variant]
     public partial class TwitchMessage

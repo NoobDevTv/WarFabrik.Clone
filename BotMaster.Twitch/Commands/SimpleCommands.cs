@@ -1,4 +1,5 @@
 ﻿using CommandManagementSystem.Attributes;
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -136,7 +137,7 @@ namespace WarFabrik.Clone.Commands
         private static async Task<bool> AsyncStuff(BotCommandArgs args)
         {
             string result = "";
-            var user = await args.TwitchAPI.V5.Users.GetUserByIDAsync(args.Message.UserId);
+            var user = (await args.TwitchAPI.Helix.Users.GetUsersAsync(new List<string> { args.Message.UserId })).Users[0];
 
             if (user == null)
             {
@@ -147,7 +148,7 @@ namespace WarFabrik.Clone.Commands
             result += $"Hallo {user.DisplayName}. Du bist registriert seit {user.CreatedAt} und folgst uns ";
 
             var follow = (await args.TwitchAPI.Helix.Users.GetUsersFollowsAsync(fromId: args.Message.UserId, toId: args.Bot.ChannelId)).Follows.FirstOrDefault();
-            if (follow == default) 
+            if (follow == default)
             {
                 result += "leider nicht :(.";
             }
@@ -162,7 +163,7 @@ namespace WarFabrik.Clone.Commands
 
         private static async Task<bool> UptimeAsync(BotCommandArgs args)
         {
-            var uptime = await args.TwitchAPI.V5.Streams.GetUptimeAsync(args.Message.RoomId);
+            var uptime = await args.TwitchAPI.V5.Streams.GetUptimeAsync(args.Message.RoomId); //Helix.Streams.GetStreamsAsync().
 
             if (uptime == null)
             {

@@ -1,8 +1,14 @@
 ﻿using BotMaster.MessageContract;
 using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.Messages;
+using BotMaster.Twitch.MessageContract;
+
+using Newtonsoft.Json;
 
 using System.Reactive.Linq;
+
+using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
+using TwitchLib.Client.Models;
 
 using WarFabrik.Clone;
 
@@ -24,66 +30,64 @@ namespace BotMaster.Twitch
         }
 
         public override IObservable<Package> Start(IObservable<Package> receivedPackages)
-            => Observable.Using(CreateBot,
-                botInstance
-                    => MessageConvert.ToPackage(Create(MessageConvert.ToMessage(receivedPackages), botInstance))
-                );
+            => MessageConvert.ToPackage(Create(MessageConvert.ToMessage(receivedPackages)));
 
-        private static IObservable<Message> Create(IObservable<Message> notifications, BotInstance botInstance)
+
+        private static IObservable<Message> Create(IObservable<Message> notifications)
         {
-            var messages = DefinedMessageContract
-                   .ToDefineMessages(notifications)
-                   .VisitMany(
-                        textMessage => textMessage
-                            .Do(message => botInstance.Bot.SendMessage(message.Text)).Select(x => (DefinedMessage)x),
-                        commandMessage => commandMessage.Where(message => message.Command == "twitch")
-                            .Do(x => botInstance.Bot.SendMessage(string.Join(' ', x.Parameter)))
-                            .Select(x => (DefinedMessage)x)
-                       );
+            var info = new FileInfo(Path.Combine(".", "additionalfiles", "Token.json"));
 
-            return Observable.Using(
-                () => messages.Subscribe(),
-                _ => Observable
-                    .FromAsync(botInstance.Bot.Run)
-                    .SelectMany(_ => GetMessage(botInstance.NewFollower, botInstance.Raids)));
+            if (!info.Directory.Exists)
+                info.Directory.Create();
+
+            var tokenFile = JsonConvert.DeserializeObject<TokenFile>(File.ReadAllText(info.FullName));
+
+            TryGetAccessToken(new FileInfo(Path.Combine(".", "additionalfiles", "access.json")), out var accessToken);
+
+            return Bot.Create(tokenFile, accessToken, "NoobDevTv", notifications);
+
         }
 
         public override IEnumerable<IMessageContractInfo> ConsumeContracts()
             => messageContracts;
 
-        private static IObservable<Message> GetMessage(IObservable<FollowInformation> newFollower, IObservable<string> raids)
+
+        private static bool TryGetAccessToken(FileInfo info, out AccessToken accessToken)
         {
-            var rawMessages =
-                Observable
-                .Merge(
-                    raids,
-                    newFollower
-                        .Select(follow => "Following person just followed: " + follow.UserName)
-                )
-                .Select(DefinedMessage.CreateTextMessage);
+            accessToken = null;
 
-            return DefinedMessageContract.ToMessages(rawMessages);
-        }
-
-        private static BotInstance CreateBot()
-        {
-            var bot = new Bot();
-
-            var raids =
-                Observable.FromEventPattern<string>(
-                    add => bot.OnRaid += add,
-                    remove => bot.OnRaid -= remove)
-                .Select(args => args.EventArgs);
-
-            return new(bot, bot.FollowerSubject, raids);
-        }
-
-        private record BotInstance(Bot Bot, IObservable<FollowInformation> NewFollower, IObservable<string> Raids) : IDisposable
-        {
-            public void Dispose()
+            if (info.Exists)
             {
-                Bot.Disconnect();
+                accessToken = JsonConvert.DeserializeObject<AccessToken>(File.ReadAllText(info.FullName));
+
+                if (!accessToken.IsExpired)
+                    return true;
             }
+            return false;
+        }
+
+        private static async Task<AccessToken> GetAccessToken(FileInfo info, TokenFile tokenFile)
+        {
+            if (TryGetAccessToken(info, out var token))
+                return token;
+
+            token = await CreateToken(tokenFile);
+            await File.WriteAllTextAsync(info.FullName, JsonConvert.SerializeObject(token));
+            return token;
+        }
+
+        private static async Task<AccessToken> CreateToken(TokenFile tokenFile)
+        {
+            using var client = new HttpClient();
+            var url = $"https://id.twitch.tv/oauth2/token?client_id={tokenFile.ClientId}&client_secret={tokenFile.ClientSecret}&grant_type=client_credentials";
+            using var response = await client.PostAsync(url, null);
+
+            using var status = response.EnsureSuccessStatusCode();
+
+            var str = await response.Content.ReadAsStringAsync();
+            var token = JsonConvert.DeserializeObject<AccessToken>(str);
+            token.CreatedAt = DateTime.Now;
+            return token;
         }
     }
 }

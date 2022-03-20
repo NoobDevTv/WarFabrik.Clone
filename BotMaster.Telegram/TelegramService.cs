@@ -78,7 +78,7 @@ namespace BotMaster.Telegram
                 = DefinedMessageContract
                     .ToDefineMessages(notifications)
                     .Log(logger, nameof(TelegramService) + " Incomming", onNext: LogLevel.Debug)
-                    .Match<TextMessage>(n => n)
+                    .Match<TextMessage>(n => n) //TODO What about ChatMessage?!
                     .Select(n => (telegramUsers, n));
 
             foreach (var id in telegramUsers)

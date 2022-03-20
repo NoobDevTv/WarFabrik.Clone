@@ -2,7 +2,7 @@
 
 using System;
 
-namespace BotMaster.Betterplace.MessageContract
+namespace BotMaster.Twitch.MessageContract
 {
     public readonly record struct TwitchMessageContractInfo(Guid UID, string Name) : IMessageContractInfo
     {

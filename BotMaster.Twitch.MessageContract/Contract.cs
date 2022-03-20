@@ -7,7 +7,7 @@ using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BotMaster.Betterplace.MessageContract
+namespace BotMaster.Twitch.MessageContract
 {
     public static class Contract
     {

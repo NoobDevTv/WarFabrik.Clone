@@ -1,7 +1,8 @@
-TODOS:
+﻿TODOS:
 	- Rework Twitch to use more reactive instead of events
-		- Cleanup FollowerService
-		- Send Twitch messages / Command to the ouside
+		- ✓ Cleanup FollowerService
+		- ✓ Send Twitch messages / Command to the ouside
+		- Rework BotCommandManager (Look @ Rule Of Silvester)
 	
 	- Youtube Bot API implementation
 		- Set Title on Youtube and Twitch?
@@ -10,6 +11,8 @@ TODOS:
 	
 	- Add Twitter API (For Scheduled Events)
 
+	- Discord BOT Api?
+
 	- Change Message UID To GUID UID from Contracts
 
 	- Database Problem? How To Why and When
@@ -17,9 +20,11 @@ TODOS:
 		- Twitch/YT Command Message Creation
 		- Save current followers, so we know the diff
 
-	- Betterplace Optimizing
+	- Betterplace Optimizing (Webhooks)
 
 	- Stresstest
+
+	- TeamSpeak Bot
 
 
 Done:
