@@ -50,11 +50,11 @@ namespace BotMaster.MessageContract
         public static DefinedMessage CreateTextMessage(string text)
             => new TextMessage(text);
 
-        public static DefinedMessage CreateCommandMessage(string command, IReadOnlyCollection<string> parameter)
-            => new CommandMessage(command, parameter);
+        public static DefinedMessage CreateCommandMessage(string command, string userName, IReadOnlyCollection<string> parameter)
+            => new CommandMessage(command, userName, parameter);
 
-        public static DefinedMessage CreateChatMessage(string username, string text)
-            => new ChatMessage(username, text);
+        public static DefinedMessage CreateChatMessage(string username, string text, string source)
+            => new ChatMessage(username, text, source);
 
         public static DefinedMessage FromMessage(Message message)
         {

@@ -1,9 +1,11 @@
-﻿using Newtonsoft.Json;
+﻿
+using Newtonsoft.Json;
+
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace WarFabrik.Clone
+namespace BotMaster.Twitch
 {
     public class AccessToken
     {

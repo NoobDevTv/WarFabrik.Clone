@@ -1,7 +1,8 @@
-﻿using TwitchLib.Api;
+﻿
+using TwitchLib.Api;
 using TwitchLib.Client.Models;
 
-namespace WarFabrik.Clone
+namespace BotMaster.Twitch
 {
     public class BotCommandArgs
     {
@@ -9,7 +10,7 @@ namespace WarFabrik.Clone
         public TwitchAPI TwitchAPI { get; private set; }
         public ChatMessage Message { get; private set; }
 
-        public BotCommandArgs(Bot bot, TwitchAPI api,ChatMessage message)
+        public BotCommandArgs(Bot bot, TwitchAPI api, ChatMessage message)
         {
             Bot = bot;
             Message = message;

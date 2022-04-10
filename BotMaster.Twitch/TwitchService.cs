@@ -10,8 +10,6 @@ using System.Reactive.Linq;
 using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
 using TwitchLib.Client.Models;
 
-using WarFabrik.Clone;
-
 
 using DefinedMessageContract = BotMaster.MessageContract.Contract;
 
@@ -44,7 +42,7 @@ namespace BotMaster.Twitch
 
             TryGetAccessToken(new FileInfo(Path.Combine(".", "additionalfiles", "access.json")), out var accessToken);
 
-            return Bot.Create(tokenFile, accessToken, "NoobDevTv", notifications);
+            return Bot.Create(tokenFile, accessToken, "NoobDevTv", notifications).Retry();
 
         }
 

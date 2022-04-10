@@ -1,4 +1,4 @@
-﻿namespace WarFabrik.Clone
+﻿namespace BotMaster.Twitch
 {
     public class TokenFile
     {

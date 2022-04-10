@@ -10,7 +10,7 @@ using System.Reactive.Linq;
 using TwitchLib.Api;
 using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
 
-namespace WarFabrik.Clone
+namespace BotMaster.Twitch
 {
     public class FollowerService
     {

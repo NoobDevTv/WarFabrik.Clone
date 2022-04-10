@@ -14,6 +14,5 @@ namespace BotMaster.Telegram
             Message = message;
             Bot = bot;
         }
-
     }
 }

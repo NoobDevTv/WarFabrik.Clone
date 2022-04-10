@@ -13,8 +13,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Betterplace", "Bo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Core", "BotMaster.Core\BotMaster.Core.csproj", "{003E0D76-74C1-4DFE-B4BE-5BEF92E6CC42}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Web", "BotMaster.Web\BotMaster.Web.csproj", "{979B8CEF-3A9A-4A95-B1DC-2594AC9DDBD5}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Runtime", "BotMaster.Runtime\BotMaster.Runtime.csproj", "{9808CB35-450C-4FCB-B578-E2707D551DD5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Database", "BotMaster.Database\BotMaster.Database.csproj", "{7619289E-758F-4C31-A613-33D919B16A8D}"
@@ -35,6 +33,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.PluginHostProcessRunner", "BotMaster.PluginHostProcessRunner\BotMaster.PluginHostProcessRunner.csproj", "{4FA0519D-EB38-4D22-872C-3FF1262D2AA9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Twitch.MessageContract", "BotMaster.Twitch.MessageContract\BotMaster.Twitch.MessageContract.csproj", "{674A3B86-9F2F-4D2D-9A1E-68A90F5CDF2E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Commandos", "BotMaster.Commandos\BotMaster.Commandos.csproj", "{57117382-10A1-4823-A4FB-A81FF6D05ABF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotMaster.RightsManagement", "BotMaster.RightsManagement\BotMaster.RightsManagement.csproj", "{9D3B16DC-8237-460D-8335-F37D20E6771D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -62,10 +64,6 @@ Global
 		{003E0D76-74C1-4DFE-B4BE-5BEF92E6CC42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{003E0D76-74C1-4DFE-B4BE-5BEF92E6CC42}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{003E0D76-74C1-4DFE-B4BE-5BEF92E6CC42}.Release|Any CPU.Build.0 = Release|Any CPU
-		{979B8CEF-3A9A-4A95-B1DC-2594AC9DDBD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{979B8CEF-3A9A-4A95-B1DC-2594AC9DDBD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{979B8CEF-3A9A-4A95-B1DC-2594AC9DDBD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{979B8CEF-3A9A-4A95-B1DC-2594AC9DDBD5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9808CB35-450C-4FCB-B578-E2707D551DD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9808CB35-450C-4FCB-B578-E2707D551DD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9808CB35-450C-4FCB-B578-E2707D551DD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -98,6 +96,14 @@ Global
 		{674A3B86-9F2F-4D2D-9A1E-68A90F5CDF2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{674A3B86-9F2F-4D2D-9A1E-68A90F5CDF2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{674A3B86-9F2F-4D2D-9A1E-68A90F5CDF2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57117382-10A1-4823-A4FB-A81FF6D05ABF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57117382-10A1-4823-A4FB-A81FF6D05ABF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57117382-10A1-4823-A4FB-A81FF6D05ABF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57117382-10A1-4823-A4FB-A81FF6D05ABF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D3B16DC-8237-460D-8335-F37D20E6771D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D3B16DC-8237-460D-8335-F37D20E6771D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D3B16DC-8237-460D-8335-F37D20E6771D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D3B16DC-8237-460D-8335-F37D20E6771D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

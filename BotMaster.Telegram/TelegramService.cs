@@ -95,7 +95,7 @@ namespace BotMaster.Telegram
               .Select(x =>
               {
                   string[] split = x.Item2.Message.Text.TrimStart('/').Split(' ');
-                  return DefinedMessage.CreateCommandMessage(split[0].ToLower(), split[1..]);
+                  return DefinedMessage.CreateCommandMessage(split[0].ToLower(), x.Item2.Message.From.Username, split[1..]);
               });
 
             var incomming = DefinedMessageContract.ToMessages(commandMessages);
@@ -104,7 +104,7 @@ namespace BotMaster.Telegram
         }
 
 
-        private static IObservable<(string, TelegramCommandArgs)> CreateCommands(TelegramBotClient client) =>
+        private static IObservable<(string,  TelegramCommandArgs)> CreateCommands(TelegramBotClient client) =>
             StartReceivingMessageUpdates(client)
                     .Select(args => args.Message)
                     .Where(message => message.Type == MessageType.Text && !string.IsNullOrWhiteSpace(message.Text))

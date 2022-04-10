@@ -1,4 +1,7 @@
-﻿using CommandManagementSystem.Attributes;
+﻿using BotMaster.MessageContract;
+using BotMaster.Twitch;
+
+using CommandManagementSystem.Attributes;
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace WarFabrik.Clone.Commands
+namespace BotMaster.Twitch.Commands
 {
     public static class SimpleCommands
     {
@@ -22,7 +25,7 @@ namespace WarFabrik.Clone.Commands
         }
 
         [Command("hype")]
-        public static bool Hype(BotCommandArgs args)
+        internal static void Hype(TwitchContext context, CommandMessage message)
         {
             string msg = "";
 
@@ -31,150 +34,163 @@ namespace WarFabrik.Clone.Commands
                 msg += smilies[random.Next(0, smilies.Length)] + " ";
             }
 
-            args.Bot.SendMessage(msg);
-            return true;
+            context.Client.SendMessage(context.Channel, msg);
         }
 
         [Command("uptime")]
-        public static bool Uptime(BotCommandArgs args) => UptimeAsync(args).Result;
+        internal static void Uptime(TwitchContext context, CommandMessage message) => UptimeAsync(context, message);
 
         [Command("?", "help")]
-        public static bool Help(BotCommandArgs args)
+        internal static void Help(TwitchContext context, CommandMessage message)
         {
-            var commandsList = args.Bot.Manager.GetCommandTagList().Select(c => new[] { c.Key }.Concat(c.Value).ToArray()).ToList();
-            string message = "Folgende Befehle sind verfügbar:";
+            var commandsList = context.CommandoCentral.Commands;
+            string toPrintMessage = "Folgende Befehle sind verfügbar:";
 
-            //args.Bot.SendMessage("Folgende Befehle sind verfügbar: !uptime, !hype, !telegram, !flipacoin, !donate, !teamspeak, !twitter, !youtube, !github, !time, !streamer, !projects, !whoami");
+            //context.Client.SendMessage(context.Channel, "Folgende Befehle sind verfügbar: !uptime, !hype, !telegram, !flipacoin, !donate, !teamspeak, !twitter, !youtube, !github, !time, !streamer, !projects, !whoami");
             foreach (var commandTags in commandsList)
-                foreach (var commandTag in commandTags)
-                    message += $" !{commandTag},";
+                toPrintMessage += $" !{commandTags},";
 
-            args.Bot.SendMessage(message.Trim(',', ' '));
-            return true;
+            context.Client.SendMessage(context.Channel, toPrintMessage.Trim(',', ' '));
+
         }
 
         [Command("telegram")]
-        public static bool TelegramGroup(BotCommandArgs args)
+        internal static void TelegramGroup(TwitchContext context, CommandMessage message)
         {
-            args.Bot.SendMessage("Telegramgruppe: https://t.me/NoobDevStream | @gallimathias | @susch19");
-            return true;
+            context.Client.SendMessage(context.Channel, "Telegramgruppe: https://t.me/NoobDevStream | @gallimathias | @susch19");
+
         }
 
         [Command("flipacoin")]
-        public static bool FlipACoin(BotCommandArgs args)
+        internal static void FlipACoin(TwitchContext context, CommandMessage message)
         {
             if (random.Next(0, 2) == 0)
-                args.Bot.SendMessage("Kopf");
+                context.Client.SendMessage(context.Channel, "Kopf");
             else
-                args.Bot.SendMessage("Zahl");
+                context.Client.SendMessage(context.Channel, "Zahl");
 
-            return true;
+
         }
 
         [Command("donate")]
-        public static bool Donate(BotCommandArgs args)
+        internal static void Donate(TwitchContext context, CommandMessage message)
         {
-            args.Bot.SendMessage("Betterplace: https://goo.gl/QK5FF3");
-            return true;
+            context.Client.SendMessage(context.Channel, "Betterplace: https://goo.gl/QK5FF3");
+
         }
 
         [Command("github")]
-        public static bool Github(BotCommandArgs args)
+        internal static void Github(TwitchContext context, CommandMessage message)
         {
             //TODO Check current project
-            args.Bot.SendMessage("Github: https://github.com/NoobDevTv");
-            return true;
+            context.Client.SendMessage(context.Channel, "Github: https://github.com/NoobDevTv");
+
+        }
+
+        internal static void Add(TwitchContext context, CommandMessage c)
+        {
+            var command = c.Parameter.First().ToLower();
+            var message = " " + string.Join(" ", c.Parameter.Skip(1));
+            context.AddCommand((command) => context.Client.SendMessage(context.Channel, message), command);
+            context.Client.SendMessage(context.Channel, $"User {c.Username} has added command {command} with text: {message}");
+            
         }
 
         [Command("teamspeak", "ts")]
-        public static bool TeamSpeak(BotCommandArgs args)
+        internal static void TeamSpeak(TwitchContext context, CommandMessage message)
         {
-            args.Bot.SendMessage("Teamspeak (Klickbarer Link in der Beschreibung): ts3server://drachenfeste.eu/");
-            return true;
+            context.Client.SendMessage(context.Channel, "Teamspeak (Klickbarer Link in der Beschreibung): ts3server://drachenfeste.eu/");
+
         }
 
         [Command("twitter")]
-        public static bool Twitter(BotCommandArgs args)
+        internal static void Twitter(TwitchContext context, CommandMessage message)
         {
-            args.Bot.SendMessage("Twitter: https://twitter.com/Noob_Dev_Tv");
-            return true;
+            context.Client.SendMessage(context.Channel, "Twitter: https://twitter.com/Noob_Dev_Tv");
+
         }
 
         [Command("youtube", "yt")]
-        public static bool Youtube(BotCommandArgs args)
+        internal static void Youtube(TwitchContext context, CommandMessage message)
         {
-            args.Bot.SendMessage("Youtube: https://www.youtube.com/channel/UCIWEvJ9SHMQoouIe86z6buQ");
-            return true;
+            context.Client.SendMessage(context.Channel, "Youtube: https://www.youtube.com/channel/UCIWEvJ9SHMQoouIe86z6buQ");
+
+        }
+
+        internal static void Discord(TwitchContext context, CommandMessage message)
+        {
+            context.Client.SendMessage(context.Channel, "Discord: https://discord.gg/3UGVAfK");
+
         }
 
         [Command("time")]
-        public static bool Time(BotCommandArgs args)
+        internal static void Time(TwitchContext context, CommandMessage message)
         {
-            args.Bot.SendMessage("Aktuelle Uhrzeit: " + DateTime.Now.ToLongTimeString());
-            return true;
+            context.Client.SendMessage(context.Channel, "Aktuelle Uhrzeit: " + DateTime.Now.ToLongTimeString());
+
         }
 
         [Command("streamer")]
-        public static bool Streamer(BotCommandArgs args)
+        internal static void Streamer(TwitchContext context, CommandMessage message)
         {
-            args.Bot.SendMessage("Namen der Streamer: Marcus Aurelius, susch19");
-            return true;
+            context.Client.SendMessage(context.Channel, "Namen der Streamer: Marcus Aurelius, susch19");
+
         }
 
         [Command("projects")]
-        public static bool Project(BotCommandArgs args)
+        internal static void Project(TwitchContext context, CommandMessage message)
         {
-            args.Bot.SendMessage("Für die aktuellen Projekte wirf bitte ein Blick in unsere Beschreibung. Alle Projekte sind auch auf !Github zu finden.");
-            return true;
+            context.Client.SendMessage(context.Channel, "Für die aktuellen Projekte wirf bitte ein Blick in unsere Beschreibung. Alle Projekte sind auch auf !Github zu finden.");
+
         }
 
-        [Command("whoami")]
-        public static bool WhoAmI(BotCommandArgs args)
+        //[Command("whoami")]
+        //internal static void WhoAmI(TwitchContext context, CommandMessage message)
+        //{
+        //    AsyncWhoAmI(context, message);
+        //}
+
+        //private static async Task<bool> AsyncWhoAmI(TwitchContext context, CommandMessage message)
+        //{
+        //    string result = "";
+        //    var user = (await context.Api.V5.Users.GetUsersByNameAsync(new List<string> { context.UserId })).Users[0];
+
+        //    if (user == null)
+        //    {
+        //        context.Client.SendMessage(context.Channel, $"Sorry {args.Message.Username}, aber WhoAmI scheint für dich nicht zu funktionieren :(");
+        //        return false;
+        //    }
+
+        //    result += $"Hallo {user.DisplayName}. Du bist registriert seit {user.CreatedAt} und folgst uns ";
+
+        //    var follow = (await context.Api.Helix.Users.GetUsersFollowsAsync(fromId: args.Message.UserId, toId: args.Bot.ChannelId)).Follows.FirstOrDefault();
+        //    if (follow == default)
+        //    {
+        //        result += "leider nicht :(.";
+        //    }
+        //    else
+        //    {
+        //        result += "seit dem " + follow.FollowedAt + ". Danke dafür :). ";
+        //    }
+
+        //    context.Client.SendMessage(context.Channel, result);
+
+        //}
+
+        private static async Task UptimeAsync(TwitchContext context, CommandMessage message)
         {
-            return AsyncStuff(args).Result;
-        }
-
-        private static async Task<bool> AsyncStuff(BotCommandArgs args)
-        {
-            string result = "";
-            var user = (await args.TwitchAPI.Helix.Users.GetUsersAsync(new List<string> { args.Message.UserId })).Users[0];
-
-            if (user == null)
-            {
-                args.Bot.SendMessage($"Sorry {args.Message.Username}, aber WhoAmI scheint für dich nicht zu funktionieren :(");
-                return false;
-            }
-
-            result += $"Hallo {user.DisplayName}. Du bist registriert seit {user.CreatedAt} und folgst uns ";
-
-            var follow = (await args.TwitchAPI.Helix.Users.GetUsersFollowsAsync(fromId: args.Message.UserId, toId: args.Bot.ChannelId)).Follows.FirstOrDefault();
-            if (follow == default)
-            {
-                result += "leider nicht :(.";
-            }
-            else
-            {
-                result += "seit dem " + follow.FollowedAt + ". Danke dafür :). ";
-            }
-
-            args.Bot.SendMessage(result);
-            return true;
-        }
-
-        private static async Task<bool> UptimeAsync(BotCommandArgs args)
-        {
-            var uptime = await args.TwitchAPI.V5.Streams.GetUptimeAsync(args.Message.RoomId); //Helix.Streams.GetStreamsAsync().
+            var uptime = await context.Api.V5.Streams.GetUptimeAsync(context.Channel); //Helix.Streams.GetStreamsAsync().
 
             if (uptime == null)
             {
-                args.Bot.SendMessage("Irgendwas ist mit dem !uptime Befehl kaputt gegangen :(");
+                context.Client.SendMessage(context.Channel, "Irgendwas ist mit dem !uptime Befehl kaputt gegangen :(");
 
-                return false;
+                return;
             }
 
-            args.Bot.SendMessage(
+            context.Client.SendMessage(context.Channel,
                 $"Der Stream läuft schon {uptime.Value.Hours.ToString("d2")}:{uptime.Value.Minutes.ToString("d2")}:{uptime.Value.Seconds.ToString("d2")}");
-            return true;
+
         }
     }
 }

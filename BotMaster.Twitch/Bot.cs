@@ -1,11 +1,11 @@
 ﻿
+using BotMaster.Core;
 using BotMaster.MessageContract;
 using BotMaster.PluginSystem.Messages;
+using BotMaster.Twitch.Commands;
 using BotMaster.Twitch.MessageContract;
 
 using Newtonsoft.Json;
-
-using NLog;
 
 using System.Net;
 using System.Reactive.Concurrency;
@@ -22,7 +22,7 @@ using TwitchLib.Client.Models;
 using DefinedContract = BotMaster.MessageContract.Contract;
 using TwitchContract = BotMaster.Twitch.MessageContract.Contract;
 
-namespace WarFabrik.Clone
+namespace BotMaster.Twitch
 {
     public class Bot
     {
@@ -34,10 +34,28 @@ namespace WarFabrik.Clone
         public static IObservable<Message> Create(TokenFile tokenFile, AccessToken accessToken, string channelName, IObservable<Message> notifications)
         {
             return Observable
-                .Using((t) => CreateContext(tokenFile, accessToken, channelName, t), (context, t) =>
+                .Using((t) => CreateContext(tokenFile, accessToken, channelName, t, new CommandoCentral()), (context, t) =>
                 {
                     t.ThrowIfCancellationRequested();
                     var client = context.Client;
+
+                    context.AddCommand((c) => client.SendMessage(context.Channel, $"[{c.Username}]: {string.Join(' ', c.Parameter)}" ), "twitch");
+                    context.AddCommand((c) => SimpleCommands.Hype(context, c), "hype");
+                    context.AddCommand((c) => SimpleCommands.Uptime(context, c), "uptime");
+                    context.AddCommand((c) => SimpleCommands.Help(context, c), "?", "help");
+                    context.AddCommand((c) => SimpleCommands.TelegramGroup(context, c), "telegram");
+                    context.AddCommand((c) => SimpleCommands.FlipACoin(context, c), "flipacoin");
+                    context.AddCommand((c) => SimpleCommands.Github(context, c), "github");
+                    context.AddCommand((c) => SimpleCommands.TeamSpeak(context, c), "teamspeak", "ts");
+                    context.AddCommand((c) => SimpleCommands.Twitter(context, c), "twitter");
+                    context.AddCommand((c) => SimpleCommands.Donate(context, c), "donate");
+                    context.AddCommand((c) => SimpleCommands.Youtube(context, c), "youtube", "yt");
+                    context.AddCommand((c) => SimpleCommands.Discord(context, c), "discord", "dc");
+                    context.AddCommand((c) => SimpleCommands.Time(context, c), "time");
+                    context.AddCommand((c) => SimpleCommands.Streamer(context, c), "streamer");
+                    context.AddCommand((c) => SimpleCommands.Project(context, c), "projects");
+
+                    context.AddCommand((c) => SimpleCommands.Add(context, c), "add");
 
                     var messages = Observable
                         .FromEventPattern<OnConnectedArgs>(add => client.OnConnected += add, remove => client.OnConnected -= remove)
@@ -47,11 +65,10 @@ namespace WarFabrik.Clone
                                .ToDefineMessages(notifications)
                                .VisitMany(
                                     textMessage => Observable.Empty<DefinedMessage>(),
-                                    commandMessage => commandMessage
-                                        .Where(message => message.Command == "twitch")
-                                        .Do(x => client.SendMessage(context.Channel, string.Join(' ', x.Parameter)))
+                                    commandMessage => context.CommandoCentral.CreateCommandStream(commandMessage)
                                         .Select(x => (DefinedMessage)x),
                                     chatMessage => chatMessage
+                                        .Where(x=>x.Source != "twitch")
                                         .Do(message => client.SendMessage(context.Channel, $"[{message.Username}]: {message.Text}"))
                                         .Select(x => (DefinedMessage)x)
                                    );
@@ -88,7 +105,7 @@ namespace WarFabrik.Clone
                             var chatMessages
                                 = messages
                                 .Where(x => !x.ChatMessage.Message.Contains('!'))
-                                .Select(x => DefinedMessage.CreateChatMessage(x.ChatMessage.Username, x.ChatMessage.Message));
+                                .Select(x => DefinedMessage.CreateChatMessage(x.ChatMessage.Username, x.ChatMessage.Message, "twitch"));
 
 
                             var commandMessages
@@ -104,9 +121,9 @@ namespace WarFabrik.Clone
                                         end = message.Length;
 
                                     var command = message[index..end].Trim().TrimStart('!').ToLower();
-                                    var parameter = message[end..].Split(' ');
+                                    var parameter = message[end..].Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-                                    return DefinedMessage.CreateCommandMessage(command, parameter);
+                                    return DefinedMessage.CreateCommandMessage(command, e.ChatMessage.Username, parameter);
                                 });
 
                             var internalCommands
@@ -132,14 +149,14 @@ namespace WarFabrik.Clone
                                 .GetFollowerUpdates(context.Api, context.UserId, TimeSpan.FromSeconds(10), Scheduler.Default)
                                 .Select(x => (TwitchMessage)x);
 
-                            var twitchMessages = TwitchContract.ToMessages(Observable.Merge(raidInfo, follower));
-                            var definedMessages = DefinedContract.ToMessages(Observable.Merge(commandMessages, chatMessages));
+                            var twitchMessages = TwitchContract.ToMessages(raidInfo.Merge(follower));
+                            var definedMessages = DefinedContract.ToMessages(commandMessages.Merge(chatMessages));
 
                             return Observable.Using(
                                 () => StableCompositeDisposable.Create(
                                     incommingDefinedMessages.Subscribe(),
                                     incommingTwitchMessages.Subscribe()),
-                                (_) => Observable.Merge(twitchMessages, definedMessages));
+                                (_) => twitchMessages.Merge(definedMessages));
                         })
                         .Merge();
 
@@ -153,7 +170,7 @@ namespace WarFabrik.Clone
             );
         }
 
-        private static async Task<TwitchContext> CreateContext(TokenFile tokenFile, AccessToken accessToken, string channelName, CancellationToken t)
+        private static async Task<TwitchContext> CreateContext(TokenFile tokenFile, AccessToken accessToken, string channelName, CancellationToken t, CommandoCentral commandoCentral)
         {
             t.ThrowIfCancellationRequested();
 
@@ -168,16 +185,8 @@ namespace WarFabrik.Clone
             var userResponse = await api.Helix.Users.GetUsersAsync(logins: new List<string> { channelName });
             var userId = userResponse.Users.First().Id;
 
-            return new TwitchContext(api, client, userId, channelName);
+            return new TwitchContext(api, client, userId, channelName, commandoCentral, new());
         }
 
-        private record TwitchContext(TwitchAPI Api, TwitchClient Client, string UserId, string Channel) : IDisposable
-        {
-            public Logger Logger { get; } = LogManager.GetLogger($"{nameof(Bot)}_{UserId}");
-
-            public void Dispose()
-            {
-            }
-        }
     }
 }
