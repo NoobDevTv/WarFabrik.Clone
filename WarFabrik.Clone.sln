@@ -36,7 +36,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Twitch.MessageCon
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Commandos", "BotMaster.Commandos\BotMaster.Commandos.csproj", "{57117382-10A1-4823-A4FB-A81FF6D05ABF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotMaster.RightsManagement", "BotMaster.RightsManagement\BotMaster.RightsManagement.csproj", "{9D3B16DC-8237-460D-8335-F37D20E6771D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.RightsManagement", "BotMaster.RightsManagement\BotMaster.RightsManagement.csproj", "{9D3B16DC-8237-460D-8335-F37D20E6771D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

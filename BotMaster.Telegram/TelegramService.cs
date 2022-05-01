@@ -1,9 +1,11 @@
 ﻿using BotMaster.Core.NLog;
-using BotMaster.Database.Model;
 using BotMaster.MessageContract;
 using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.Messages;
+using BotMaster.RightsManagement;
 using BotMaster.Telegram.Database;
+
+using Microsoft.EntityFrameworkCore;
 
 using NLog;
 
@@ -64,10 +66,31 @@ namespace BotMaster.Telegram
         {
             logger = LogManager.GetCurrentClassLogger();
 
+
             using var context = new TelegramContext();
-            context.Database.EnsureCreated();
+
+            if (context.Database.EnsureCreated())
+            {
+                context.Rights.Add(new() { Name = "Admin" });
+                context.Rights.Add(new() { Name = "Moderator" });
+                context.Groups.Add(new() { Name = "Peasant", IsDefault = true });
+
+            }
+            context.Database.Migrate();
+
+            var existing = context.Users.FirstOrDefault(x => x.DisplayName == "susch");
+
+            var u = context.Users.Add(new() { DisplayName="susch"});
+            var u2 = context.Users.Add(new() { DisplayName="demo["});
+            var adminGroup = context.Groups.Add(new() { Name = "Admin", IsDefault = false });
+            context.UserNames.Add(new() { User = u.Entity, Name = "susch19", Platform = "Twitch" });
+            context.SaveChanges();
+            adminGroup.Entity.Users.Add(u.Entity);
+            adminGroup.Entity.AddRight(context, "SU");
+            context.SaveChanges();
+
             var telegramUsers
-                = context.Set<Group>()
+                = context.Groups
                     .FirstOrDefault(x => x.Name == "NoobDev")
                     ?.Users
                     .Join(context.TelegramUsers, x => x.Id, x => x.User.Id, (_, user) => user.Id)
@@ -104,7 +127,7 @@ namespace BotMaster.Telegram
         }
 
 
-        private static IObservable<(string,  TelegramCommandArgs)> CreateCommands(TelegramBotClient client) =>
+        private static IObservable<(string, TelegramCommandArgs)> CreateCommands(TelegramBotClient client) =>
             StartReceivingMessageUpdates(client)
                     .Select(args => args.Message)
                     .Where(message => message.Type == MessageType.Text && !string.IsNullOrWhiteSpace(message.Text))

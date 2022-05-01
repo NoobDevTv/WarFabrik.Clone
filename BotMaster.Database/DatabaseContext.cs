@@ -1,4 +1,4 @@
-﻿using BotMaster.Database.Model;
+﻿
 
 using Microsoft.EntityFrameworkCore;
 
@@ -8,7 +8,7 @@ namespace BotMaster.Database
 {
     public abstract class DatabaseContext : DbContext
     {
-        public DbSet<User> Users => Set<User>();
+        //public DbSet<User> Users => Set<User>();
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

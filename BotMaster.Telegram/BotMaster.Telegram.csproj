@@ -29,6 +29,7 @@
     <ProjectReference Include="..\BotMaster.Database\BotMaster.Database.csproj" />
     <ProjectReference Include="..\BotMaster.MessageContract\BotMaster.MessageContract.csproj" />
     <ProjectReference Include="..\BotMaster.PluginSystem\BotMaster.PluginSystem.csproj" />
+    <ProjectReference Include="..\BotMaster.RightsManagement\BotMaster.RightsManagement.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -50,13 +51,10 @@
 		<Message Text="Executing CopyDLLs $(TargetDir)" Importance="High" />
 
 		<ItemGroup>
-			<MySourceFiles Include="$(TargetDir)\**\*.*"/>
+			<MySourceFiles Include="$(TargetDir)\**\*.*" />
 		</ItemGroup>
 
-		<Copy
-		  SourceFiles="@(MySourceFiles)"
-		DestinationFiles="@(MySourceFiles->'$(SolutionDir)BotMaster\$(OutDir)plugins\$(ProjectName)\%(RecursiveDir)%(Filename)%(Extension)')"
-/>
+		<Copy SourceFiles="@(MySourceFiles)" DestinationFiles="@(MySourceFiles->'$(SolutionDir)BotMaster\$(OutDir)plugins\$(ProjectName)\%(RecursiveDir)%(Filename)%(Extension)')" />
 		
 		<Message Text="Copied build files" Importance="High" />
 		
