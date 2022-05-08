@@ -1,14 +1,17 @@
-﻿using BotMaster.Core.NLog;
+﻿using BotMaster.Core;
+using BotMaster.Core.NLog;
 using BotMaster.MessageContract;
 using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.Messages;
 using BotMaster.RightsManagement;
+using BotMaster.Telegram.Commands;
 using BotMaster.Telegram.Database;
 
 using Microsoft.EntityFrameworkCore;
 
 using NLog;
 
+using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 
@@ -24,7 +27,7 @@ using TelegramMessage = Telegram.Bot.Types.Message;
 
 namespace BotMaster.Telegram
 {
-    internal class TelegramService : Plugin
+    internal partial class TelegramService : Plugin
     {
         private readonly IMessageContractInfo[] messageContracts;
         private static Logger logger;
@@ -40,10 +43,10 @@ namespace BotMaster.Telegram
                 botInstance
                     => MessageConvert
                         .ToPackage(
-                            Create(MessageConvert.ToMessage(receivedPackages), botInstance.Client))
+                            Create(MessageConvert.ToMessage(receivedPackages), botInstance))
             );
 
-        private BotInstance CreateBot()
+        private TelegramContext CreateBot()
         {
             var info = new FileInfo(Path.Combine(".", "additionalfiles", "Token.txt"));
             if (!info.Directory.Exists)
@@ -51,23 +54,18 @@ namespace BotMaster.Telegram
 
             var token = System.IO.File.ReadAllText(info.FullName);
             var client = new TelegramBotClient(token);
-            return new(client);
-        }
-
-        private record BotInstance(TelegramBotClient Client) : IDisposable
-        {
-            public void Dispose()
-            {
-            }
+            return new(client, new CommandoCentral());
         }
 
         //TODO: Handle commands  
-        public static IObservable<PluginMessage> Create(IObservable<PluginMessage> notifications, TelegramBotClient client)
+        private static IObservable<PluginMessage> Create(IObservable<PluginMessage> notifications, TelegramContext botContext)
         {
             logger = LogManager.GetCurrentClassLogger();
+            var client = botContext.Client;
 
+            CreateIncommingCommandCallbacks(botContext);
 
-            using var context = new TelegramContext();
+            using var context = new TelegramDBContext();
 
             if (context.Database.EnsureCreated())
             {
@@ -80,21 +78,31 @@ namespace BotMaster.Telegram
 
             var existing = context.Users.FirstOrDefault(x => x.DisplayName == "susch");
 
-            var u = context.Users.Add(new() { DisplayName="susch"});
-            var u2 = context.Users.Add(new() { DisplayName="demo["});
+            var u = context.Users.Add(new() { DisplayName = "susch" });
+            var u2 = context.Users.Add(new() { DisplayName = "demo[" });
             var adminGroup = context.Groups.Add(new() { Name = "Admin", IsDefault = false });
-            context.UserNames.Add(new() { User = u.Entity, Name = "susch19", Platform = "Twitch" });
+            context.Groups.Add(new() { Name = "NoobDev", IsDefault = false });
+            context.Groups.Add(new() { Name = "Peasant", IsDefault = false });
+            context.PlatformUsers.Add(new() { User = u.Entity, Name = "susch19", Platform = "Twitch" });
             context.SaveChanges();
             adminGroup.Entity.Users.Add(u.Entity);
             adminGroup.Entity.AddRight(context, "SU");
             context.SaveChanges();
 
-            var telegramUsers
+            var noobDevGroup
                 = context.Groups
-                    .FirstOrDefault(x => x.Name == "NoobDev")
-                    ?.Users
-                    .Join(context.TelegramUsers, x => x.Id, x => x.User.Id, (_, user) => user.Id)
-                    .ToList();
+                    .Include(x => x.Users)
+                    .ThenInclude(x => x.PlatformIdentities)
+                    .FirstOrDefault(x => x.Name == "NoobDev");
+
+            var noobDevGroupUser
+                = noobDevGroup
+                .PlattformUsers
+                .Concat(noobDevGroup.Users.SelectMany(u => u.PlatformIdentities))
+                .Where(x => x.Platform == "Telegram")
+                .Select(x => long.Parse(x.PlattformUserId))
+                .Distinct()
+                .ToList();
 
             //Messages from other plugins
             IObservable<(List<long>, TextMessage n)> pluginMessageWithGroups
@@ -102,11 +110,11 @@ namespace BotMaster.Telegram
                     .ToDefineMessages(notifications)
                     .Log(logger, nameof(TelegramService) + " Incomming", onNext: LogLevel.Debug)
                     .Match<TextMessage>(n => n) //TODO What about ChatMessage?!
-                    .Select(n => (telegramUsers, n));
+                    .Select(n => (noobDevGroupUser, n));
 
-            foreach (var id in telegramUsers)
+            foreach (var id in noobDevGroupUser)
             {
-                //_ = client.SendTextMessageAsync(new ChatId(id), "New Bot started :)");
+                _ = client.SendTextMessageAsync(new ChatId(id), "New Bot started :)");
             }
 
             var textMessages = SendMessageToGroup(pluginMessageWithGroups, logger, client);
@@ -115,17 +123,32 @@ namespace BotMaster.Telegram
             IObservable<(string, TelegramCommandArgs)> chatMessages = CreateCommands(client);
 
             var commandMessages = chatMessages
-              .Select(x =>
-              {
-                  string[] split = x.Item2.Message.Text.TrimStart('/').Split(' ');
-                  return DefinedMessage.CreateCommandMessage(split[0].ToLower(), x.Item2.Message.From.Username, split[1..]);
-              });
+                .Select(cm =>
+                {
+                    using var c = new TelegramDBContext();
+                    var plattformUser = c.PlatformUsers.FirstOrDefault(pu => pu.PlattformUserId == cm.Item2.Message.Chat.Id.ToString());
+                    var user = plattformUser?.User;
+                    return (message: cm, plattformUser, user);
+                })
+                //.Where(x => x.user is not null || x.plattformUser is not null)
+                .Select(x =>
+                {
+                    string[] split = x.message.Item2.Message.Text.TrimStart('/').Split(' ');
+
+                    return DefinedMessage.CreateCommandMessage(split[0].ToLower(), x.message.Item2.Message.From.Username, x.user?.Id ?? -1, x.plattformUser?.PlattformUserId ?? x.message.Item2.Message.From.Id.ToString(), "Telegram", split[1..]);
+                });
 
             var incomming = DefinedMessageContract.ToMessages(commandMessages);
 
             return Observable.Using(() => textMessages.Subscribe(), _ => incomming);
         }
 
+
+        private static void CreateIncommingCommandCallbacks(TelegramContext botContext)
+        {
+
+            botContext.CommandoCentral.AddCommand(x=>SimpleCommands.Start(x, botContext));
+        }
 
         private static IObservable<(string, TelegramCommandArgs)> CreateCommands(TelegramBotClient client) =>
             StartReceivingMessageUpdates(client)

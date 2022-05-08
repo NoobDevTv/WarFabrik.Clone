@@ -11,16 +11,16 @@ public static class EntityRightExtension
 
     public static bool HasRight(this PlattformUser user, string right)
         => user.Rights.Any(x => x.Name == right)
-            || user.User.Rights.Any(x=>x.Name == right)
+            || (user.User?.Rights.Any(x => x.Name == right) ?? false)
             || user.Groups.Any(x => x.HasRight(right));
 
-    public static void AddRight(this User user, DatabaseContext context, string rightName) 
+    public static void AddRight(this User user, DatabaseContext context, string rightName)
         => user.Rights.Add(GetRight(context, rightName, true));
 
-    public static void AddRight(this PlattformUser user, DatabaseContext context, string rightName) 
+    public static void AddRight(this PlattformUser user, DatabaseContext context, string rightName)
         => user.Rights.Add(GetRight(context, rightName, true));
 
-    public static void AddRight(this Group group, DatabaseContext context, string rightName) 
+    public static void AddRight(this Group group, DatabaseContext context, string rightName)
         => group.Rights.Add(GetRight(context, rightName, true));
 
     public static void RemoveRight(this User user, DatabaseContext context, string rightName)

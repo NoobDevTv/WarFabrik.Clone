@@ -123,7 +123,7 @@ namespace BotMaster.Twitch
                                     var command = message[index..end].Trim().TrimStart('!').ToLower();
                                     var parameter = message[end..].Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-                                    return DefinedMessage.CreateCommandMessage(command, e.ChatMessage.Username, parameter);
+                                    return DefinedMessage.CreateCommandMessage(command, e.ChatMessage.Username, ,, "Twitch", parameter);
                                 });
 
                             var internalCommands

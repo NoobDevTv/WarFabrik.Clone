@@ -1,6 +1,6 @@
 ﻿TODOS:
 	
-	- Rightsmanagement
+	- Rightsmanagement (Platform User mandatory, User currently handy)
 
 	- Fix follower notification for twitch
 

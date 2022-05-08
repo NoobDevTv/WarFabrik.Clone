@@ -4,15 +4,11 @@ using BotMaster.RightsManagement;
 using Microsoft.EntityFrameworkCore;
 
 namespace BotMaster.Telegram.Database;
-internal class TelegramContext : DatabaseContext
+internal class TelegramDBContext : RightsContext
 {
-    public DbSet<TelegramUser> TelegramUsers => Set<TelegramUser>();
-    public DbSet<Group> Groups => Set<Group>();
-    public DbSet<User> Users => Set<User>();
-    public DbSet<PlattformUser> UserNames => Set<PlattformUser>();
-    public DbSet<Right> Rights => Set<Right>();
+    //public DbSet<TelegramUser> TelegramUsers => Set<TelegramUser>();
 
-    public TelegramContext() : base()
+    public TelegramDBContext() : base()
     {
     }
 
@@ -22,5 +18,4 @@ internal class TelegramContext : DatabaseContext
         _ = optionsBuilder.UseSqlite($"Data Source={info.FullName}");
         base.OnConfiguring(optionsBuilder);
     }
-
 }
