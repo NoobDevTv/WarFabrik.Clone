@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using NLog;
 
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 
@@ -65,29 +66,29 @@ namespace BotMaster.Telegram
 
             CreateIncommingCommandCallbacks(botContext);
 
-            using var context = new TelegramDBContext();
+            using var context = new RightsDbContext();
 
             if (context.Database.EnsureCreated())
             {
-                context.Rights.Add(new() { Name = "Admin" });
-                context.Rights.Add(new() { Name = "Moderator" });
-                context.Groups.Add(new() { Name = "Peasant", IsDefault = true });
+                //context.Groups.Add(new() { Name = "Admin" });
+                //context.Groups.Add(new() { Name = "Moderator" });
+                //context.Groups.Add(new() { Name = "Peasant", IsDefault = true });
 
             }
             context.Database.Migrate();
 
-            var existing = context.Users.FirstOrDefault(x => x.DisplayName == "susch");
+            //var existing = context.Users.FirstOrDefault(x => x.DisplayName == "susch");
 
-            var u = context.Users.Add(new() { DisplayName = "susch" });
-            var u2 = context.Users.Add(new() { DisplayName = "demo[" });
-            var adminGroup = context.Groups.Add(new() { Name = "Admin", IsDefault = false });
-            context.Groups.Add(new() { Name = "NoobDev", IsDefault = false });
-            context.Groups.Add(new() { Name = "Peasant", IsDefault = false });
-            context.PlatformUsers.Add(new() { User = u.Entity, Name = "susch19", Platform = "Twitch" });
-            context.SaveChanges();
-            adminGroup.Entity.Users.Add(u.Entity);
-            adminGroup.Entity.AddRight(context, "SU");
-            context.SaveChanges();
+            //var u = context.Users.Add(new() { DisplayName = "susch" });
+            //var u2 = context.Users.Add(new() { DisplayName = "demo[" });
+            //var adminGroup = context.Groups.Add(new() { Name = "Admin", IsDefault = false });
+            //context.Groups.Add(new() { Name = "NoobDev", IsDefault = false });
+            //context.Groups.Add(new() { Name = "Peasant", IsDefault = false });
+            ////context.PlatformUsers.Add(new() { User = u.Entity, Name = "susch19", Platform = "Twitch" });
+            //context.SaveChanges();
+            //adminGroup.Entity.Users.Add(u.Entity);
+            //adminGroup.Entity.AddRight(context, "SU");
+            //context.SaveChanges();
 
             var noobDevGroup
                 = context.Groups
@@ -96,21 +97,29 @@ namespace BotMaster.Telegram
                     .FirstOrDefault(x => x.Name == "NoobDev");
 
             var noobDevGroupUser
-                = noobDevGroup
+                = noobDevGroup?
                 .PlattformUsers
                 .Concat(noobDevGroup.Users.SelectMany(u => u.PlatformIdentities))
                 .Where(x => x.Platform == "Telegram")
                 .Select(x => long.Parse(x.PlattformUserId))
                 .Distinct()
-                .ToList();
+                .ToList() ?? new List<long>();
+
+            var definedMessages = DefinedMessageContract
+                    .ToDefineMessages(notifications)
+                    .Log(logger, nameof(TelegramService) + " Incomming", onNext: LogLevel.Debug)
+                    .Publish()
+                    .RefCount();
 
             //Messages from other plugins
             IObservable<(List<long>, TextMessage n)> pluginMessageWithGroups
-                = DefinedMessageContract
-                    .ToDefineMessages(notifications)
-                    .Log(logger, nameof(TelegramService) + " Incomming", onNext: LogLevel.Debug)
+                = definedMessages
                     .Match<TextMessage>(n => n) //TODO What about ChatMessage?!
                     .Select(n => (noobDevGroupUser, n));
+
+            var incommingCommandStream = botContext.CommandoCentral.CreateCommandStream(definedMessages
+                .Match<CommandMessage>(n => n));
+
 
             foreach (var id in noobDevGroupUser)
             {
@@ -125,8 +134,8 @@ namespace BotMaster.Telegram
             var commandMessages = chatMessages
                 .Select(cm =>
                 {
-                    using var c = new TelegramDBContext();
-                    var plattformUser = c.PlatformUsers.FirstOrDefault(pu => pu.PlattformUserId == cm.Item2.Message.Chat.Id.ToString());
+                    using var c = new RightsDbContext();
+                    var plattformUser = c.PlattformUsers.FirstOrDefault(pu => pu.PlattformUserId == cm.Item2.Message.Chat.Id.ToString());
                     var user = plattformUser?.User;
                     return (message: cm, plattformUser, user);
                 })
@@ -135,19 +144,19 @@ namespace BotMaster.Telegram
                 {
                     string[] split = x.message.Item2.Message.Text.TrimStart('/').Split(' ');
 
-                    return DefinedMessage.CreateCommandMessage(split[0].ToLower(), x.message.Item2.Message.From.Username, x.user?.Id ?? -1, x.plattformUser?.PlattformUserId ?? x.message.Item2.Message.From.Id.ToString(), "Telegram", split[1..]);
+                    return DefinedMessage.CreateCommandMessage(split[0].ToLower(), x.message.Item2.Message.From.Username, x.user?.Id ?? -1, x.plattformUser?.PlattformUserId ?? x.message.Item2.Message.From.Id.ToString(), "Telegram", true, split[1..]);
                 });
 
-            var incomming = DefinedMessageContract.ToMessages(commandMessages);
+            var fromUser = DefinedMessageContract.ToMessages(commandMessages);
 
-            return Observable.Using(() => textMessages.Subscribe(), _ => incomming);
+            return Observable.Using(() => StableCompositeDisposable.Create(textMessages.Subscribe(), incommingCommandStream.Subscribe()), _ => fromUser);
         }
 
 
         private static void CreateIncommingCommandCallbacks(TelegramContext botContext)
         {
 
-            botContext.CommandoCentral.AddCommand(x=>SimpleCommands.Start(x, botContext));
+            botContext.CommandoCentral.AddCommand(x => SimpleCommands.Start(x, botContext), "start");
         }
 
         private static IObservable<(string, TelegramCommandArgs)> CreateCommands(TelegramBotClient client) =>

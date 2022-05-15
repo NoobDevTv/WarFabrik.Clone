@@ -24,15 +24,15 @@ namespace BotMaster.Telegram.Commands
             if (!string.Equals(args.SourcePlattform, "telegram", StringComparison.InvariantCultureIgnoreCase))
                 return;
 
-            using var context = new TelegramDBContext();
-            var plattformUser = context.PlatformUsers.FirstOrDefault(x => x.Name == args.Username && string.Equals(x.Platform, args.SourcePlattform, StringComparison.InvariantCultureIgnoreCase));
+            using var context = new RightsDbContext();
+            var plattformUser = context.PlattformUsers.FirstOrDefault(x => x.Name == args.Username && x.Platform == args.SourcePlattform);
             if (plattformUser is not null)
             {
                 botContext.Client.SendTextMessageAsync(new ChatId(long.Parse(plattformUser.PlattformUserId)), "You were already registered.");
                 return;
             }
-
-            context.PlatformUsers.Add(new PlattformUser() { Name = args.Username, Platform = args.SourcePlattform, PlattformUserId = args.PlattformUserId });
+            plattformUser = new PlattformUser() { Name = args.Username, Platform = args.SourcePlattform, PlattformUserId = args.PlattformUserId };
+            context.PlattformUsers.Add(plattformUser);
             context.SaveChanges();
             botContext.Client.SendTextMessageAsync(new ChatId(long.Parse(plattformUser.PlattformUserId)), "Welcome! No additional help will be implemented in the next update");
 

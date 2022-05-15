@@ -72,6 +72,13 @@ public class CommandoCentral
         return messageSubject.Where(c=> commandNames.IndexOf(c.Command) != -1).Subscribe(action);
     }
 
+    public virtual IDisposable AddCommand(Func<CommandMessage, bool> guard, Action<CommandMessage> action,  params string[] commandNames)
+    {
+        _commands.AddRange(commandNames);
+        return messageSubject.Where(c => commandNames.IndexOf(c.Command) != -1 && guard(c)).Subscribe(action);
+    }
+
+
     //public IObservable AddCommand(CommandMessage commandMessage)
     //{
     //    commandStream.Where(x => commandMessage.Command == x.a).Do(action);

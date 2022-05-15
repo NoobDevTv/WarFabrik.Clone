@@ -1,7 +1,4 @@
 ﻿TODOS:
-	
-	- Rightsmanagement (Platform User mandatory, User currently handy)
-
 	- Fix follower notification for twitch
 
 	- Youtube Bot API implementation
@@ -26,6 +23,7 @@
 
 	- TeamSpeak Bot
 
+	- Cleanup again
 
 Done:
 	- Dispatch Command (always) to itself
@@ -35,3 +33,6 @@ Done:
 		- ✓ Cleanup FollowerService
 		- ✓ Send Twitch messages / Command to the ouside
 		- ✓ Rework BotCommandManager (Look @ Rule Of Silvester)
+
+
+	- Rightsmanagement (Platform User mandatory, User currently handy)

@@ -26,6 +26,10 @@ namespace BotMaster.Twitch
             Disposables.Add(CommandoCentral.AddCommand(guard, action));
         }
 
+        public void AddCommand(Func<CommandMessage, bool> guard, Action<CommandMessage> action, params string[] commandNames)
+        {
+            Disposables.Add(CommandoCentral.AddCommand(guard, action, commandNames));
+        }
         public void AddCommand(Action<CommandMessage> action, params string[] commandNames)
         {
             Disposables.Add(CommandoCentral.AddCommand(action, commandNames));

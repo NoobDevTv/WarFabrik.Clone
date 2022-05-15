@@ -2,8 +2,12 @@
 using BotMaster.Core;
 using BotMaster.MessageContract;
 using BotMaster.PluginSystem.Messages;
+using BotMaster.RightsManagement;
+using BotMaster.Telegram.Database;
 using BotMaster.Twitch.Commands;
 using BotMaster.Twitch.MessageContract;
+
+using Microsoft.EntityFrameworkCore;
 
 using Newtonsoft.Json;
 
@@ -28,8 +32,20 @@ namespace BotMaster.Twitch
     {
         public string ChannelId { get; private set; }
 
+        public const string SourcePlattform = "Twitch";
+
         internal BotCommandManager Manager;
 
+        internal static PlattformUser? GetUser(string plattform, string plattformUserId)
+        {
+            using var context = new RightsDbContext();
+            return context.PlattformUsers
+                .Include(x => x.Rights)
+                .Include(x => x.User)
+                .Include(x => x.Groups)
+                .FirstOrDefault(x => x.PlattformUserId == plattformUserId
+                    && x.Platform == plattform);
+        }
 
         public static IObservable<Message> Create(TokenFile tokenFile, AccessToken accessToken, string channelName, IObservable<Message> notifications)
         {
@@ -39,7 +55,7 @@ namespace BotMaster.Twitch
                     t.ThrowIfCancellationRequested();
                     var client = context.Client;
 
-                    context.AddCommand((c) => client.SendMessage(context.Channel, $"[{c.Username}]: {string.Join(' ', c.Parameter)}" ), "twitch");
+                    context.AddCommand((c) => client.SendMessage(context.Channel, $"[{c.Username}]: {string.Join(' ', c.Parameter)}"), SourcePlattform);
                     context.AddCommand((c) => SimpleCommands.Hype(context, c), "hype");
                     context.AddCommand((c) => SimpleCommands.Uptime(context, c), "uptime");
                     context.AddCommand((c) => SimpleCommands.Help(context, c), "?", "help");
@@ -54,8 +70,11 @@ namespace BotMaster.Twitch
                     context.AddCommand((c) => SimpleCommands.Time(context, c), "time");
                     context.AddCommand((c) => SimpleCommands.Streamer(context, c), "streamer");
                     context.AddCommand((c) => SimpleCommands.Project(context, c), "projects");
+                    context.AddCommand((c) => SimpleCommands.Register(context, c), "register");
+                    context.AddCommand((c)=>c.Secure, (c) => SimpleCommands.PrivateConnect(context, c), "connect");
+                    context.AddCommand((c)=>!c.Secure, (c) => SimpleCommands.PublicConnect(context, c), "connect");
 
-                    context.AddCommand((c) => SimpleCommands.Add(context, c), "add");
+                    context.AddCommand((c) => GetUser(c.SourcePlattform, c.PlattformUserId)?.HasRight("AddCommand") ?? false && c.SourcePlattform == SourcePlattform, (c) => SimpleCommands.Add(context, c), "add");
 
                     var messages = Observable
                         .FromEventPattern<OnConnectedArgs>(add => client.OnConnected += add, remove => client.OnConnected -= remove)
@@ -68,7 +87,7 @@ namespace BotMaster.Twitch
                                     commandMessage => context.CommandoCentral.CreateCommandStream(commandMessage)
                                         .Select(x => (DefinedMessage)x),
                                     chatMessage => chatMessage
-                                        .Where(x=>x.Source != "twitch")
+                                        .Where(x => x.Source != SourcePlattform)
                                         .Do(message => client.SendMessage(context.Channel, $"[{message.Username}]: {message.Text}"))
                                         .Select(x => (DefinedMessage)x)
                                    );
@@ -102,10 +121,12 @@ namespace BotMaster.Twitch
                                 .Where(e => e.ChatMessage.Username != client.TwitchUsername && !e.ChatMessage.IsMe)
                                 ;
 
+
                             var chatMessages
                                 = messages
                                 .Where(x => !x.ChatMessage.Message.Contains('!'))
-                                .Select(x => DefinedMessage.CreateChatMessage(x.ChatMessage.Username, x.ChatMessage.Message, "twitch"));
+                                .Select(x => DefinedMessage.CreateChatMessage(x.ChatMessage.Username, x.ChatMessage.Message, SourcePlattform));
+
 
 
                             var commandMessages
@@ -123,15 +144,23 @@ namespace BotMaster.Twitch
                                     var command = message[index..end].Trim().TrimStart('!').ToLower();
                                     var parameter = message[end..].Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-                                    return DefinedMessage.CreateCommandMessage(command, e.ChatMessage.Username, ,, "Twitch", parameter);
+                                    var user = GetUser(SourcePlattform, e.ChatMessage.UserId);
+
+                                    return DefinedMessage.CreateCommandMessage(command, e.ChatMessage.Username, user?.Id ?? -1, e.ChatMessage.UserId, SourcePlattform, false, parameter);
                                 });
 
-                            var internalCommands
-                                = messages
-                                .Where(x => x.ChatMessage.Message.Contains('!'))
+                            var privateMessages = Observable
+                             .FromEventPattern<OnWhisperReceivedArgs>(add => client.OnWhisperReceived += add, remove => client.OnWhisperReceived -= remove)
+                             .Select(x => x.EventArgs)
+                             .Where(e => e.WhisperMessage.Username != client.TwitchUsername)
+                             ;
+
+                            var privateCommandMessages
+                                = privateMessages
+                                .Where(x => x.WhisperMessage.Message.Contains('!'))
                                 .Select(e =>
                                 {
-                                    var message = e.ChatMessage.Message;
+                                    var message = e.WhisperMessage.Message;
                                     var index = message.IndexOf('!');
                                     var end = message.IndexOf(' ', index);
 
@@ -139,11 +168,14 @@ namespace BotMaster.Twitch
                                         end = message.Length;
 
                                     var command = message[index..end].Trim().TrimStart('!').ToLower();
-                                    var parameter = message[end..].Split(' ');
+                                    var parameter = message[end..].Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-                                    return (command, new BotCommandArgs(null, context.Api, e.ChatMessage));
-                                    //Manager.DispatchAsync(command, new BotCommandArgs(this, api, e.ChatMessage));
+                                    var user = GetUser(SourcePlattform, e.WhisperMessage.UserId);
+
+                                    return DefinedMessage.CreateCommandMessage(command, e.WhisperMessage.Username, user?.Id ?? -1, e.WhisperMessage.UserId, SourcePlattform, true, parameter);
                                 });
+
+
 
                             var follower = FollowerService
                                 .GetFollowerUpdates(context.Api, context.UserId, TimeSpan.FromSeconds(10), Scheduler.Default)
@@ -151,12 +183,13 @@ namespace BotMaster.Twitch
 
                             var twitchMessages = TwitchContract.ToMessages(raidInfo.Merge(follower));
                             var definedMessages = DefinedContract.ToMessages(commandMessages.Merge(chatMessages));
+                            var pnS = DefinedContract.ToMessages(privateCommandMessages);
 
                             return Observable.Using(
                                 () => StableCompositeDisposable.Create(
                                     incommingDefinedMessages.Subscribe(),
                                     incommingTwitchMessages.Subscribe()),
-                                (_) => twitchMessages.Merge(definedMessages));
+                                (_) => Observable.Merge(twitchMessages, definedMessages, pnS));
                         })
                         .Merge();
 
