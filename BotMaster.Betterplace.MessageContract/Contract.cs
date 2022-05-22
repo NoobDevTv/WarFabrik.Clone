@@ -12,10 +12,10 @@ namespace BotMaster.Betterplace.MessageContract
     public static class Contract
     {
         public static readonly Guid UID = new("524FED8B-38C6-4241-B5A0-84752A6964AD");
-        public static int Id { get; private set; } = -1;
+        //public static int Id { get; private set; } = -1;
 
         public static bool CanConvert(Message message)
-            => message.ContractUID == Id && message.Type == MessageType.Custom; //TODO: Contract id
+            => message.ContractUID == UID && message.Type == MessageType.Custom; //TODO: Contract id
 
         public static IObservable<BetterplaceMessage> ToDefineMessages(IObservable<Message> messages)
             => messages

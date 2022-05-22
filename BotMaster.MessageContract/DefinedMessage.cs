@@ -32,17 +32,17 @@ namespace BotMaster.MessageContract
                         textMessage =>
                         {
                             textMessage.Serialize(writer);
-                            return new Message(Contract.Id, MessageType.Defined, memory.ToArray(), TargetId);
+                            return new Message(Contract.UID, MessageType.Defined, memory.ToArray(), TargetId);
                         },
                         commandMessage =>
                         {
                             commandMessage.Serialize(writer);
-                            return new Message(Contract.Id, MessageType.Defined, memory.ToArray(), TargetId);
+                            return new Message(Contract.UID, MessageType.Defined, memory.ToArray(), TargetId);
                         },
                         chatMessage =>
                         {
                             chatMessage.Serialize(writer);
-                            return new Message(Contract.Id, MessageType.Defined, memory.ToArray(), TargetId);
+                            return new Message(Contract.UID, MessageType.Defined, memory.ToArray(), TargetId);
                         }
             );
         }
@@ -59,10 +59,10 @@ namespace BotMaster.MessageContract
         public static DefinedMessage FromMessage(Message message)
         {
             if (message.Type != MessageType.Defined)
-                throw new NotSupportedException("Custom messages are not supported by DefinedMessage");
+                throw new NotSupportedException($"Custom messages are not supported by {nameof(DefinedMessage)}");
 
             var data = message.DataAsSpan();
-            var id = BitConverter.ToInt32(data[..4]);
+            var id = BitConverter.ToInt32(data);
 
             using var memory = new MemoryStream(data.ToArray());
             using var binaryReader = new BinaryReader(memory);
@@ -72,7 +72,7 @@ namespace BotMaster.MessageContract
                 TextMessage.TypeId => new(TextMessage.Deserialize(binaryReader), message.TargetId),
                 CommandMessage.TypeId => new(CommandMessage.Deserialize(binaryReader), message.TargetId),
                 ChatMessage.TypeId => new(ChatMessage.Deserialize(binaryReader), message.TargetId),
-                _ => throw new NotSupportedException($"message {id} is a unknown message type in DefinedMessage"),
+                _ => throw new NotSupportedException($"message {id} is a unknown message type in {nameof(DefinedMessage)}"),
             };
         }
     }

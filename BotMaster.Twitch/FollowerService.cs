@@ -18,8 +18,12 @@ namespace BotMaster.Twitch
         {
             return Observable.Using(() => new FollowerServiceContext(api, userId), serviceContext =>
             {
-                return Observable
-                    .Interval(period, scheduler)
+                var interval 
+                = Observable
+                    .Concat(Observable.Return(0L), 
+                        Observable.Interval(period, scheduler));
+
+                return interval
                     .Select(_ => Observable.FromAsync(() => api.Helix.Users.GetUsersFollowsAsync(toId: serviceContext.UserId)))
                     .Concat()
                     .OnError(serviceContext.Logger, nameof(TwitchLib.Api.Helix.Users.GetUsersFollowsAsync))

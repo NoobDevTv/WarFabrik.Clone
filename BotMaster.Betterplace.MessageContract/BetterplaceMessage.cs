@@ -24,7 +24,7 @@ namespace BotMaster.Betterplace.MessageContract
                         donation =>
                         {
                             donation.Serialize(writer);
-                            return new Message(Contract.Id, MessageType.Defined, memory.ToArray(), TargetId);
+                            return new Message(Contract.UID, MessageType.Custom, memory.ToArray(), TargetId);
                         }
             );
         }
@@ -32,11 +32,11 @@ namespace BotMaster.Betterplace.MessageContract
 
         public static BetterplaceMessage FromMessage(Message message)
         {
-            if (message.Type != MessageType.Defined)
-                throw new NotSupportedException("Custom messages are not supported by DefinedMessage");
+            if (message.Type != MessageType.Custom)
+                throw new NotSupportedException($"Non custom messages are not supported by {nameof(BetterplaceMessage)}");
 
             var data = message.DataAsSpan();
-            var id = BitConverter.ToInt32(data[..1]);
+            var id = BitConverter.ToInt32(data);
 
             using var memory = new MemoryStream(data.ToArray());
             using var binaryReader = new BinaryReader(memory);
@@ -44,7 +44,7 @@ namespace BotMaster.Betterplace.MessageContract
             return id switch
             {
                 Donation.TypeId => new(Donation.Deserialize(binaryReader), message.TargetId),
-                _ => throw new NotSupportedException($"message {id} is a unknown message type in DefinedMessage"),
+                _ => throw new NotSupportedException($"message {id} is a unknown message type in {nameof(BetterplaceMessage)}"),
             };
         }
 

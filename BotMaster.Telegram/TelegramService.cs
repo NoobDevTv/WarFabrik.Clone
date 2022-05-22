@@ -67,15 +67,17 @@ namespace BotMaster.Telegram
             CreateIncommingCommandCallbacks(botContext);
 
             using var context = new RightsDbContext();
-
-            if (context.Database.EnsureCreated())
-            {
-                //context.Groups.Add(new() { Name = "Admin" });
-                //context.Groups.Add(new() { Name = "Moderator" });
-                //context.Groups.Add(new() { Name = "Peasant", IsDefault = true });
-
-            }
             context.Database.Migrate();
+
+            //context.SaveChanges();
+            //if (context.Database.EnsureCreated())
+            //{
+            //    //context.Groups.Add(new() { Name = "Admin" });
+            //    //context.Groups.Add(new() { Name = "Moderator" });
+            //    //context.Groups.Add(new() { Name = "Peasant", IsDefault = true });
+
+            //}
+      
 
             //var existing = context.Users.FirstOrDefault(x => x.DisplayName == "susch");
 

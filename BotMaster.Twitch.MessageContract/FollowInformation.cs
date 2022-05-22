@@ -30,8 +30,8 @@ namespace BotMaster.Twitch.MessageContract
         }
 
         public override bool Equals(object obj) => obj is FollowInformation information && Equals(information);
-        public bool Equals(FollowInformation other) => UserName == other.UserName && UserId == other.UserId && Since == other.Since;
-        public override int GetHashCode() => HashCode.Combine(UserName, UserId, Since);
+        public bool Equals(FollowInformation other) => UserName == other.UserName && UserId == other.UserId;
+        public override int GetHashCode() => HashCode.Combine(UserName, UserId);
 
         public static bool operator ==(FollowInformation left, FollowInformation right) => left.Equals(right);
         public static bool operator !=(FollowInformation left, FollowInformation right) => !(left == right);

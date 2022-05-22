@@ -52,9 +52,8 @@ namespace BotMaster.PluginSystem
                             }
 
                             await ReadHeader(clientStream, headerMemory, token);
-
-                            var contractId = BitConverter.ToInt32(headerBuffer, 0);
-                            var packageSize = BitConverter.ToInt32(headerBuffer, sizeof(int));
+                            var contractId = new Guid(headerBuffer[..16]);
+                            var packageSize = BitConverter.ToInt32(headerBuffer, sizeof(int)*4);
                             using var buffer = MemoryPool<byte>.Shared.Rent(packageSize);
                             var size = await ReadContent(clientStream, packageSize, buffer, token);
 

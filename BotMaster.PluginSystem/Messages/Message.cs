@@ -20,13 +20,13 @@ namespace BotMaster.PluginSystem.Messages
         /// </summary>
         public string TargetId { get; }
 
-        public int ContractUID { get; } //TODO Real UID not int
+        public Guid ContractUID { get; } //TODO Real UID not int
 
         public IReadOnlyList<byte> Data => data;
 
         private readonly byte[] data;
 
-        public Message(int contractId, MessageType type, byte[] data, string targetId = null)
+        public Message(Guid contractId, MessageType type, byte[] data, string targetId = null)
         {
             ContractUID = contractId;
             Type = type;
