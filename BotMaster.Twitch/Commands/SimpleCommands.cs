@@ -1,4 +1,5 @@
-﻿using BotMaster.MessageContract;
+﻿using BotMaster.Commandos;
+using BotMaster.MessageContract;
 using BotMaster.RightsManagement;
 using BotMaster.Telegram.Database;
 using BotMaster.Twitch;
@@ -86,17 +87,32 @@ namespace BotMaster.Twitch.Commands
         {
             //TODO Check current project
             SendMessage(context, message, "Github: https://github.com/NoobDevTv");
-
         }
+
         internal static void Add(TwitchContext context, CommandMessage message)
         {
-            var command = message.Parameter.First().ToLower();
+            var toAddCommand = message.Parameter.First().ToLower();
             var text = " " + string.Join(" ", message.Parameter.Skip(1));
-            context.AddCommand((command) => SendMessage(context, message, text), command);
-            SendMessage(context,message, $"User {message.Username} has added command {command} with text: {text}");
+
+            context.AddCommand((command) => SendMessage(context, message, text, command), toAddCommand);
+
+            SendMessage(context, message, $"User {message.Username} has added command {toAddCommand} with text: {text}");
+            using var ctx = new CommandosDbContext();
+            var existing = ctx.Commands.FirstOrDefault(x => x.Command == toAddCommand);
+            if (existing is null)
+            {
+                ctx.Commands.Add(new()
+                {
+                    Secure = message.Secure,
+                    Text = text,
+                    Command = toAddCommand,
+                    Target = message.Secure ? message.Username : context.Channel
+                });
+
+                ctx.SaveChanges();
+            }
 
         }
-   
 
         internal static void Register(TwitchContext context, CommandMessage c)
         {
@@ -120,6 +136,13 @@ namespace BotMaster.Twitch.Commands
                 context.Client.SendWhisper(c.Username, $"Welcome you are now registered :)");
             }
             cont.SaveChanges();
+        }
+
+        internal static void SendTextCommand(CommandMessage commandMessage, PersistentCommand command, TwitchContext context)
+        {
+            if (command.Secure && (!commandMessage.Secure || command.Target != commandMessage.Username))
+                return;
+            SendMessage(context, commandMessage, command.Text);
         }
 
         internal static void PublicConnect(TwitchContext context, CommandMessage c)
@@ -182,10 +205,15 @@ namespace BotMaster.Twitch.Commands
 
         }
 
+        private static void SendMessage(TwitchContext context, CommandMessage toAddMessage, string text, CommandMessage incommingMessage)
+        {
+            if (toAddMessage.Secure && (!incommingMessage.Secure || toAddMessage.Username != incommingMessage.Username))
+                return;
+            SendMessage(context, toAddMessage, text);
+        }
 
         private static void SendMessage(TwitchContext context, CommandMessage message, string text)
         {
-
             if (message.Secure)
                 context.Client.SendWhisper(message.Username, text);
             else

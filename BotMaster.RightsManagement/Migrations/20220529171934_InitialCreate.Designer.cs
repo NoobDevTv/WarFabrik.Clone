@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BotMaster.RightsManagement.Migrations
 {
     [DbContext(typeof(RightsDbContext))]
-    [Migration("20220522185736_InitialCreate")]
+    [Migration("20220529171934_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

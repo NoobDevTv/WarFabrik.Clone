@@ -1,5 +1,5 @@
 ﻿
-using BotMaster.Core;
+using BotMaster.Commandos;
 using BotMaster.MessageContract;
 
 using NLog;

@@ -1,4 +1,5 @@
 ﻿
+using BotMaster.Commandos;
 using BotMaster.MessageContract;
 using BotMaster.RightsManagement;
 using BotMaster.Telegram.Database;
@@ -36,6 +37,14 @@ namespace BotMaster.Telegram.Commands
             context.SaveChanges();
             botContext.Client.SendTextMessageAsync(new ChatId(long.Parse(plattformUser.PlattformUserId)), "Welcome! No additional help will be implemented in the next update");
 
+        }
+
+        internal static void SendTextCommand(CommandMessage commandMessage, PersistentCommand command, TelegramContext botContext)
+        {
+            if (command.Secure && !commandMessage.Secure)
+                return;
+
+            botContext.Client.SendTextMessageAsync(new ChatId(long.Parse(commandMessage.PlattformUserId)), command.Text);
         }
     }
 }

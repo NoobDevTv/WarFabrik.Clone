@@ -1,4 +1,5 @@
-﻿using BotMaster.Core;
+﻿using BotMaster.Commandos;
+using BotMaster.Core;
 using BotMaster.Core.NLog;
 using BotMaster.MessageContract;
 using BotMaster.PluginSystem;
@@ -67,7 +68,7 @@ namespace BotMaster.Telegram
             CreateIncommingCommandCallbacks(botContext);
 
             using var context = new RightsDbContext();
-            context.Database.Migrate();
+            context.Database.Migrate(); //TODO Find better place
 
             //context.SaveChanges();
             //if (context.Database.EnsureCreated())
@@ -77,7 +78,7 @@ namespace BotMaster.Telegram
             //    //context.Groups.Add(new() { Name = "Peasant", IsDefault = true });
 
             //}
-      
+
 
             //var existing = context.Users.FirstOrDefault(x => x.DisplayName == "susch");
 
@@ -157,7 +158,11 @@ namespace BotMaster.Telegram
 
         private static void CreateIncommingCommandCallbacks(TelegramContext botContext)
         {
-
+            var commands = CommandoCentral.GetCommandsFor("Telegram");
+            foreach (var item in commands)
+            {
+                botContext.CommandoCentral.AddCommand(x => SimpleCommands.SendTextCommand(x, item, botContext), item.Command);
+            }
             botContext.CommandoCentral.AddCommand(x => SimpleCommands.Start(x, botContext), "start");
         }
 

@@ -1,4 +1,4 @@
-﻿using BotMaster.Core;
+﻿using BotMaster.Commandos;
 
 using Telegram.Bot;
 

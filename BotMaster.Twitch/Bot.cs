@@ -1,5 +1,5 @@
 ﻿
-using BotMaster.Core;
+using BotMaster.Commandos;
 using BotMaster.MessageContract;
 using BotMaster.PluginSystem.Messages;
 using BotMaster.RightsManagement;
@@ -71,10 +71,16 @@ namespace BotMaster.Twitch
                     context.AddCommand((c) => SimpleCommands.Streamer(context, c), "streamer");
                     context.AddCommand((c) => SimpleCommands.Project(context, c), "projects");
                     context.AddCommand((c) => SimpleCommands.Register(context, c), "register");
-                    context.AddCommand((c)=>c.Secure, (c) => SimpleCommands.PrivateConnect(context, c), "connect");
-                    context.AddCommand((c)=>!c.Secure, (c) => SimpleCommands.PublicConnect(context, c), "connect");
+                    context.AddCommand((c) => c.Secure, (c) => SimpleCommands.PrivateConnect(context, c), "connect");
+                    context.AddCommand((c) => !c.Secure, (c) => SimpleCommands.PublicConnect(context, c), "connect");
 
                     context.AddCommand((c) => GetUser(c.SourcePlattform, c.PlattformUserId)?.HasRight("AddCommand") ?? false && c.SourcePlattform == SourcePlattform, (c) => SimpleCommands.Add(context, c), "add");
+
+                    var commands = CommandoCentral.GetCommandsFor("Telegram");
+                    foreach (var item in commands)
+                    {
+                        context.CommandoCentral.AddCommand(x => SimpleCommands.SendTextCommand(x, item, context), item.Command);
+                    }
 
                     var messages = Observable
                         .FromEventPattern<OnConnectedArgs>(add => client.OnConnected += add, remove => client.OnConnected -= remove)
