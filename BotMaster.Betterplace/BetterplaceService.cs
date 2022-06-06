@@ -3,7 +3,7 @@ using BotMaster.Betterplace.Model;
 using BotMaster.Core;
 using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.Messages;
-
+using NLog;
 using System.Reactive.Linq;
 
 namespace BotMaster.Betterplace
@@ -24,7 +24,7 @@ namespace BotMaster.Betterplace
                 .RefCount();
         }
 
-        public override IObservable<Package> Start(IObservable<Package> receivedPackages)
+        public override IObservable<Package> Start(ILogger logger, IObservable<Package> receivedPackages)
           => MessageConvert
                 .ToPackage(
                     Contract

@@ -15,7 +15,7 @@ namespace BotMaster.PluginHostProcessRunnermanifest
 
         static void Main(string[] args)
         {
-            using var logManager = Disposable.Create(() => LogManager.Shutdown());
+            using var logManager = Disposable.Create(LogManager.Shutdown);
             var config = new LoggingConfiguration();
 
             var info = new FileInfo(Path.Combine(".", "logs", $"pluginhost-{DateTime.Now:ddMMyyyy-HHmmss_fff}.log"));
