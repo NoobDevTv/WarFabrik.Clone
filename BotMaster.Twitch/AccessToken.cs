@@ -1,10 +1,6 @@
 ﻿
 using Newtonsoft.Json;
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace BotMaster.Twitch
 {
     public class AccessToken

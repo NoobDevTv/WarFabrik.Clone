@@ -1,11 +1,5 @@
 ﻿using BotMaster.PluginSystem.Messages;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BotMaster.Betterplace.MessageContract
 {
@@ -15,7 +9,7 @@ namespace BotMaster.Betterplace.MessageContract
         //public static int Id { get; private set; } = -1;
 
         public static bool CanConvert(Message message)
-            => message.ContractUID == UID && message.Type == MessageType.Custom; //TODO: Contract id
+            => message.ContractUID == UID && message.Type == MessageType.Custom; 
 
         public static IObservable<BetterplaceMessage> ToDefineMessages(IObservable<Message> messages)
             => messages

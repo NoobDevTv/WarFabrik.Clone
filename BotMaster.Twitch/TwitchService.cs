@@ -1,17 +1,10 @@
-﻿using BotMaster.MessageContract;
-using BotMaster.PluginSystem;
+﻿using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.Messages;
-using BotMaster.Twitch.MessageContract;
-
+using BotMaster.Telegram.Database;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
 using System.Reactive.Linq;
-
-using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
-using TwitchLib.Client.Models;
-
-
-using DefinedMessageContract = BotMaster.MessageContract.Contract;
 
 namespace BotMaster.Twitch
 {
@@ -28,7 +21,13 @@ namespace BotMaster.Twitch
         }
 
         public override IObservable<Package> Start(IObservable<Package> receivedPackages)
-            => MessageConvert.ToPackage(Create(MessageConvert.ToMessage(receivedPackages)));
+        {
+            using var ctx = new RightsDbContext();
+            ctx.Database.Migrate();
+
+            return MessageConvert.ToPackage(Create(MessageConvert.ToMessage(receivedPackages)));
+
+        }
 
 
         private static IObservable<Message> Create(IObservable<Message> notifications)

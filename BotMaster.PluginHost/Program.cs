@@ -87,7 +87,7 @@ namespace BotMaster.PluginHost
 
         public class ReaderLoadContext : AssemblyLoadContext
         {
-            private AssemblyDependencyResolver _resolver;
+            private readonly AssemblyDependencyResolver _resolver;
 
             public ReaderLoadContext(string name, string readerLocation) : base(name)
             {

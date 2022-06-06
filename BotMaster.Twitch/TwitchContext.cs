@@ -3,8 +3,6 @@ using BotMaster.Commandos;
 using BotMaster.MessageContract;
 
 using NLog;
-
-using System;
 using System.Reactive.Disposables;
 
 using TwitchLib.Api;

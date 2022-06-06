@@ -1,24 +1,14 @@
 ﻿using BotMaster.Commandos;
 using BotMaster.MessageContract;
-using BotMaster.RightsManagement;
 using BotMaster.Telegram.Database;
-using BotMaster.Twitch;
 
 using CommandManagementSystem.Attributes;
-
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace BotMaster.Twitch.Commands
 {
     public static class SimpleCommands
     {
-        static Random random;
+        static readonly Random random;
         private static readonly string[] smilies;
 
         static SimpleCommands()

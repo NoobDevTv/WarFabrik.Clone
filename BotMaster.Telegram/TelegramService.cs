@@ -1,18 +1,14 @@
 ﻿using BotMaster.Commandos;
-using BotMaster.Core;
 using BotMaster.Core.NLog;
 using BotMaster.MessageContract;
 using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.Messages;
-using BotMaster.RightsManagement;
 using BotMaster.Telegram.Commands;
 using BotMaster.Telegram.Database;
 
 using Microsoft.EntityFrameworkCore;
 
 using NLog;
-
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
@@ -39,7 +35,10 @@ namespace BotMaster.Telegram
         }
 
         public override IObservable<Package> Start(IObservable<Package> receivedPackages)
-            => Observable
+        {
+            using var ctx = new RightsDbContext();
+            ctx.Database.Migrate();
+            return Observable
             .Using(
                 CreateBot,
                 botInstance
@@ -47,6 +46,7 @@ namespace BotMaster.Telegram
                         .ToPackage(
                             Create(MessageConvert.ToMessage(receivedPackages), botInstance))
             );
+        }
 
         private TelegramContext CreateBot()
         {
@@ -59,7 +59,6 @@ namespace BotMaster.Telegram
             return new(client, new CommandoCentral());
         }
 
-        //TODO: Handle commands  
         private static IObservable<PluginMessage> Create(IObservable<PluginMessage> notifications, TelegramContext botContext)
         {
             logger = LogManager.GetCurrentClassLogger();
@@ -69,30 +68,7 @@ namespace BotMaster.Telegram
 
             using var context = new RightsDbContext();
             context.Database.Migrate(); //TODO Find better place
-
-            //context.SaveChanges();
-            //if (context.Database.EnsureCreated())
-            //{
-            //    //context.Groups.Add(new() { Name = "Admin" });
-            //    //context.Groups.Add(new() { Name = "Moderator" });
-            //    //context.Groups.Add(new() { Name = "Peasant", IsDefault = true });
-
-            //}
-
-
-            //var existing = context.Users.FirstOrDefault(x => x.DisplayName == "susch");
-
-            //var u = context.Users.Add(new() { DisplayName = "susch" });
-            //var u2 = context.Users.Add(new() { DisplayName = "demo[" });
-            //var adminGroup = context.Groups.Add(new() { Name = "Admin", IsDefault = false });
-            //context.Groups.Add(new() { Name = "NoobDev", IsDefault = false });
-            //context.Groups.Add(new() { Name = "Peasant", IsDefault = false });
-            ////context.PlatformUsers.Add(new() { User = u.Entity, Name = "susch19", Platform = "Twitch" });
-            //context.SaveChanges();
-            //adminGroup.Entity.Users.Add(u.Entity);
-            //adminGroup.Entity.AddRight(context, "SU");
-            //context.SaveChanges();
-
+            
             var noobDevGroup
                 = context.Groups
                     .Include(x => x.Users)

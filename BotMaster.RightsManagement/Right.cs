@@ -1,8 +1,5 @@
 ﻿using BotMaster.Database;
 
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace BotMaster.RightsManagement;
 
 public class Right : IdEntity<int>

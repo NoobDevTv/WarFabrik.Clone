@@ -1,7 +1,5 @@
 ﻿using BotMaster.PluginSystem;
 
-using System;
-
 namespace BotMaster.Betterplace.MessageContract
 {
     public readonly record struct BetterplaceMessageContractInfo(Guid UID, string Name) : IMessageContractInfo

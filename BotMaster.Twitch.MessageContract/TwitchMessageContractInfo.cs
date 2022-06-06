@@ -1,7 +1,5 @@
 ﻿using BotMaster.PluginSystem;
 
-using System;
-
 namespace BotMaster.Twitch.MessageContract
 {
     public readonly record struct TwitchMessageContractInfo(Guid UID, string Name) : IMessageContractInfo

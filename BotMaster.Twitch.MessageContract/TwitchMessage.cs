@@ -1,5 +1,4 @@
 ﻿using BotMaster.PluginSystem.Messages;
-using BotMaster.Twitch.MessageContract;
 
 using dotVariant;
 

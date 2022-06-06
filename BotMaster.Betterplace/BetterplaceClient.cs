@@ -1,53 +1,50 @@
 ﻿using BotMaster.Betterplace.Model;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
 using System.Reactive.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BotMaster.Betterplace
 {
-    internal sealed class BetterplaceClient
+    internal static class BetterplaceClient
     {
-        public Uri BaseAddress { get; }
+        public static IObservable<Page> GetOpinionsPage(string currentEventId, TimeSpan timeSpan = default) 
+            => Observable
+            .Using(
+                CreateNewContext,
+                serviceContext =>
+                {
+                    var interval
+                    = Observable
+                        .Concat(Observable.Return(0L),
+                            Observable.Interval(timeSpan));
 
-        private readonly string currentEventId;
+                    return interval
+                        .Select(_ => Observable.FromAsync(token => serviceContext.HttpClient.GetAsync($"fundraising_events/{currentEventId}/opinions.json", token)))
+                        .Concat()
+                        .Where(response => response.IsSuccessStatusCode)
+                        .Select(response => Observable.FromAsync(() => response.Content.ReadAsStringAsync()))
+                        .Concat()
+                        .Retry()
+                        .Select(pageContent => JsonConvert.DeserializeObject<Page>(pageContent));
+                }
+            );
 
-        public BetterplaceClient(string eventId)
+        private static BetterplaceContext CreateNewContext()
         {
-            BaseAddress = new Uri("https://api.betterplace.org/de/api_v4/");
-            currentEventId = eventId;
-        }
-
-        public IObservable<Page> GetOpinionsPage(TimeSpan timeSpan = default)
-        {
-            return Observable.Create<Page>((observer, token) => Task.Run(async () =>
-            {
-                using var client = new HttpClient()
+            var client
+                = new HttpClient()
                 {
                     BaseAddress = new Uri("https://api.betterplace.org/de/api_v4/")
                 };
 
-                while (true)
-                {
-                    token.ThrowIfCancellationRequested();
-                    using var pageResponse = await client.GetAsync($"fundraising_events/{currentEventId}/opinions.json", token);
+            return new(client);
+        }
 
-                    if (!pageResponse.IsSuccessStatusCode)
-                        throw new WebException($"{(short)pageResponse.StatusCode}: {pageResponse.ReasonPhrase}");
-
-                    var page = JsonConvert.DeserializeObject<Page>(await pageResponse.Content.ReadAsStringAsync());
-
-                    observer.OnNext(page);
-
-                    if (timeSpan != default)
-                        await Task.Delay(timeSpan, token);
-                }
-
-            }, token));
+        private record BetterplaceContext(HttpClient HttpClient) : IDisposable
+        {
+            public void Dispose()
+            {
+                HttpClient.Dispose();
+            }
         }
     }
 }

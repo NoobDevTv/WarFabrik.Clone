@@ -1,11 +1,5 @@
 ﻿using BotMaster.PluginSystem.Messages;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BotMaster.Twitch.MessageContract
 {
@@ -15,7 +9,7 @@ namespace BotMaster.Twitch.MessageContract
         //public static int Id { get; private set; } = -2;
 
         public static bool CanConvert(Message message)
-            => message.ContractUID == UID && message.Type == MessageType.Custom; //TODO: Contract id
+            => message.ContractUID == UID && message.Type == MessageType.Custom;
 
         public static IObservable<TwitchMessage> ToDefineMessages(IObservable<Message> messages)
             => messages

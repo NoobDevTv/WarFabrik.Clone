@@ -4,15 +4,6 @@ using BotMaster.MessageContract;
 using BotMaster.RightsManagement;
 using BotMaster.Telegram.Database;
 
-using CommandManagementSystem.Attributes;
-
-using Microsoft.EntityFrameworkCore;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 using Telegram.Bot;
 using Telegram.Bot.Types;
 

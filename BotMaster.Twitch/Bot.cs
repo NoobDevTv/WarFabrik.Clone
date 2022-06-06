@@ -8,17 +8,11 @@ using BotMaster.Twitch.Commands;
 using BotMaster.Twitch.MessageContract;
 
 using Microsoft.EntityFrameworkCore;
-
-using Newtonsoft.Json;
-
-using System.Net;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 
 using TwitchLib.Api;
-using TwitchLib.Api.Helix.Models.Users.GetUsers;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;

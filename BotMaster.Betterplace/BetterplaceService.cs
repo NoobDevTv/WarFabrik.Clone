@@ -11,14 +11,12 @@ namespace BotMaster.Betterplace
     public sealed class BetterplaceService : Plugin
     {
         public IObservable<Opinion> Opinions { get; private set; }
-        private readonly BetterplaceClient client;
 
         public BetterplaceService()
         {
-            client = new BetterplaceClient("30639");
-
-            Opinions = client
-                .GetOpinionsPage(TimeSpan.FromMinutes(1))
+            Opinions
+                = BetterplaceClient
+                .GetOpinionsPage("30639", TimeSpan.FromMinutes(1))
                 .Retry()
                 .SelectMany(p => p.Data)
                 .Where(o => o.Created_at > DateTime.Now.Subtract(TimeSpan.FromMinutes(4)))

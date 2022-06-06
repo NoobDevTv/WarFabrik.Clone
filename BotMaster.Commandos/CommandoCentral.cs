@@ -3,15 +3,9 @@
 using Microsoft.EntityFrameworkCore;
 
 using NonSucking.Framework.Extension.Collections;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BotMaster.Commandos;
 
@@ -29,11 +23,11 @@ namespace BotMaster.Commandos;
 /// </summary>
 public class CommandoCentral
 {
-    Subject<CommandMessage> messageSubject = new();
+    readonly Subject<CommandMessage> messageSubject = new();
 
     public IReadOnlyCollection<string> Commands { get => _commands; }
 
-    private List<string> _commands = new List<string>();
+    private readonly List<string> _commands = new List<string>();
 
     /// <summary>
     /// Initializes an instance for the commando central

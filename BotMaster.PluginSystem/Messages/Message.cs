@@ -1,8 +1,4 @@
-﻿using BotMaster.PluginSystem;
-
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 
 namespace BotMaster.PluginSystem.Messages
 {
@@ -20,7 +16,7 @@ namespace BotMaster.PluginSystem.Messages
         /// </summary>
         public string TargetId { get; }
 
-        public Guid ContractUID { get; } //TODO Real UID not int
+        public Guid ContractUID { get; } 
 
         public IReadOnlyList<byte> Data => data;
 
