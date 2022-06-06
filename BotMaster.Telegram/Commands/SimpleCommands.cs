@@ -1,6 +1,7 @@
 ﻿
 using BotMaster.Commandos;
 using BotMaster.MessageContract;
+using BotMaster.PluginSystem.Messages;
 using BotMaster.RightsManagement;
 using BotMaster.Telegram.Database;
 
@@ -36,6 +37,21 @@ namespace BotMaster.Telegram.Commands
                 return;
 
             botContext.Client.SendTextMessageAsync(new ChatId(long.Parse(commandMessage.PlattformUserId)), command.Text);
+        }
+
+        internal static void Connect(TelegramContext context, CommandMessage message)
+        {
+            if (message.Parameter.Count > 0)
+{
+                if (UserConnectionService.EndConnection(message.PlattformUserId, message.Parameter.First()))
+                    context.Client.SendTextMessageAsync(new ChatId(long.Parse(message.PlattformUserId)), $"You have connected successfully");
+                else
+                    context.Client.SendTextMessageAsync(new ChatId(long.Parse(message.PlattformUserId)), $"You have connected unsuccessfully, did you try to connect to the same plattform or did you already link these plattforms?");
+            }
+            else
+            {
+                context.Client.SendTextMessageAsync(new ChatId(long.Parse(message.PlattformUserId)), $"Enter your connection code into the application you want to connect to with the syntax \"connect 'code'\". It's valid for one hour: {UserConnectionService.StartConnection(message.PlattformUserId)}");
+            }
         }
     }
 }

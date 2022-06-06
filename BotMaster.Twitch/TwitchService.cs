@@ -1,7 +1,10 @@
 ﻿using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.Messages;
+using BotMaster.RightsManagement;
 using BotMaster.Telegram.Database;
+
 using Microsoft.EntityFrameworkCore;
+
 using Newtonsoft.Json;
 
 using System.Reactive.Linq;
@@ -22,8 +25,10 @@ namespace BotMaster.Twitch
 
         public override IObservable<Package> Start(IObservable<Package> receivedPackages)
         {
-            using var ctx = new RightsDbContext();
-            ctx.Database.Migrate();
+            using (var ctx = new RightsDbContext())
+                ctx.Database.Migrate();
+            using (var ctx = new UserConnectionContext())
+                ctx.Database.Migrate();
 
             return MessageConvert.ToPackage(Create(MessageConvert.ToMessage(receivedPackages)));
 
@@ -39,7 +44,7 @@ namespace BotMaster.Twitch
 
             var tokenFile = JsonConvert.DeserializeObject<TokenFile>(File.ReadAllText(info.FullName));
 
-            TryGetAccessToken(new FileInfo(Path.Combine(".", "additionalfiles", "access.json")), out var accessToken);
+            var suc = TryGetAccessToken(new FileInfo(Path.Combine(".", "additionalfiles", "access.json")), out var accessToken);
 
             return Bot.Create(tokenFile, accessToken, "NoobDevTv", notifications).Retry();
 
