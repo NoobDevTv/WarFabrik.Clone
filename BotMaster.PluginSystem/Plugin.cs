@@ -1,4 +1,5 @@
 ﻿
+using NLog;
 using NonSucking.Framework.Extension.IoC;
 
 namespace BotMaster.PluginSystem
@@ -17,6 +18,6 @@ namespace BotMaster.PluginSystem
             => Enumerable.Empty<IMessageContractInfo>();
 
         //ToDo: Notifications instead packages
-        public abstract IObservable<Package> Start(IObservable<Package> receivedPackages);
+        public abstract IObservable<Package> Start(ILogger logger, IObservable<Package> receivedPackages);
     }
 }

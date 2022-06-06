@@ -29,18 +29,23 @@ namespace BotMaster
             if (!pluginInfo.Exists)
                 pluginInfo.Create();
 
+            //LogManager.Setup().LoadConfigurationFromFile();
+
             using var fileTarget = new FileTarget("botmaster.logfile") { FileName = info.FullName };
-#if DEBUG
             using var colorTarget = new ColoredConsoleTarget("botmaster.logconsole");
-            config.AddRule(LogLevel.Debug, LogLevel.Fatal, colorTarget);
+#if DEBUG
             config.AddRule(LogLevel.Trace, LogLevel.Fatal, fileTarget);
+            config.AddRule(LogLevel.Debug, LogLevel.Fatal, colorTarget);
 #else
-            config.AddRule(LogLevel.Info, LogLevel.Fatal, fileTarget);
+            config.AddRule(LogLevel.Trace, LogLevel.Fatal, fileTarget);
+            config.AddRule(LogLevel.Trace, LogLevel.Fatal, colorTarget);
 #endif
             LogManager.Configuration = config;
 
-            using var managerDispose = Disposable.Create(() => LogManager.Shutdown());
+            using var IDisposablemanagerDispose = Disposable.Create(LogManager.Shutdown);
             var logger = LogManager.GetCurrentClassLogger();
+
+            logger.Info("BotMaster started");
 
             using var resetEvent = new ManualResetEvent(false);
             Console.CancelKeyPress += (s, e) => resetEvent.Set();
@@ -49,14 +54,19 @@ namespace BotMaster
 #if DEBUG
             typeContainer.Register<IPluginInstanceCreator>(new PluginServiceInstanceCreator());
 #else
-            typeContainer.Register<IPluginInstanceCreator>(new PluginProcessServiceInstanceCreator());
+            //typeContainer.Register<IPluginInstanceCreator>(new PluginProcessServiceInstanceCreator());
+            typeContainer.Register<IPluginInstanceCreator>(new PluginServiceInstanceCreator());
+
 #endif
 
             var serviceLogger = LogManager.GetLogger($"{nameof(BotMaster)}.{nameof(Service)}");
+
+            logger.Info("BotMaster PluginService Started");
             using var service = new Service(typeContainer, serviceLogger, pluginInfo, pluginHost);
             service.Start();
 
             resetEvent.WaitOne();
+            logger.Info("BotMaster stopped");
         }
     }
 }

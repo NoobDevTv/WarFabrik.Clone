@@ -2,8 +2,6 @@
 using BotMaster.MessageContract;
 using BotMaster.Telegram.Database;
 
-using CommandManagementSystem.Attributes;
-
 namespace BotMaster.Twitch.Commands
 {
     public static class SimpleCommands
@@ -17,7 +15,6 @@ namespace BotMaster.Twitch.Commands
             smilies = new string[] { ":)", ":D", "O_o", "B)", ":O", "<3", ";)", ":P", ";P", "R)" };
         }
 
-        [Command("hype")]
         internal static void Hype(TwitchContext context, CommandMessage message)
         {
             string msg = "";
@@ -30,10 +27,8 @@ namespace BotMaster.Twitch.Commands
             SendMessage(context, message, msg);
         }
 
-        [Command("uptime")]
         internal static void Uptime(TwitchContext context, CommandMessage message) => UptimeAsync(context, message);
 
-        [Command("?", "help")]
         internal static void Help(TwitchContext context, CommandMessage message)
         {
             var commandsList = context.CommandoCentral.Commands;
@@ -47,14 +42,12 @@ namespace BotMaster.Twitch.Commands
 
         }
 
-        [Command("telegram")]
         internal static void TelegramGroup(TwitchContext context, CommandMessage message)
         {
             SendMessage(context, message, "Telegramgruppe: https://t.me/NoobDevStream | @gallimathias | @susch19");
 
         }
 
-        [Command("flipacoin")]
         internal static void FlipACoin(TwitchContext context, CommandMessage message)
         {
             if (random.Next(0, 2) == 0)
@@ -65,14 +58,12 @@ namespace BotMaster.Twitch.Commands
 
         }
 
-        [Command("donate")]
         internal static void Donate(TwitchContext context, CommandMessage message)
         {
             SendMessage(context, message, "Betterplace: https://goo.gl/QK5FF3");
 
         }
 
-        [Command("github")]
         internal static void Github(TwitchContext context, CommandMessage message)
         {
             //TODO Check current project
@@ -145,7 +136,6 @@ namespace BotMaster.Twitch.Commands
             context.Client.SendWhisper(c.Username, "Connection of two accounts will be added in the future, here you will see a connection code or can enter one :)");
         }
 
-        [Command("teamspeak", "ts")]
         internal static void TeamSpeak(TwitchContext context, CommandMessage message)
         {
 
@@ -153,7 +143,6 @@ namespace BotMaster.Twitch.Commands
 
         }
 
-        [Command("twitter")]
         internal static void Twitter(TwitchContext context, CommandMessage message)
         {
 
@@ -161,34 +150,26 @@ namespace BotMaster.Twitch.Commands
 
         }
 
-        [Command("youtube", "yt")]
         internal static void Youtube(TwitchContext context, CommandMessage message)
         {
             SendMessage(context, message, "Youtube: https://www.youtube.com/channel/UCIWEvJ9SHMQoouIe86z6buQ");
-
         }
 
         internal static void Discord(TwitchContext context, CommandMessage message)
         {
             SendMessage(context, message, "Discord: https://discord.gg/3UGVAfK");
-
         }
 
-        [Command("time")]
         internal static void Time(TwitchContext context, CommandMessage message)
         {
             SendMessage(context, message, "Aktuelle Uhrzeit: " + DateTime.Now.ToLongTimeString());
-
         }
 
-        [Command("streamer")]
         internal static void Streamer(TwitchContext context, CommandMessage message)
         {
             SendMessage(context, message, "Namen der Streamer: Marcus Aurelius, susch19");
-
         }
 
-        [Command("projects")]
         internal static void Project(TwitchContext context, CommandMessage message)
         {
             SendMessage(context, message, "Für die aktuellen Projekte wirf bitte ein Blick in unsere Beschreibung. Alle Projekte sind auch auf !Github zu finden.");

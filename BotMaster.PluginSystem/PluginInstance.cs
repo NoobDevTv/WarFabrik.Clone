@@ -37,7 +37,7 @@ namespace BotMaster.PluginSystem
 
         public IObservable<Package> Send(IObservable<Package> packages)
             => packages
-                   .Do(p => sendPackages.OnNext(p));
+                   .Do(sendPackages.OnNext);
         internal virtual void SendMessages(Func<IObservable<Message>, IDisposable> subscribeAsSender) { }
         internal virtual void ReceiveMessages(Func<string, IObservable<Message>> subscribeAsReceiver) { }
 

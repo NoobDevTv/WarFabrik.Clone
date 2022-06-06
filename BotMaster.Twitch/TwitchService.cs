@@ -3,7 +3,7 @@ using BotMaster.PluginSystem.Messages;
 using BotMaster.Telegram.Database;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-
+using NLog;
 using System.Reactive.Linq;
 
 namespace BotMaster.Twitch
@@ -11,6 +11,7 @@ namespace BotMaster.Twitch
     public class TwitchService : Plugin
     {
         private readonly IMessageContractInfo[] messageContracts;
+        private ILogger logger;
 
         public TwitchService()
         {
@@ -20,10 +21,13 @@ namespace BotMaster.Twitch
             };
         }
 
-        public override IObservable<Package> Start(IObservable<Package> receivedPackages)
+        public override IObservable<Package> Start(ILogger logger, IObservable<Package> receivedPackages)
         {
             using var ctx = new RightsDbContext();
+            logger.Debug("Migrate RightsDbContext");
             ctx.Database.Migrate();
+
+            this.logger = logger;
 
             return MessageConvert.ToPackage(Create(MessageConvert.ToMessage(receivedPackages)));
 
@@ -32,17 +36,17 @@ namespace BotMaster.Twitch
 
         private static IObservable<Message> Create(IObservable<Message> notifications)
         {
-            var info = new FileInfo(Path.Combine(".", "additionalfiles", "Token.json"));
+            var tokenFileInfo = new FileInfo(Path.Combine(".", "additionalfiles", "Token.json"));
 
-            if (!info.Directory.Exists)
-                info.Directory.Create();
+            if (!tokenFileInfo.Directory.Exists)
+                tokenFileInfo.Directory.Create();
 
-            var tokenFile = JsonConvert.DeserializeObject<TokenFile>(File.ReadAllText(info.FullName));
+            var tokenFile = JsonConvert.DeserializeObject<TokenFile>(File.ReadAllText(tokenFileInfo.FullName));
 
-            TryGetAccessToken(new FileInfo(Path.Combine(".", "additionalfiles", "access.json")), out var accessToken);
-
-            return Bot.Create(tokenFile, accessToken, "NoobDevTv", notifications).Retry();
-
+            return GetAccessToken(new FileInfo(Path.Combine(".", "additionalfiles", "access.json")), tokenFile)
+                .Select(accessToken => Bot.Create(tokenFile, accessToken, "NoobDevTv", notifications))
+                .Concat()
+                .Retry();
         }
 
         public override IEnumerable<IMessageContractInfo> ConsumeContracts()
@@ -63,28 +67,33 @@ namespace BotMaster.Twitch
             return false;
         }
 
-        private static async Task<AccessToken> GetAccessToken(FileInfo info, TokenFile tokenFile)
+        private static IObservable<AccessToken> GetAccessToken(FileInfo info, TokenFile tokenFile)
         {
             if (TryGetAccessToken(info, out var token))
-                return token;
+                return Observable.Return(token);
 
-            token = await CreateToken(tokenFile);
-            await File.WriteAllTextAsync(info.FullName, JsonConvert.SerializeObject(token));
-            return token;
+            return CreateToken(tokenFile)
+            .Do(token => File.WriteAllText(info.FullName, JsonConvert.SerializeObject(token)));
         }
 
-        private static async Task<AccessToken> CreateToken(TokenFile tokenFile)
+        private static IObservable<AccessToken> CreateToken(TokenFile tokenFile)
         {
-            using var client = new HttpClient();
             var url = $"https://id.twitch.tv/oauth2/token?client_id={tokenFile.ClientId}&client_secret={tokenFile.ClientSecret}&grant_type=client_credentials";
-            using var response = await client.PostAsync(url, null);
 
-            using var status = response.EnsureSuccessStatusCode();
-
-            var str = await response.Content.ReadAsStringAsync();
-            var token = JsonConvert.DeserializeObject<AccessToken>(str);
-            token.CreatedAt = DateTime.Now;
-            return token;
+            return Observable
+                .Using(
+                    () => new HttpClient(),
+                    client =>
+                        Observable
+                        .Return(0)
+                        .Select(_ => Observable.FromAsync(token => client.PostAsync(url, null, token)))
+                        .Concat()
+                        .Do(response => response.EnsureSuccessStatusCode())
+                        .Retry()
+                        .Select(response => Observable.FromAsync(token => response.Content.ReadAsStringAsync(token)))
+                        .Concat()
+                        .Select(rawToken => { var token = JsonConvert.DeserializeObject<AccessToken>(rawToken); token.CreatedAt = DateTime.Now; return token; })
+                );
         }
     }
 }

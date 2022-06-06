@@ -34,7 +34,7 @@ namespace BotMaster.Telegram
         {
         }
 
-        public override IObservable<Package> Start(IObservable<Package> receivedPackages)
+        public override IObservable<Package> Start(ILogger logger, IObservable<Package> receivedPackages)
         {
             using var ctx = new RightsDbContext();
             ctx.Database.Migrate();
@@ -67,7 +67,6 @@ namespace BotMaster.Telegram
             CreateIncommingCommandCallbacks(botContext);
 
             using var context = new RightsDbContext();
-            context.Database.Migrate(); //TODO Find better place
             
             var noobDevGroup
                 = context.Groups

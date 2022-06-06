@@ -1,4 +1,5 @@
-﻿using NonSucking.Framework.Extension.IoC;
+﻿using NLog;
+using NonSucking.Framework.Extension.IoC;
 
 using System.Reactive;
 using System.Reactive.Linq;
@@ -8,8 +9,8 @@ namespace BotMaster.PluginSystem
 {
     public static class PluginProvider
     {
-        public static IObservable<PluginInstance> Watch(ITypeContainer typeContainer, DirectoryInfo directory, FileInfo pluginHost)
-            => GetPluginManifests(directory)
+        public static IObservable<PluginInstance> Watch(ILogger logger, ITypeContainer typeContainer, DirectoryInfo directory, FileInfo pluginHost)
+            => GetPluginManifests(directory, logger)
                    .Select(manifest =>
                     {
                         var pluginCreator = typeContainer.Get<IPluginInstanceCreator>();
@@ -22,7 +23,7 @@ namespace BotMaster.PluginSystem
                         return instance;
                     });
 
-        private static IObservable<PluginManifest> GetPluginManifests(DirectoryInfo directory)
+        private static IObservable<PluginManifest> GetPluginManifests(DirectoryInfo directory, ILogger logger)
             => Observable
                 .Merge(
                     directory
@@ -46,6 +47,8 @@ namespace BotMaster.PluginSystem
                 )
                 .Select(file =>
                 {
+                    logger.Trace("rcv new manifest files");
+
                     var manifest = JsonSerializer.Deserialize<PluginManifest>(
                         File.ReadAllText(file.FullName),
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
