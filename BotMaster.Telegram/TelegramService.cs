@@ -4,6 +4,7 @@ using BotMaster.Core.NLog;
 using BotMaster.MessageContract;
 using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.Messages;
+using BotMaster.RightsManagement;
 using BotMaster.Telegram.Commands;
 using BotMaster.Telegram.Database;
 using BotMaster.Twitch.MessageContract;
@@ -42,8 +43,11 @@ namespace BotMaster.Telegram
 
         public override IObservable<Package> Start(ILogger logger, IObservable<Package> receivedPackages)
         {
-            using var ctx = new RightsDbContext();
-            ctx.Database.Migrate();
+            using (var ctx = new RightsDbContext())
+                ctx.Database.Migrate();
+            using (var ctx = new UserConnectionContext())
+                ctx.Database.Migrate();
+
             return Observable
             .Using(
                 CreateBot,
@@ -71,6 +75,7 @@ namespace BotMaster.Telegram
             var client = botContext.Client;
 
             CreateIncommingCommandCallbacks(botContext);
+
 
             using var context = new RightsDbContext();
 
@@ -168,6 +173,7 @@ namespace BotMaster.Telegram
                 botContext.CommandoCentral.AddCommand(x => SimpleCommands.SendTextCommand(x, item, botContext), item.Command);
             }
             botContext.CommandoCentral.AddCommand(x => SimpleCommands.Start(x, botContext), "start");
+            botContext.CommandoCentral.AddCommand(x => SimpleCommands.Connect(botContext, x), "connect");
         }
 
         private static IObservable<(string, TelegramCommandArgs)> CreateCommands(TelegramBotClient client) =>

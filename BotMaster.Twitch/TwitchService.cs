@@ -1,7 +1,10 @@
 ﻿using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.Messages;
+using BotMaster.RightsManagement;
 using BotMaster.Telegram.Database;
+
 using Microsoft.EntityFrameworkCore;
+
 using Newtonsoft.Json;
 using NLog;
 using System.Reactive.Linq;
@@ -23,9 +26,10 @@ namespace BotMaster.Twitch
 
         public override IObservable<Package> Start(ILogger logger, IObservable<Package> receivedPackages)
         {
-            using var ctx = new RightsDbContext();
-            logger.Debug("Migrate RightsDbContext");
-            ctx.Database.Migrate();
+            using (var ctx = new RightsDbContext())
+                ctx.Database.Migrate();
+            using (var ctx = new UserConnectionContext())
+                ctx.Database.Migrate();
 
             this.logger = logger;
 

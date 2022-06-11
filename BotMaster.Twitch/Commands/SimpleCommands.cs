@@ -1,5 +1,6 @@
 ﻿using BotMaster.Commandos;
 using BotMaster.MessageContract;
+using BotMaster.RightsManagement;
 using BotMaster.Telegram.Database;
 
 namespace BotMaster.Twitch.Commands
@@ -126,14 +127,34 @@ namespace BotMaster.Twitch.Commands
             SendMessage(context, commandMessage, command.Text);
         }
 
-        internal static void PublicConnect(TwitchContext context, CommandMessage c)
+        internal static void PublicConnect(TwitchContext context, CommandMessage message)
         {
-            context.Client.SendWhisper(c.Username, "Connection of two accounts will be added in the future :)");
+            if (message.Parameter.Count > 0)
+            {
+                UserConnectionService.RevokeConnection(context.UserId, message.Parameter.First());
+
+                context.Client.SendWhisper(message.Username, $"The connection was canceled / revoked, as it is only allowed to be finished via PN");
+            }
+            else
+            {
+                context.Client.SendWhisper(message.Username, $"Enter your connection code into the application you want to connect to. It's valid for one hour: {UserConnectionService.StartConnection(context.UserId)}");
+            }
+
         }
 
-        internal static void PrivateConnect(TwitchContext context, CommandMessage c)
+        internal static void PrivateConnect(TwitchContext context, CommandMessage message)
         {
-            context.Client.SendWhisper(c.Username, "Connection of two accounts will be added in the future, here you will see a connection code or can enter one :)");
+            if (message.Parameter.Count > 0)
+            {
+                if (UserConnectionService.EndConnection(context.UserId, message.Parameter.First()))
+                    context.Client.SendWhisper(message.Username, $"You have connected successfully");
+                else
+                    context.Client.SendWhisper(message.Username, $"You have connected unsuccessfully, did you try to connect to the same plattform or did you already link these plattforms?");
+            }
+            else
+            {
+                context.Client.SendWhisper(message.Username, $"Enter your connection code into the application you want to connect to. It's valid for one hour: {UserConnectionService.StartConnection(context.UserId)}");
+            }
         }
 
         internal static void TeamSpeak(TwitchContext context, CommandMessage message)
@@ -176,6 +197,7 @@ namespace BotMaster.Twitch.Commands
 
         }
 
+
         private static void SendMessage(TwitchContext context, CommandMessage toAddMessage, string text, CommandMessage incommingMessage)
         {
             if (toAddMessage.Secure && (!incommingMessage.Secure || toAddMessage.Username != incommingMessage.Username))
@@ -190,6 +212,7 @@ namespace BotMaster.Twitch.Commands
             else
                 context.Client.SendMessage(context.Channel, text);
         }
+
         //[Command("whoami")]
         //internal static void WhoAmI(TwitchContext context, CommandMessage message)
         //{
