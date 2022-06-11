@@ -29,7 +29,7 @@ namespace BotMaster.Twitch
 
             this.logger = logger;
 
-            return MessageConvert.ToPackage(Create(MessageConvert.ToMessage(receivedPackages)));
+            return MessageConvert.ToPackage(Create(MessageConvert.ToMessage(receivedPackages.Do(package => logger.Trace("rcv new package")))));
 
         }
 

@@ -3,7 +3,7 @@ using System.Reactive.Linq;
 
 namespace BotMaster.Betterplace.MessageContract
 {
-    public static class Contract
+    public static class BetterplaceContract
     {
         public static readonly Guid UID = new("524FED8B-38C6-4241-B5A0-84752A6964AD");
         //public static int Id { get; private set; } = -1;

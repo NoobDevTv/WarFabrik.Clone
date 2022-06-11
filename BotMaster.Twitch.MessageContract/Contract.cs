@@ -3,7 +3,7 @@ using System.Reactive.Linq;
 
 namespace BotMaster.Twitch.MessageContract
 {
-    public static class Contract
+    public static class TwitchContract
     {
         public static readonly Guid UID = new("02128092-1EAF-4CC0-A544-AC951BC83C49");
         //public static int Id { get; private set; } = -2;

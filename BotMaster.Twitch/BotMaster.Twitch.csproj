@@ -44,7 +44,7 @@
 	</ItemGroup>
 
 
-	<!--<Target Name="CopyDLLs" AfterTargets="Build">
+	<Target Name="CopyDLLs" AfterTargets="Build" Condition="$(Configuration)=='DEBUG'">
 		<Message Text="Executing CopyDLLs task ($(SolutionDir)BotMaster\$(OutDir)plugins\$(ProjectName))" Importance="High" />
 		<Message Text="Executing CopyDLLs $(TargetDir)" Importance="High" />
 
@@ -56,6 +56,6 @@
 
 		<Message Text="Copied build files" Importance="High" />
 
-	</Target>-->
+	</Target>
 
 </Project>

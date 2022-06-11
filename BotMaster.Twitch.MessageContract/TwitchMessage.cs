@@ -28,12 +28,12 @@ namespace BotMaster.Twitch.MessageContract
                         follower =>
                         {
                             follower.Serialize(writer);
-                            return new Message(Contract.UID, MessageType.Custom, memory.ToArray(), TargetId);
+                            return new Message(TwitchContract.UID, MessageType.Custom, memory.ToArray(), TargetId);
                         },
                         raid =>
                         {
                             raid.Serialize(writer);
-                            return new Message(Contract.UID, MessageType.Custom, memory.ToArray(), TargetId);
+                            return new Message(TwitchContract.UID, MessageType.Custom, memory.ToArray(), TargetId);
                         }
             );
         }

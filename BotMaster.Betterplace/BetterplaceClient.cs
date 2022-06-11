@@ -14,7 +14,7 @@ namespace BotMaster.Betterplace
                 {
                     var interval
                     = Observable
-                        .Concat(Observable.Return(0L),
+                        .Concat(Observable.Timer(TimeSpan.FromSeconds(10)),
                             Observable.Interval(timeSpan));
 
                     return interval

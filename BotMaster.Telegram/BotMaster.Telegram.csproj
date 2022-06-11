@@ -21,12 +21,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\BotMaster.Betterplace.MessageContract\BotMaster.Betterplace.MessageContract.csproj" />
 		<ProjectReference Include="..\BotMaster.Commandos\BotMaster.Commandos.csproj" />
 		<ProjectReference Include="..\BotMaster.Core\BotMaster.Core.csproj" />
 		<ProjectReference Include="..\BotMaster.Database\BotMaster.Database.csproj" />
 		<ProjectReference Include="..\BotMaster.MessageContract\BotMaster.MessageContract.csproj" />
 		<ProjectReference Include="..\BotMaster.PluginSystem\BotMaster.PluginSystem.csproj" />
 		<ProjectReference Include="..\BotMaster.RightsManagement\BotMaster.RightsManagement.csproj" />
+		<ProjectReference Include="..\BotMaster.Twitch.MessageContract\BotMaster.Twitch.MessageContract.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -39,7 +41,7 @@
 	</ItemGroup>
 
 
-	<Target Name="CopyDLLs" AfterTargets="Build">
+	<Target Name="CopyDLLs" AfterTargets="Build" Condition="'$(Configuration)'=='DEBUG'">
 		<Message Text="Executing CopyDLLs task ($(SolutionDir)BotMaster\$(OutDir)plugins\$(ProjectName))" Importance="High" />
 		<Message Text="Executing CopyDLLs $(TargetDir)" Importance="High" />
 

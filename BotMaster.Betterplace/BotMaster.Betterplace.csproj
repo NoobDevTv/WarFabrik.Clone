@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -17,7 +17,28 @@
   <ItemGroup>
     <ProjectReference Include="..\BotMaster.Betterplace.MessageContract\BotMaster.Betterplace.MessageContract.csproj" />
     <ProjectReference Include="..\BotMaster.Core\BotMaster.Core.csproj" />
+    <ProjectReference Include="..\BotMaster.MessageContract\BotMaster.MessageContract.csproj" />
     <ProjectReference Include="..\BotMaster.PluginSystem\BotMaster.PluginSystem.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+	<Target Name="CopyDLLs" AfterTargets="Build" Condition="$(Configuration)=='DEBUG'">
+		<Message Text="Executing CopyDLLs task ($(SolutionDir)BotMaster\$(OutDir)plugins\$(ProjectName))" Importance="High" />
+		<Message Text="Executing CopyDLLs $(TargetDir)" Importance="High" />
+
+		<ItemGroup>
+			<MySourceFiles Include="$(TargetDir)\**\*.*" />
+		</ItemGroup>
+
+		<Copy SourceFiles="@(MySourceFiles)" DestinationFiles="@(MySourceFiles->'$(SolutionDir)BotMaster\$(OutDir)plugins\$(ProjectName)\%(RecursiveDir)%(Filename)%(Extension)')" />
+
+		<Message Text="Copied build files" Importance="High" />
+
+	</Target>
 
 </Project>

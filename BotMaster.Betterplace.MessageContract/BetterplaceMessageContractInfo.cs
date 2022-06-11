@@ -6,7 +6,7 @@ namespace BotMaster.Betterplace.MessageContract
     {
         public static BetterplaceMessageContractInfo Create()
             => new(
-                Contract.UID,
+                BetterplaceContract.UID,
                 nameof(BetterplaceMessageContractInfo));
     }
 }

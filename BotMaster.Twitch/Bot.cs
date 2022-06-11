@@ -1,4 +1,5 @@
 ﻿
+using BotMaster.Betterplace.MessageContract;
 using BotMaster.Commandos;
 using BotMaster.MessageContract;
 using BotMaster.PluginSystem.Messages;
@@ -8,6 +9,7 @@ using BotMaster.Twitch.Commands;
 using BotMaster.Twitch.MessageContract;
 
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -18,7 +20,7 @@ using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
 
 using DefinedContract = BotMaster.MessageContract.Contract;
-using TwitchContract = BotMaster.Twitch.MessageContract.Contract;
+using TwitchContract = BotMaster.Twitch.MessageContract.TwitchContract;
 
 namespace BotMaster.Twitch
 {
@@ -27,8 +29,6 @@ namespace BotMaster.Twitch
         public string ChannelId { get; private set; }
 
         public const string SourcePlattform = "Twitch";
-
-        internal BotCommandManager Manager;
 
         internal static PlattformUser? GetUser(string plattform, string plattformUserId)
         {
@@ -102,6 +102,14 @@ namespace BotMaster.Twitch
                                         .Do(message => client.SendMessage(context.Channel, $"{message.UserName} bringt jede Menge Noobs mit, nämlich 1 bis {message.Count}. Yippie"))
                                         .Select(x => (TwitchMessage)x)
                                    );
+
+                            var incommingBetterplaceMessages = BetterplaceContract
+                                  .ToDefineMessages(notifications)
+                                  .VisitMany(
+                                       donation => donation
+                                           .Do(x => client.SendMessage(context.Channel, $"{x.Author} hat {x.Donated_amount_in_cents} Geld gespendet. Vielen lieben Dank dafür <3"))
+                                           .Select(x => (BetterplaceMessage)x)
+                                      );
 
                             var raidInfo = Observable
                             .FromEventPattern<OnRaidNotificationArgs>(add => client.OnRaidNotification += add, remove => client.OnRaidNotification -= remove)
@@ -188,6 +196,7 @@ namespace BotMaster.Twitch
                             return Observable.Using(
                                 () => StableCompositeDisposable.Create(
                                     incommingDefinedMessages.Subscribe(),
+                                    incommingBetterplaceMessages.Subscribe(),
                                     incommingTwitchMessages.Subscribe()),
                                 (_) => Observable.Merge(twitchMessages, definedMessages, pnS));
                         })

@@ -1,11 +1,12 @@
-﻿using BotMaster.Commandos;
+﻿using BotMaster.Betterplace.MessageContract;
+using BotMaster.Commandos;
 using BotMaster.Core.NLog;
 using BotMaster.MessageContract;
 using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.Messages;
 using BotMaster.Telegram.Commands;
 using BotMaster.Telegram.Database;
-
+using BotMaster.Twitch.MessageContract;
 using Microsoft.EntityFrameworkCore;
 
 using NLog;
@@ -32,7 +33,12 @@ namespace BotMaster.Telegram
 
         public TelegramService()
         {
+            messageContracts = new[]
+            {
+                (IMessageContractInfo)BetterplaceMessageContractInfo.Create()
+            };
         }
+        public override IEnumerable<IMessageContractInfo> ConsumeContracts() => messageContracts;
 
         public override IObservable<Package> Start(ILogger logger, IObservable<Package> receivedPackages)
         {
@@ -67,7 +73,7 @@ namespace BotMaster.Telegram
             CreateIncommingCommandCallbacks(botContext);
 
             using var context = new RightsDbContext();
-            
+
             var noobDevGroup
                 = context.Groups
                     .Include(x => x.Users)
@@ -88,6 +94,29 @@ namespace BotMaster.Telegram
                     .Log(logger, nameof(TelegramService) + " Incomming", onNext: LogLevel.Debug)
                     .Publish()
                     .RefCount();
+
+
+            var incommingTwitchMessages = TwitchContract
+               .ToDefineMessages(notifications)
+               .VisitMany(
+                    follower => follower
+                        .SelectMany(message => noobDevGroupUser.Select(userId => (userId, message)))
+                            .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"{toSend.message.UserName} hat soeben auf Twitch gefollowed"))
+                        .Select(x => (TwitchMessage)x.message),
+                    raid => raid
+                        .SelectMany(message => noobDevGroupUser.Select(userId => (userId, message)))
+                            .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"{toSend.message.UserName} hat mit {toSend.message.Count} Noobs geraidet"))
+                        .Select(x => (TwitchMessage)x.message)
+                   );
+
+            var incommingBetterplaceMessages = BetterplaceContract
+                  .ToDefineMessages(notifications)
+                  .VisitMany(
+                       donation => donation
+                            .SelectMany(donation => noobDevGroupUser.Select(userId => (userId, donation)))
+                            .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"{toSend.donation.Author} hat {toSend.donation.Donated_amount_in_cents} Geld gespendet. Vielen lieben Dank dafür <3"))
+                            .Select(x => (BetterplaceMessage)x.donation)
+                      );
 
             //Messages from other plugins
             IObservable<(List<long>, TextMessage n)> pluginMessageWithGroups
@@ -127,7 +156,7 @@ namespace BotMaster.Telegram
 
             var fromUser = DefinedMessageContract.ToMessages(commandMessages);
 
-            return Observable.Using(() => StableCompositeDisposable.Create(textMessages.Subscribe(), incommingCommandStream.Subscribe()), _ => fromUser);
+            return Observable.Using(() => StableCompositeDisposable.Create(textMessages.Subscribe(), incommingCommandStream.Subscribe(), incommingTwitchMessages.Subscribe(), incommingBetterplaceMessages.Subscribe()), _ => fromUser);
         }
 
 

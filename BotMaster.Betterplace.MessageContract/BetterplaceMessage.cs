@@ -24,7 +24,7 @@ namespace BotMaster.Betterplace.MessageContract
                         donation =>
                         {
                             donation.Serialize(writer);
-                            return new Message(Contract.UID, MessageType.Custom, memory.ToArray(), TargetId);
+                            return new Message(BetterplaceContract.UID, MessageType.Custom, memory.ToArray(), TargetId);
                         }
             );
         }

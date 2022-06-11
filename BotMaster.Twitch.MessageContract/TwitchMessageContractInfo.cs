@@ -6,7 +6,7 @@ namespace BotMaster.Twitch.MessageContract
     {
         public static TwitchMessageContractInfo Create()
             => new(
-                Contract.UID,
+                TwitchContract.UID,
                 nameof(TwitchMessageContractInfo));
     }
 }
