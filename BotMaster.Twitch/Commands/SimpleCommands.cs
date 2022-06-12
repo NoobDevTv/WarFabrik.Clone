@@ -37,7 +37,7 @@ namespace BotMaster.Twitch.Commands
 
             //SendMessage(context, message, "Folgende Befehle sind verfügbar: !uptime, !hype, !telegram, !flipacoin, !donate, !teamspeak, !twitter, !youtube, !github, !time, !streamer, !projects, !whoami");
             foreach (var commandTags in commandsList)
-                toPrintMessage += $" !{commandTags},";
+                toPrintMessage += $" !{commandTags.Command},";
 
             SendMessage(context, message, toPrintMessage.Trim(',', ' '));
 

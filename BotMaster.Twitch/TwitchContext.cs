@@ -13,6 +13,7 @@ namespace BotMaster.Twitch
     internal record TwitchContext(TwitchAPI Api, TwitchClient Client, string UserId, string Channel, CommandoCentral CommandoCentral, CompositeDisposable Disposables) : IDisposable
     {
         public Logger Logger { get; } = LogManager.GetLogger($"{nameof(Bot)}_{UserId}");
+        private const string Plattform = "Twitch";
 
         public void Dispose()
         {
@@ -26,11 +27,11 @@ namespace BotMaster.Twitch
 
         public void AddCommand(Func<CommandMessage, bool> guard, Action<CommandMessage> action, params string[] commandNames)
         {
-            Disposables.Add(CommandoCentral.AddCommand(guard, action, commandNames));
+            Disposables.Add(CommandoCentral.AddCommand(guard, action, commandNames.Select(x=>new PersistentCommand(x, "", Plattform)).ToArray()));
         }
         public void AddCommand(Action<CommandMessage> action, params string[] commandNames)
         {
-            Disposables.Add(CommandoCentral.AddCommand(action, commandNames));
+            Disposables.Add(CommandoCentral.AddCommand(action, commandNames.Select(x => new PersistentCommand(x, "", Plattform)).ToArray()));
         }
     }
 }

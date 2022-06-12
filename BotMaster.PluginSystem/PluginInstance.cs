@@ -31,7 +31,8 @@ namespace BotMaster.PluginSystem
     public class PluginInstance<TClient> : PluginInstance, IDisposable
     {
         private TClient client;
-
+        private IObservable<Package> sendPipe;
+        private IObservable<Package> receivPipe;
         private readonly Func<string, TClient> createPipe;
         private readonly Func<TClient, IObservable<Package>, IObservable<Package>> createSender;
         private readonly Func<TClient, IObservable<Package>> createReceiver;
@@ -58,16 +59,18 @@ namespace BotMaster.PluginSystem
             base.Start();
 
             client = createPipe(Id);
+            sendPipe = Observable.Defer(() => createSender(client, sendPackages)).Publish().RefCount();
+            receivPipe = Observable.Defer(() => createReceiver(client)).Publish().RefCount();
 
             if (client is IDisposable disposableClient)
                 disposables.Add(disposableClient);
         }
 
-        public override IObservable<Package> Send(IObservable<Package> packages)
-            => Observable.Defer(() => createSender(client, packages));
+        public override IObservable<Package> Send(IObservable<Package> packages) 
+            => Observable.Using(() => packages.Subscribe(package => sendPackages.OnNext(package)), _ => sendPipe);
 
         public override IObservable<Package> Receiv()
-            => Observable.Defer(() => createReceiver(client));
+            => receivPipe;
 
         public virtual void Dispose()
         {

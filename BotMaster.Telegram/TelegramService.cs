@@ -8,9 +8,11 @@ using BotMaster.RightsManagement;
 using BotMaster.Telegram.Commands;
 using BotMaster.Telegram.Database;
 using BotMaster.Twitch.MessageContract;
+
 using Microsoft.EntityFrameworkCore;
 
 using NLog;
+
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
@@ -170,10 +172,13 @@ namespace BotMaster.Telegram
             var commands = CommandoCentral.GetCommandsFor("Telegram");
             foreach (var item in commands)
             {
-                botContext.CommandoCentral.AddCommand(x => SimpleCommands.SendTextCommand(x, item, botContext), item.Command);
+
+                botContext.AddCommand(x => SimpleCommands.SendTextCommand(x, item, botContext), item.Command);
             }
-            botContext.CommandoCentral.AddCommand(x => SimpleCommands.Start(x, botContext), "start");
-            botContext.CommandoCentral.AddCommand(x => SimpleCommands.Connect(botContext, x), "connect");
+            botContext.AddCommand(x => SimpleCommands.Start(x, botContext), "start");
+            botContext.AddCommand(x => SimpleCommands.Connect(botContext, x), "connect");
+
+            botContext.Client.SetMyCommandsAsync(botContext.CommandoCentral.Commands.Select(x => new BotCommand() { Command = x.Text, Description = " " }));
         }
 
         private static IObservable<(string, TelegramCommandArgs)> CreateCommands(TelegramBotClient client) =>

@@ -1,4 +1,15 @@
 ﻿TODOS:
+	- ASP Net Core Web Core and Extensions
+		- Betterplace donation alert
+
+	- Save IDs of follows / donations, so we know which are new 
+
+	- Appconfig per Plugin
+
+	- (Fix self message on twitch?)
+	
+	- Support multiple runners
+
 	- Youtube Bot API implementation
 		- Set Title on Youtube and Twitch?
 			- https://dev.twitch.tv/docs/api/reference#modify-channel-information
@@ -36,3 +47,5 @@ Done:
 	- ✓ Fix follower notification for twitch
 	- ✓ Change Message UID To GUID UID from Contracts
 	- ✓ Write own migration stuff so plugins can have own tables and so on
+
+	- ✓ Fix needing to subscribe receive to be able to send packages

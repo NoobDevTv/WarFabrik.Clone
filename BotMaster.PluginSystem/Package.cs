@@ -34,5 +34,8 @@
 
         public ReadOnlySpan<byte> AsSpan()
             => content.AsSpan();
+
+        public byte[] AsArray()
+            => content;
     }
 }

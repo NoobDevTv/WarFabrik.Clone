@@ -8,7 +8,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="NLog" Version="4.7.13" />
-		<PackageReference Include="NonSucking.Framework.Extension" Version="1.0.0-alpha.46-74a9158" />
+		<PackageReference Include="NonSucking.Framework.Extension" Version="0.1.0.74-alpha" />
 	</ItemGroup>
 
 	<ItemGroup>

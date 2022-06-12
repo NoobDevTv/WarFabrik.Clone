@@ -70,10 +70,10 @@ namespace BotMaster.Twitch
 
                     context.AddCommand((c) => GetUser(c.SourcePlattform, c.PlattformUserId)?.HasRight("AddCommand") ?? false && c.SourcePlattform == SourcePlattform, (c) => SimpleCommands.Add(context, c), "add");
 
-                    var commands = CommandoCentral.GetCommandsFor("Telegram");
+                    var commands = CommandoCentral.GetCommandsFor("Twitch");
                     foreach (var item in commands)
                     {
-                        context.CommandoCentral.AddCommand(x => SimpleCommands.SendTextCommand(x, item, context), item.Command);
+                        context.AddCommand(x => SimpleCommands.SendTextCommand(x, item, context), item.Command);
                     }
 
                     var messages = Observable

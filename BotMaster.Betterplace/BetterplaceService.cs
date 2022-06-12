@@ -3,7 +3,9 @@ using BotMaster.Betterplace.Model;
 using BotMaster.Core;
 using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.Messages;
+
 using NLog;
+
 using System.Reactive.Linq;
 
 namespace BotMaster.Betterplace
@@ -11,6 +13,8 @@ namespace BotMaster.Betterplace
     public sealed class BetterplaceService : Plugin
     {
         public IObservable<Opinion> Opinions { get; private set; }
+
+        private HashSet<int> DonationIds = new();
 
         public BetterplaceService()
         {
@@ -24,7 +28,9 @@ namespace BotMaster.Betterplace
                     .GetOpinionsPage("30639", TimeSpan.FromSeconds(20))
                     .Retry()
                     .SelectMany(p => p.Data)
-                    .Where(o => o.Created_at > DateTime.Now.Subtract(TimeSpan.FromMinutes(400)))
+                    .Where(x => !DonationIds.Contains(x.Id))
+                    .Where(o => o.Created_at > DateTime.Now.Subtract(TimeSpan.FromMinutes(4)))
+                    .Do(x => DonationIds.Add(x.Id))
                     .Publish()
                     .RefCount();
 

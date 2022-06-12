@@ -29,12 +29,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Reference Include="Command Management System">
-			<HintPath>CoMaS\Command Management System.dll</HintPath>
-		</Reference>
-	</ItemGroup>
-
-	<ItemGroup>
 		<None Update="manifest.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>

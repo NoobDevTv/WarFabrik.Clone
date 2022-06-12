@@ -25,9 +25,9 @@ public class CommandoCentral
 {
     readonly Subject<CommandMessage> messageSubject = new();
 
-    public IReadOnlyCollection<string> Commands { get => _commands; }
+    public IReadOnlyCollection<PersistentCommand> Commands { get => _commands; }
 
-    private readonly List<string> _commands = new List<string>();
+    private readonly List<PersistentCommand> _commands = new List<PersistentCommand>();
 
     /// <summary>
     /// Initializes an instance for the commando central
@@ -75,22 +75,24 @@ public class CommandoCentral
     /// <param name="action">will be executed, if <paramref name="commandNames"/> includes <see cref="CommandMessage.Command"/> (case sensitive)</param>
     /// <param name="commandNames">The different names for this command, will be used in a generic guard method</param>
     /// <returns>The observable that should be subscribed, otherwise nothing will happen ¯\_(ツ)_/¯</returns>
-    public virtual IDisposable AddCommand(Action<CommandMessage> action, params string[] commandNames)
+    public virtual IDisposable AddCommand(Action<CommandMessage> action, params PersistentCommand[] commandNames)
     {
-        commandNames = commandNames.Except(_commands).ToArray();
+        var commandStrs = _commands.Select(x => x.Command).ToList();
+        commandNames = commandNames.Where(x=> !commandStrs.Contains(x.Command)).ToArray();
         if (commandNames.Length == 0)
             return Disposable.Empty;
         _commands.AddRange(commandNames);
-        return messageSubject.Where(c => commandNames.IndexOf(c.Command) != -1).Subscribe(action);
+        return messageSubject.Where(c => commandNames.Any(x=>x.Command == c.Command)).Subscribe(action);
     }
 
-    public virtual IDisposable AddCommand(Func<CommandMessage, bool> guard, Action<CommandMessage> action, params string[] commandNames)
+    public virtual IDisposable AddCommand(Func<CommandMessage, bool> guard, Action<CommandMessage> action, params PersistentCommand[] commandNames)
     {
-        commandNames = commandNames.Except(_commands).ToArray();
+        var commandStrs = _commands.Select(x => x.Command).ToList();
+        commandNames = commandNames.Where(x => !commandStrs.Contains(x.Command)).ToArray();
         if (commandNames.Length == 0)
             return Disposable.Empty;
         _commands.AddRange(commandNames);
-        return messageSubject.Where(c => commandNames.IndexOf(c.Command) != -1 && guard(c)).Subscribe(action);
+        return messageSubject.Where(c => commandNames.Any(x => x.Command == c.Command) && guard(c)).Subscribe(action);
     }
 
 
