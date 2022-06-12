@@ -1,53 +1,51 @@
 ﻿using BotMaster.PluginSystem.Messages;
-
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 
 namespace BotMaster.PluginSystem
 {
-
-    public class PluginServiceInstance : PluginInstance
+    public class PluginServiceInstance : PluginInstance<InProcessClient>
     {
         private readonly CompositeDisposable compositeDisposable;
-        private readonly IObservable<Package> packages;
-        private IDisposable packageDisposable;
-        private readonly CancellationTokenSource cancellationTokenSource;
+        private readonly Func<FileInfo, IObservable<Package>> loadPlugin;
 
         public PluginServiceInstance(
-            PluginManifest manifest, Func<IObservable<Package>, IObservable<Package>> createServer, IObservable<Package> packages)
-            : base(manifest, createServer)
+            PluginManifest manifest,
+            Func<FileInfo, IObservable<Package>> pluginLoader,
+            Func<string, InProcessClient> createPipe,
+            Func<InProcessClient, IObservable<Package>, IObservable<Package>> createSender,
+            Func<InProcessClient, IObservable<Package>> createReceiver)
+            : base(manifest, createPipe, createSender, createReceiver)
         {
             compositeDisposable = new CompositeDisposable();
-            cancellationTokenSource = new();
-            this.packages = packages;
-        }
-
-
-        public override void Start()
-        {
-            base.Start();
-            Task.Run(() => packageDisposable = packages.Subscribe(), cancellationTokenSource.Token);
+            loadPlugin = pluginLoader;
         }
 
         public override void Dispose()
         {
             compositeDisposable.Dispose();
-            packageDisposable.Dispose();
-            cancellationTokenSource.Cancel();
-            cancellationTokenSource.Dispose();
             base.Dispose();
+        }
+
+        public override void Start()
+        {
+            base.Start();
+            var subscription = loadPlugin(manifest.CurrentFileInfo).Subscribe();
+            compositeDisposable.Add(subscription);
         }
 
         internal override void ReceiveMessages(Func<string, IObservable<Message>> subscribeAsReceiver)
         {
             var sendPackages = Send(MessageConvert.ToPackage(subscribeAsReceiver(Id)));
-            compositeDisposable.Add(sendPackages.Subscribe());
+            var subscription = sendPackages.Subscribe();
+            compositeDisposable.Add(subscription);
         }
 
         internal override void SendMessages(Func<IObservable<Message>, IDisposable> subscribeAsSender)
         {
-            var receivedMessages = MessageConvert.ToMessage(ReceivedPackages);
-            compositeDisposable.Add(subscribeAsSender(receivedMessages));
+            var receivedMessages = MessageConvert.ToMessage(Receiv());
+            var subscription = subscribeAsSender(receivedMessages);
+            compositeDisposable.Add(subscription);
         }
     }
 }

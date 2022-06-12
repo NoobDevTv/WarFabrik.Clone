@@ -1,6 +1,6 @@
 ﻿using BotMaster.PluginHost;
 using BotMaster.PluginSystem;
-
+using BotMaster.PluginSystem.PluginCreator;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -8,7 +8,7 @@ using NLog.Targets;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 
-namespace BotMaster.PluginHostProcessRunnermanifest
+namespace BotMaster.PluginHostProcessRunner
 {
     class Program
     {
@@ -36,6 +36,7 @@ namespace BotMaster.PluginHostProcessRunnermanifest
             LogManager.Configuration = config;
             var logger = LogManager.GetCurrentClassLogger();
             var plugins = new List<Plugin>();
+            
             try
             {
                 List<FileInfo> paths = new();
@@ -48,9 +49,10 @@ namespace BotMaster.PluginHostProcessRunnermanifest
                     }
                 }
 
+                var porcessCreator = new IPCPluginCreator();
                 using var manualReset = new ManualResetEvent(false);
 
-                using var disp = PluginHoster.LoadAll(logger, paths).Subscribe(p => { }, ex => manualReset.Set(), () => manualReset.Set());
+                using var disp = PluginHoster.LoadAll(logger, porcessCreator, paths).Subscribe(p => { }, ex => manualReset.Set(), () => manualReset.Set());
 
                 manualReset.WaitOne();
 

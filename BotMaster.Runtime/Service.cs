@@ -20,11 +20,11 @@ namespace BotMaster.Runtime
         {
             messageHub = new MessageHub();
 
-            var packages =
+            var plugins =
                 PluginProvider
                     .Watch(logger, typeContainer, pluginFolder, pluginHost);
 
-            pluginService = new PluginService(messageHub, packages);
+            pluginService = new PluginService(messageHub, plugins);
             disposable = StableCompositeDisposable.Create(pluginService, messageHub);
             this.logger = logger;
         }

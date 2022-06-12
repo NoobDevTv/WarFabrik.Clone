@@ -1,4 +1,5 @@
-﻿using NLog;
+﻿using BotMaster.PluginSystem.PluginCreator;
+using NLog;
 using System.Reactive.Linq;
 
 namespace BotMaster.PluginSystem
@@ -27,9 +28,9 @@ namespace BotMaster.PluginSystem
                               {
                                   logger.Debug("rcv new plugin instance");
 
-                                  if (plugins.TryGetValue(instance.Id, out var value))
+                                  if (plugins.TryGetValue(instance.Id, out var oldInstance))
                                   {
-                                      if (value is PluginProcessServiceInstance instanceProcess)
+                                      if (oldInstance is IPCPluginInstance instanceProcess)
                                       {
                                           logger.Debug("try to stop plugin instance");
                                           if (!instanceProcess.TryStop())
@@ -40,10 +41,11 @@ namespace BotMaster.PluginSystem
                                       }
 
                                       logger.Debug("Update instance");
-                                      value.Dispose();
 
-                                      using (var oldInstance = plugins[instance.Id])
-                                          plugins[instance.Id] = instance;
+                                      if (oldInstance is IDisposable oldDisposableInstance)
+                                          oldDisposableInstance.Dispose();
+
+                                      plugins[instance.Id] = instance;
                                   }
                                   else
                                   {

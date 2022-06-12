@@ -1,5 +1,5 @@
-﻿using BotMaster.PluginCreator;
-using BotMaster.PluginSystem;
+﻿using BotMaster.PluginSystem;
+using BotMaster.PluginSystem.PluginCreator;
 using BotMaster.Runtime;
 
 using NLog;
@@ -52,10 +52,11 @@ namespace BotMaster
             var typeContainer = TypeContainer.Get<ITypeContainer>();
 
 #if DEBUG
-            typeContainer.Register<IPluginInstanceCreator>(new PluginServiceInstanceCreator());
+            var creatorLogger = LogManager.GetLogger("InProcessPlugin");
+            typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator(creatorLogger, PluginHost.PluginHoster.Load));
 #else
-            //typeContainer.Register<IPluginInstanceCreator>(new PluginProcessServiceInstanceCreator());
-            typeContainer.Register<IPluginInstanceCreator>(new PluginServiceInstanceCreator());
+            //typeContainer.Register<IPluginInstanceCreator>(new IPCPluginCreator());
+            typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator());
 
 #endif
 

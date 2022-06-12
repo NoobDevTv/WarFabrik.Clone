@@ -13,9 +13,7 @@ namespace BotMaster.Betterplace
                 serviceContext =>
                 {
                     var interval
-                    = Observable
-                        .Concat(Observable.Timer(TimeSpan.FromSeconds(10)),
-                            Observable.Interval(timeSpan));
+                        = Observable.Interval(timeSpan);
 
                     return interval
                         .Select(_ => Observable.FromAsync(token => serviceContext.HttpClient.GetAsync($"fundraising_events/{currentEventId}/opinions.json", token)))

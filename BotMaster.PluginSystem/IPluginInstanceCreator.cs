@@ -1,6 +1,13 @@
-﻿namespace BotMaster.PluginSystem;
+﻿using System.IO.Pipes;
+
+namespace BotMaster.PluginSystem;
 
 public interface IPluginInstanceCreator
 {
-    PluginInstance Create(PluginManifest manifest, FileInfo pluginHost, Func<IObservable<Package>, IObservable<Package>> createServer);
+    PluginInstance CreateServer(
+            PluginManifest manifest,
+            FileInfo pluginHost);
+
+    PluginInstance CreateClient(
+            PluginManifest manifest);
 }

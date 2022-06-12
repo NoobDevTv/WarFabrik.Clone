@@ -5,14 +5,9 @@ using System.Reactive.Threading.Tasks;
 
 namespace BotMaster.PluginSystem
 {
-    internal static class PluginConnection<T> where T : PipeStream
+    public static class PluginConnection
     {
-        public static IObservable<Package> Create(string id, IObservable<Package> sendPipe, Func<string, T> createPipe)
-            => Observable.Using(
-                () => createPipe(id),
-                pipeClient => Observable.Merge(CreateReceiverPipe(pipeClient), CreateSendPipe(pipeClient, sendPipe)));
-
-        private static IObservable<Package> CreateSendPipe(T clientStream, IObservable<Package> sendPipe)
+        public static IObservable<Package> CreateSendPipe(PipeStream clientStream, IObservable<Package> sendPipe)
             => sendPipe
                 .Where(p => clientStream.IsConnected)
                 .Select(p =>
@@ -30,7 +25,7 @@ namespace BotMaster.PluginSystem
                 .Concat()
                 .Where(p => false);
 
-        private static IObservable<Package> CreateReceiverPipe(T clientStream)
+        public static IObservable<Package> CreateReceiverPipe(PipeStream clientStream)
             => Observable
                 .Create<Package>((observer, token) => Task.Run(async () =>
                 {
@@ -67,7 +62,7 @@ namespace BotMaster.PluginSystem
                     }
                 }, token));
 
-        private static async Task<int> ReadContent(T clientStream, int packageSize, IMemoryOwner<byte> buffer, CancellationToken token)
+        private static async Task<int> ReadContent(PipeStream clientStream, int packageSize, IMemoryOwner<byte> buffer, CancellationToken token)
         {
             int size = 0;
 
@@ -79,7 +74,7 @@ namespace BotMaster.PluginSystem
             return size;
         }
 
-        private static async Task ReadHeader(T clientStream, Memory<byte> headerMemory, CancellationToken token)
+        private static async Task ReadHeader(PipeStream clientStream, Memory<byte> headerMemory, CancellationToken token)
         {
             int headerSize = 0;
 

@@ -15,18 +15,18 @@ namespace BotMaster.PluginHost
 {
     public static class PluginHoster
     {
-        public static IObservable<Package> LoadAll(ILogger logger, IReadOnlyCollection<FileInfo> paths)
+        public static IObservable<Package> LoadAll(ILogger logger, IPluginInstanceCreator creator, IReadOnlyCollection<FileInfo> paths)
         {
             logger.Info("Start plugin host");
 
             return Observable.Merge(paths.Select(info =>
             {
                 logger.Info("Load Manifest");
-                return Load(info, logger);
+                return Load(logger, creator, info);
             }));
         }
 
-        private static IObservable<Package> Load(FileInfo manifestFileInfo, ILogger logger)
+        public static IObservable<Package> Load(ILogger logger, IPluginInstanceCreator creator, FileInfo manifestFileInfo)
         {
             logger.Debug("Load manifest from " + manifestFileInfo.FullName);
             var manifest = JsonSerializer.Deserialize<PluginManifest>(File.ReadAllText(manifestFileInfo.FullName), new JsonSerializerOptions
@@ -54,9 +54,7 @@ namespace BotMaster.PluginHost
             var typecontainer = new StandaloneTypeContainer();
 
             logger.Trace("Create plugin instance");
-            var pluginInstance = new PluginInstance(
-                                                   manifest,
-                                                   observer => PluginClient.Create(manifest.Id, observer));
+            var pluginInstance = creator.CreateClient(manifest);
 
             logger.Info("Start plugin");
             pluginInstance.Start();
@@ -73,7 +71,7 @@ namespace BotMaster.PluginHost
                     .Where(t => t.IsAssignableTo(typeof(Plugin)))
                     .Select(t => t.GetActivationDelegate<Plugin>()())
                     .Do(p => p.Register(typecontainer))
-                    .Select(plugin => plugin.Start(logger, pluginInstance.ReceivedPackages))
+                    .Select(plugin => plugin.Start(logger, pluginInstance.Receiv()))
                     .Merge();
 
             logger.Debug("Subscribe process");
@@ -135,7 +133,9 @@ namespace BotMaster.PluginHost
                     if (disposing)
                     {
                         TypeContainer.Dispose();
-                        PluginInstance.Dispose();
+
+                        if(PluginInstance is IDisposable disposableInstance)
+                            disposableInstance.Dispose();
                     }
 
                     disposedValue = true;

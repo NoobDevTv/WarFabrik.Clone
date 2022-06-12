@@ -15,10 +15,12 @@ namespace BotMaster.PluginSystem
                     {
                         var pluginCreator = typeContainer.Get<IPluginInstanceCreator>();
 
-                        var instance = pluginCreator.Create(
-                            manifest,
-                            pluginHost,
-                            packages => PluginServer.Create(manifest.Id, packages));
+                        var instance 
+                            = pluginCreator
+                            .CreateServer(
+                                manifest,
+                                pluginHost
+                            );
 
                         return instance;
                     });
