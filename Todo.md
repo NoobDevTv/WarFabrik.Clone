@@ -6,14 +6,10 @@
 
 	- Appconfig per Plugin
 
-	- (Fix self message on twitch?)
-	
 	- Support multiple runners
 
-	- Youtube Bot API implementation
-		- Set Title on Youtube and Twitch?
-			- https://dev.twitch.tv/docs/api/reference#modify-channel-information
-		- Message Relay YT <=> Twitch <=> (Telegram, maybe 2nd Bot?)
+	- Set Title on Youtube and Twitch?
+		- https://dev.twitch.tv/docs/api/reference#modify-channel-information
 	
 	- Add Twitter API (For Scheduled Events)
 
@@ -49,3 +45,8 @@ Done:
 	- ✓ Write own migration stuff so plugins can have own tables and so on
 
 	- ✓ Fix needing to subscribe receive to be able to send packages
+	
+	- ✓ Youtube Bot API implementation
+		- ✓  Message Relay YT <=> Twitch <(Not for now)> (Telegram, maybe 2nd Bot?)
+
+	- ✓ (Fix self message on twitch?)

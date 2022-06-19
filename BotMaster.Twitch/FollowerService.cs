@@ -36,7 +36,7 @@ namespace BotMaster.Twitch
         private static IReadOnlyCollection<FollowInformation> GetNewFollower(Follow[] follows, IReadOnlyCollection<FollowInformation> alreadyExistingFollower)
         {
             return follows
-                .Select(follow => new FollowInformation(follow.FromUserName, follow.FromUserId, follow.FollowedAt))
+                .Select(follow => new FollowInformation(follow.FromUserName, follow.FromUserId, follow.FollowedAt, TwitchContext.Plattform))
                 .Except(alreadyExistingFollower)
                 .ToList();
         }

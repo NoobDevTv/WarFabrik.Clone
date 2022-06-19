@@ -28,7 +28,7 @@ namespace BotMaster.Twitch
     {
         public string ChannelId { get; private set; }
 
-        public const string SourcePlattform = "Twitch";
+        public const string SourcePlattform = TwitchContext.Plattform;
 
         internal static PlattformUser? GetUser(string plattform, string plattformUserId)
         {
@@ -49,7 +49,6 @@ namespace BotMaster.Twitch
                     t.ThrowIfCancellationRequested();
                     var client = context.Client;
 
-                    context.AddCommand((c) => client.SendMessage(context.Channel, $"[{c.Username}]: {string.Join(' ', c.Parameter)}"), SourcePlattform);
                     context.AddCommand((c) => SimpleCommands.Hype(context, c), "hype");
                     context.AddCommand((c) => SimpleCommands.Uptime(context, c), "uptime");
                     context.AddCommand((c) => SimpleCommands.Help(context, c), "?", "help");

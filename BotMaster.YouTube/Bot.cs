@@ -47,83 +47,50 @@ namespace BotMaster.YouTube
         {
             return
                 Observable
-                .Using((t) => CreateContext(t, new CommandoCentral()), (context, t) =>
+                .Using(() => CreateContext(new CommandoCentral()), (context) =>
                 {
                     var client = context.Client;
-                    var messages = YoutubeServiceInformation
-                    .GetBroadcasts(context.Api, context.MetaData, TimeSpan.FromMinutes(1), Scheduler.Default)
+                    CreateCommands(context, client);
+
+                    var subscriptions = SubscribeExternMessages(notifications, context, client);
+
+                    IObservable<Message> messages = GetChatMessages(context);
+
+                    var follower = YoutubeServiceInformation
+                        .GetFollowerUpdates(context.Api, context.MetaData, TimeSpan.FromSeconds(60), Scheduler.Default)
+                        .Select(x => (TwitchMessage)x);
+
+                    var twitchMessages = TwitchContract.ToMessages(follower).Merge(messages);
+
+                    return Observable.Using(
+                                    () => subscriptions,
+                                    (_) => twitchMessages);
+                }
+            );
+        }
+
+        private static IObservable<Message> GetChatMessages(YoutubeContext context)
+        {
+            return YoutubeServiceInformation
+                    .GetBroadcasts(context.Api, context.MetaData, TimeSpan.FromMinutes(2), Scheduler.Default)
                     .Select(e =>
                     {
-                        if (e is null || e.Snippet.LiveChatId is null)
-                            return Observable.Empty<Message>();
-                        context.Client.CurrentBroadcast = e.Snippet;// LiveStreamingDetails.ActiveLiveChatId;
+                        if (context.Client.CurrentBroadcast is not null)
+                            context.Client.CurrentBroadcast.ActualEndTime = DateTime.Now;
 
-
-                        context.AddCommand((c) => client.SendMessage($"[{c.Username}]: {string.Join(' ', c.Parameter)}"), SourcePlattform);
-                        context.AddCommand((c) => SimpleCommands.Hype(context, c), "hype");
-                        context.AddCommand((c) => SimpleCommands.Uptime(context, c), "uptime");
-                        context.AddCommand((c) => SimpleCommands.Help(context, c), "?", "help");
-                        context.AddCommand((c) => SimpleCommands.TelegramGroup(context, c), "telegram");
-                        context.AddCommand((c) => SimpleCommands.FlipACoin(context, c), "flipacoin");
-                        context.AddCommand((c) => SimpleCommands.Github(context, c), "github");
-                        context.AddCommand((c) => SimpleCommands.TeamSpeak(context, c), "teamspeak", "ts");
-                        context.AddCommand((c) => SimpleCommands.Twitter(context, c), "twitter");
-                        context.AddCommand((c) => SimpleCommands.Donate(context, c), "donate");
-                        context.AddCommand((c) => SimpleCommands.Youtube(context, c), "youtube", "yt");
-                        context.AddCommand((c) => SimpleCommands.Discord(context, c), "discord", "dc");
-                        context.AddCommand((c) => SimpleCommands.Time(context, c), "time");
-                        context.AddCommand((c) => SimpleCommands.Streamer(context, c), "streamer");
-                        context.AddCommand((c) => SimpleCommands.Project(context, c), "projects");
-                        //context.AddCommand((c) => SimpleCommands.Register(context, c), "register");
-                        //context.AddCommand((c) => c.Secure, (c) => SimpleCommands.PrivateConnect(context, c), "connect");
-                        context.AddCommand((c) => !c.Secure, (c) => SimpleCommands.PublicConnect(context, c), "connect");
-
-                        context.AddCommand((c) => GetUser(c.SourcePlattform, c.PlattformUserId)?.HasRight("AddCommand") ?? false && c.SourcePlattform == SourcePlattform, (c) => SimpleCommands.Add(context, c), "add");
-
-                        var commands = CommandoCentral.GetCommandsFor("Twitch");
-                        foreach (var item in commands)
+                        if (e is null || e.Count == 0)
                         {
-                            context.AddCommand(x => SimpleCommands.SendTextCommand(x, item, context), item.Command);
+                            context.Client.CurrentBroadcast = null;
+                            return Observable.Empty<Message>();
                         }
 
-                        var incommingDefinedMessages = DefinedContract
-                           .ToDefineMessages(notifications)
-                           .VisitMany(
-                                textMessage => Observable.Empty<DefinedMessage>(),
-                                commandMessage => context.CommandoCentral.CreateCommandStream(commandMessage)
-                                    .Select(x => (DefinedMessage)x),
-                                chatMessage => chatMessage
-                                    .Where(x => x.Source != SourcePlattform)
-                                    .Do(message => client.SendMessage($"[{message.Username}]: {message.Text}"))
-                                    .Select(x => (DefinedMessage)x)
-                               );
-
-                        var incommingTwitchMessages = TwitchContract
-                           .ToDefineMessages(notifications)
-                           .VisitMany(
-                                follower => follower
-                                    .Do(x => client.SendMessage($"{x.UserName} hat sich verklickt. Vielen lieben Dank dafür <3"))
-                                    .Select(x => (TwitchMessage)x),
-                                raid => raid
-                                    .Do(message => client.SendMessage($"{message.UserName} bringt jede Menge Noobs mit, nämlich 1 bis {message.Count}. Yippie"))
-                                    .Select(x => (TwitchMessage)x)
-                               );
-
-                        var incommingBetterplaceMessages = BetterplaceContract
-                              .ToDefineMessages(notifications)
-                              .VisitMany(
-                                   donation => donation
-                                       .Do(x => client.SendMessage($"{x.Author} hat {x.Donated_amount_in_cents} Geld gespendet. Vielen lieben Dank dafür <3"))
-                                       .Select(x => (BetterplaceMessage)x)
-                                  );
-
-
+                        var first = e.First()!;
+                        context.Client.CurrentBroadcast = first.Snippet;
 
                         var messages = YoutubeServiceInformation
-                                .GetMessageUpdates(context.Api, context.MetaData, TimeSpan.FromSeconds(5),e, Scheduler.Default)
+                                .GetMessageUpdates(context.Api, context.MetaData, TimeSpan.FromSeconds(5), first.Snippet, Scheduler.Default)
                                 .Where(e => e.ChatMessage.Username != context.Channel.Snippet.Title)
                             ;
-
 
                         var chatMessages
                             = messages
@@ -151,41 +118,86 @@ namespace BotMaster.YouTube
                                 return DefinedMessage.CreateCommandMessage(command, e.ChatMessage.Username, user?.Id ?? -1, e.ChannelId, SourcePlattform, false, parameter);
                             });
 
-
-
                         var definedMessages = DefinedContract.ToMessages(commandMessages.Merge(chatMessages));
 
-                        return Observable.Using(
-                                    () => StableCompositeDisposable.Create(
-                                        incommingDefinedMessages.Subscribe(),
-                                        incommingBetterplaceMessages.Subscribe(),
-                                        incommingTwitchMessages.Subscribe()),
-                                    (_) => Observable.Merge(definedMessages));
+                        return definedMessages;
 
-
-                    }
-                    ).Merge();
-
-
-                    var follower = YoutubeServiceInformation
-                        .GetFollowerUpdates(context.Api, context.MetaData, TimeSpan.FromSeconds(10), Scheduler.Default)
-                        .Select(x => (TwitchMessage)x);
-
-                    var twitchMessages = TwitchContract.ToMessages(follower);
-                    messages = messages.Merge(twitchMessages);
-                    //if (!context.Client.Connect())
-                    //    throw new HttpRequestException();
-
-                    t.ThrowIfCancellationRequested();
-
-                    return Task.FromResult(messages);
-                }
-            );
+                    })
+                    .Concat();
         }
 
-        private static async Task<YoutubeContext> CreateContext(CancellationToken t, CommandoCentral commandoCentral)
+        private static IDisposable SubscribeExternMessages(IObservable<Message> notifications, YoutubeContext context, YoutubeClient client)
         {
-            t.ThrowIfCancellationRequested();
+            var incommingDefinedMessages = DefinedContract
+               .ToDefineMessages(notifications)
+               .VisitMany(
+                    textMessage => Observable.Empty<DefinedMessage>(),
+                    commandMessage => context.CommandoCentral.CreateCommandStream(commandMessage)
+                        .Select(x => (DefinedMessage)x),
+                    chatMessage => chatMessage
+                        .Where(x => x.Source != SourcePlattform)
+                        .Do(message => client.SendMessage($"[{message.Username}]: {message.Text}"))
+                        .Select(x => (DefinedMessage)x)
+                   );
+
+            var incommingTwitchMessages = TwitchContract
+               .ToDefineMessages(notifications)
+               .VisitMany(
+                    follower => follower
+                        .Do(x => client.SendMessage($"{x.UserName} hat sich verklickt. Vielen lieben Dank dafür <3"))
+                        .Select(x => (TwitchMessage)x),
+                    raid => raid
+                        .Do(message => client.SendMessage($"{message.UserName} bringt jede Menge Noobs mit, nämlich 1 bis {message.Count}. Yippie"))
+                        .Select(x => (TwitchMessage)x)
+                   );
+
+            var incommingBetterplaceMessages = BetterplaceContract
+                  .ToDefineMessages(notifications)
+                  .VisitMany(
+                       donation => donation
+                           .Do(x => client.SendMessage($"{x.Author} hat {x.Donated_amount_in_cents} Geld gespendet. Vielen lieben Dank dafür <3"))
+                           .Select(x => (BetterplaceMessage)x)
+                      );
+
+            return StableCompositeDisposable.Create(
+                                         incommingDefinedMessages.Subscribe(),
+                                         incommingBetterplaceMessages.Subscribe(),
+                                         incommingTwitchMessages.Subscribe());
+        }
+
+        private static void CreateCommands(YoutubeContext context, YoutubeClient client)
+        {
+
+            context.AddCommand((c) => SimpleCommands.Twitch(context, c), "twitch");
+            context.AddCommand((c) => SimpleCommands.Hype(context, c), "hype");
+            context.AddCommand((c) => SimpleCommands.Uptime(context, c), "uptime");
+            context.AddCommand((c) => SimpleCommands.Help(context, c), "?", "help");
+            context.AddCommand((c) => SimpleCommands.TelegramGroup(context, c), "telegram");
+            context.AddCommand((c) => SimpleCommands.FlipACoin(context, c), "flipacoin");
+            context.AddCommand((c) => SimpleCommands.Github(context, c), "github");
+            context.AddCommand((c) => SimpleCommands.TeamSpeak(context, c), "teamspeak", "ts");
+            context.AddCommand((c) => SimpleCommands.Twitter(context, c), "twitter");
+            context.AddCommand((c) => SimpleCommands.Donate(context, c), "donate");
+            //context.AddCommand((c) => SimpleCommands.Youtube(context, c), "youtube", "yt");
+            context.AddCommand((c) => SimpleCommands.Discord(context, c), "discord", "dc");
+            context.AddCommand((c) => SimpleCommands.Time(context, c), "time");
+            context.AddCommand((c) => SimpleCommands.Streamer(context, c), "streamer");
+            context.AddCommand((c) => SimpleCommands.Project(context, c), "projects");
+            //context.AddCommand((c) => SimpleCommands.Register(context, c), "register");
+            //context.AddCommand((c) => c.Secure, (c) => SimpleCommands.PrivateConnect(context, c), "connect");
+            context.AddCommand((c) => !c.Secure, (c) => SimpleCommands.PublicConnect(context, c), "connect");
+
+            context.AddCommand((c) => GetUser(c.SourcePlattform, c.PlattformUserId)?.HasRight("AddCommand") ?? false && c.SourcePlattform == SourcePlattform, (c) => SimpleCommands.Add(context, c), "add");
+
+            var commands = CommandoCentral.GetCommandsFor("Twitch");
+            foreach (var item in commands)
+            {
+                context.AddCommand(x => SimpleCommands.SendTextCommand(x, item, context), item.Command);
+            }
+        }
+
+        private static YoutubeContext CreateContext(CommandoCentral commandoCentral)
+        {
 
             var metaData = Newtonsoft.Json.JsonConvert.DeserializeObject<YoutubeMetaData>(File.ReadAllText("additionalfiles/youtube_metadata.json"));
             using var stream = File.OpenRead("additionalfiles/client_secret.json");

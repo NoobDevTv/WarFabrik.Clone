@@ -173,7 +173,7 @@ namespace BotMaster.Twitch.Commands
 
         internal static void Youtube(TwitchContext context, CommandMessage message)
         {
-            SendMessage(context, message, "Youtube: https://www.youtube.com/channel/UCIWEvJ9SHMQoouIe86z6buQ");
+            SendMessage(context, message, $"{nameof(Youtube)}: https://www.youtube.com/channel/UCIWEvJ9SHMQoouIe86z6buQ");
         }
 
         internal static void Discord(TwitchContext context, CommandMessage message)

@@ -13,7 +13,7 @@ namespace BotMaster.Twitch
     internal record TwitchContext(TwitchAPI Api, TwitchClient Client, string UserId, string Channel, CommandoCentral CommandoCentral, CompositeDisposable Disposables) : IDisposable
     {
         public Logger Logger { get; } = LogManager.GetLogger($"{nameof(Bot)}_{UserId}");
-        private const string Plattform = "Twitch";
+        internal const string Plattform = "Twitch";
 
         public void Dispose()
         {

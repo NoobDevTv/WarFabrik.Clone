@@ -135,9 +135,9 @@ namespace BotMaster.YouTube.Commands
 
         }
 
-        internal static void Youtube(YoutubeContext context, CommandMessage message)
+        internal static void Twitch(YoutubeContext context, CommandMessage message)
         {
-            SendMessage(context, message, "Youtube: https://www.youtube.com/channel/UCIWEvJ9SHMQoouIe86z6buQ");
+            SendMessage(context, message, $"{nameof(Twitch)}: https://twitch.tv/noobdevtv");
         }
 
         internal static void Discord(YoutubeContext context, CommandMessage message)

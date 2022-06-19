@@ -108,7 +108,7 @@ namespace BotMaster.Telegram
                .VisitMany(
                     follower => follower
                         .SelectMany(message => noobDevGroupUser.Select(userId => (userId, message)))
-                            .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"{toSend.message.UserName} hat soeben auf Twitch gefollowed"))
+                            .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"{toSend.message.UserName} hat soeben auf {toSend.message.SourcePlattform} gefollowed"))
                         .Select(x => (TwitchMessage)x.message),
                     raid => raid
                         .SelectMany(message => noobDevGroupUser.Select(userId => (userId, message)))
