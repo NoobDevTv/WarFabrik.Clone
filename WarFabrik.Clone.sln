@@ -38,6 +38,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Commandos", "BotM
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.RightsManagement", "BotMaster.RightsManagement\BotMaster.RightsManagement.csproj", "{9D3B16DC-8237-460D-8335-F37D20E6771D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.YouTube", "BotMaster.YouTube\BotMaster.YouTube.csproj", "{1D8BC496-653B-46AF-A77C-B41AD374C6B4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -104,6 +106,10 @@ Global
 		{9D3B16DC-8237-460D-8335-F37D20E6771D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9D3B16DC-8237-460D-8335-F37D20E6771D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9D3B16DC-8237-460D-8335-F37D20E6771D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D8BC496-653B-46AF-A77C-B41AD374C6B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D8BC496-653B-46AF-A77C-B41AD374C6B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D8BC496-653B-46AF-A77C-B41AD374C6B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D8BC496-653B-46AF-A77C-B41AD374C6B4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

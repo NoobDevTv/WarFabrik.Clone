@@ -85,6 +85,7 @@ namespace BotMaster.Twitch
                                .VisitMany(
                                     textMessage => Observable.Empty<DefinedMessage>(),
                                     commandMessage => context.CommandoCentral.CreateCommandStream(commandMessage)
+                                        .Where(x=>x.SourcePlattform == SourcePlattform)
                                         .Select(x => (DefinedMessage)x),
                                     chatMessage => chatMessage
                                         .Where(x => x.Source != SourcePlattform)

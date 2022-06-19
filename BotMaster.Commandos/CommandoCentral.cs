@@ -82,7 +82,7 @@ public class CommandoCentral
         if (commandNames.Length == 0)
             return Disposable.Empty;
         _commands.AddRange(commandNames);
-        return messageSubject.Where(c => commandNames.Any(x=>x.Command == c.Command)).Subscribe(action);
+        return messageSubject.Where(c => commandNames.Any(x=>x.Command == c.Command && x.Target == c.SourcePlattform)).Subscribe(action);
     }
 
     public virtual IDisposable AddCommand(Func<CommandMessage, bool> guard, Action<CommandMessage> action, params PersistentCommand[] commandNames)
@@ -92,7 +92,7 @@ public class CommandoCentral
         if (commandNames.Length == 0)
             return Disposable.Empty;
         _commands.AddRange(commandNames);
-        return messageSubject.Where(c => commandNames.Any(x => x.Command == c.Command) && guard(c)).Subscribe(action);
+        return messageSubject.Where(c => commandNames.Any(x => x.Command == c.Command && x.Target == c.SourcePlattform) && guard(c)).Subscribe(action);
     }
 
 
