@@ -1,6 +1,6 @@
 ﻿TODOS:
 	- ASP Net Core Web Core and Extensions
-		- Betterplace donation alert
+		- ✓(Maybe) Betterplace donation alert
 
 	- Save IDs of follows / donations, so we know which are new 
 
