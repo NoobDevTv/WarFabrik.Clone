@@ -19,6 +19,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: botmaster
+  REPO_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push-image:
@@ -51,7 +52,7 @@ jobs:
         with:
           images: |
             noobdevtv/${{ env.IMAGE_NAME }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+            ${{ env.REGISTRY }}/${{ env.REPO_NAME }}
           
 
       - name: Build and push Docker image
