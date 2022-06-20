@@ -56,7 +56,8 @@ namespace BotMaster
             typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator(creatorLogger, PluginHost.PluginHoster.Load));
 #else
             //typeContainer.Register<IPluginInstanceCreator>(new IPCPluginCreator());
-            typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator());
+            var creatorLogger = LogManager.GetLogger("InProcessPlugin");
+            typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator(creatorLogger, PluginHost.PluginHoster.Load));
 
 #endif
 
