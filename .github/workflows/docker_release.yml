@@ -1,0 +1,36 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Docker Build Tag Publish
+    # You may pin to the exact commit or the version.
+    # uses: bitovi/github-actions-docker-publish@8db2834ce66baa4d849c7d87df3f47118233c993
+      uses: bitovi/github-actions-docker-publish@v1.0.2
+      with:
+        # Checkout the repository
+        #checkout: # optional, default is true
+        # Tag to override default Logic
+        #image_tag: # optional, default is 
+        # Use the SHA for the tag.  Overrides the default logic.
+        #use_sha: # optional, default is false
+        # Docker org name.
+        org_name: noobdevtv # optional, default is 
+        # Name of the docker repository
+        repo_name: botmaster# optional, default is 
+        # Tag default branch with latest tag instead of branch name.
+        #use_latest: # optional, default is true
+        # Docker user
+        docker_username: ${{secrets.DOCKER_USERNAME}}
+        # Docker password
+        docker_password: ${{secrets.DOCKER_PASSWORD}}
