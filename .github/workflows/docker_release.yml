@@ -6,18 +6,58 @@ on:
   pull_request:
     branches: [ "master" ]
   workflow_dispatch:
+    # Enable manual run
+
+#jobs:
+
+  #build:
+   # runs-on: ubuntu-latest
+
+    #steps:
+    #name: Create and publish a Docker image
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-
-  build:
+  build-and-push-image:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
-    - name: Docker Build Tag Publish
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          
+    
+    #- name: Docker Build Tag Publish
     # You may pin to the exact commit or the version.
     # uses: bitovi/github-actions-docker-publish@8db2834ce66baa4d849c7d87df3f47118233c993
-      uses: bitovi/github-actions-docker-publish@v1.0.2
-      with:
+      #uses: bitovi/github-actions-docker-publish@v1.0.2
+      #with:
         # Checkout the repository
         #checkout: # optional, default is true
         # Tag to override default Logic
@@ -25,12 +65,12 @@ jobs:
         # Use the SHA for the tag.  Overrides the default logic.
         #use_sha: # optional, default is false
         # Docker org name.
-        org_name: noobdevtv # optional, default is 
+        #org_name: noobdevtv # optional, default is 
         # Name of the docker repository
-        repo_name: botmaster # optional, default is 
+        #repo_name: botmaster # optional, default is 
         # Tag default branch with latest tag instead of branch name.
         #use_latest: # optional, default is true
         # Docker user
-        docker_username: ${{secrets.DOCKER_USERNAME}}
+        #docker_username: ${{secrets.DOCKER_USERNAME}}
         # Docker password
-        docker_password: ${{secrets.DOCKER_PASSWORD}}
+        #docker_password: ${{secrets.DOCKER_PASSWORD}}
