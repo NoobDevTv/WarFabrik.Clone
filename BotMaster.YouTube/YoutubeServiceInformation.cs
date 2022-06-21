@@ -1,6 +1,6 @@
 ﻿using BotMaster.Core.NLog;
 using BotMaster.MessageContract;
-using BotMaster.Twitch.MessageContract;
+using BotMaster.Livestream.MessageContract;
 
 using Google.Apis.YouTube.v3;
 using Google.Apis.YouTube.v3.Data;
@@ -44,11 +44,13 @@ namespace BotMaster.YouTube
                 .ToList();
         }
 
-        public static IObservable<IList<LiveBroadcast?>> GetBroadcasts(YouTubeService api, YoutubeMetaData metaData, TimeSpan liveStreamInterval, IScheduler scheduler)
+        public static IObservable<IList<LiveBroadcast?>> GetBroadcasts(YouTubeService api, YoutubeMetaData metaData, TimeSpan liveStreamInterval, IObservable<StreamLiveInformation> incommingLiveInformations, IScheduler scheduler)
         {
 
             var liveStreamsInterval
-                = Observable.Return(0L).Concat(Observable.Interval(liveStreamInterval, scheduler));
+                = Observable.Return(0L)
+                .Concat(Observable.Interval(liveStreamInterval, scheduler))
+                .Merge(incommingLiveInformations.Where(x=>x.SourcePlattform == "Twitch").Select(x=>0L));
 
             return liveStreamsInterval
                  .Select(_ => api.LiveBroadcasts.List("id,snippet,status"))
@@ -57,8 +59,7 @@ namespace BotMaster.YouTube
                  .DistinctUntilChanged(x => x.Items.FirstOrDefault()?.Snippet.LiveChatId)
                  .Select(x => x.Items)
                  .Publish()
-                 .RefCount()
-                 ;
+                 .RefCount();
         }
 
         public static IObservable<YoutubeChatMessage> GetMessageUpdates(YouTubeService api, YoutubeMetaData metaData, TimeSpan messageInterval, LiveBroadcastSnippet liveBroadcast, IScheduler scheduler)

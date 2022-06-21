@@ -3,7 +3,7 @@ using BotMaster.Core;
 
 using NonSucking.Framework.Serialization;
 
-namespace BotMaster.Twitch.MessageContract
+namespace BotMaster.Livestream.MessageContract
 {
     [Nooson]
     public readonly partial struct FollowInformation : IEquatable<FollowInformation>

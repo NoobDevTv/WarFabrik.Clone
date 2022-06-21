@@ -1,13 +1,13 @@
 ﻿using BotMaster.Betterplace.MessageContract;
 using BotMaster.Commandos;
 using BotMaster.Core.NLog;
+using BotMaster.Livestream.MessageContract;
 using BotMaster.MessageContract;
 using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.Messages;
 using BotMaster.RightsManagement;
 using BotMaster.Telegram.Commands;
 using BotMaster.Telegram.Database;
-using BotMaster.Twitch.MessageContract;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -103,17 +103,20 @@ namespace BotMaster.Telegram
                     .RefCount();
 
 
-            var incommingTwitchMessages = TwitchContract
+            var incommingLivestreamMessages = LivestreamContract
                .ToDefineMessages(notifications)
                .VisitMany(
                     follower => follower
                         .SelectMany(message => noobDevGroupUser.Select(userId => (userId, message)))
                             .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"{toSend.message.UserName} hat soeben auf {toSend.message.SourcePlattform} gefollowed"))
-                        .Select(x => (TwitchMessage)x.message),
+                        .Select(x => (LivestreamMessage)x.message),
                     raid => raid
                         .SelectMany(message => noobDevGroupUser.Select(userId => (userId, message)))
                             .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"{toSend.message.UserName} hat mit {toSend.message.Count} Noobs geraidet"))
-                        .Select(x => (TwitchMessage)x.message)
+                        .Select(x => (LivestreamMessage)x.message),
+                    live => live.SelectMany(message => noobDevGroupUser.Select(userId => (userId, message)))
+                            .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"Der Broadcast hat begonnen auf {toSend.message.SourcePlattform} für {toSend.message.UserId}"))
+                        .Select(x => (LivestreamMessage)x.message)
                    );
 
             var incommingBetterplaceMessages = BetterplaceContract
@@ -163,7 +166,7 @@ namespace BotMaster.Telegram
 
             var fromUser = DefinedMessageContract.ToMessages(commandMessages);
 
-            return Observable.Using(() => StableCompositeDisposable.Create(textMessages.Subscribe(), incommingCommandStream.Subscribe(), incommingTwitchMessages.Subscribe(), incommingBetterplaceMessages.Subscribe()), _ => fromUser);
+            return Observable.Using(() => StableCompositeDisposable.Create(textMessages.Subscribe(), incommingCommandStream.Subscribe(), incommingLivestreamMessages.Subscribe(), incommingBetterplaceMessages.Subscribe()), _ => fromUser);
         }
 
 

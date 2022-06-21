@@ -10,7 +10,7 @@ using TwitchLib.Client;
 
 namespace BotMaster.Twitch
 {
-    internal record TwitchContext(TwitchAPI Api, TwitchClient Client, string UserId, string Channel, CommandoCentral CommandoCentral, CompositeDisposable Disposables) : IDisposable
+    internal record TwitchContext(TwitchAPI Api, TwitchClient Client, TwitchLib.PubSub.TwitchPubSub pubSub, string UserId, string Channel, CommandoCentral CommandoCentral, CompositeDisposable Disposables) : IDisposable
     {
         public Logger Logger { get; } = LogManager.GetLogger($"{nameof(Bot)}_{UserId}");
         internal const string Plattform = "Twitch";

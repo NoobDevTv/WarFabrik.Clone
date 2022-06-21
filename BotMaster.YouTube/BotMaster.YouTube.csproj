@@ -23,9 +23,9 @@
 		<ProjectReference Include="..\BotMaster.Betterplace.MessageContract\BotMaster.Betterplace.MessageContract.csproj" />
 		<ProjectReference Include="..\BotMaster.Commandos\BotMaster.Commandos.csproj" />
 		<ProjectReference Include="..\BotMaster.Core\BotMaster.Core.csproj" />
+		<ProjectReference Include="..\BotMaster.Livestream.MessageContract\BotMaster.Livestream.MessageContract.csproj" />
 		<ProjectReference Include="..\BotMaster.MessageContract\BotMaster.MessageContract.csproj" />
 		<ProjectReference Include="..\BotMaster.RightsManagement\BotMaster.RightsManagement.csproj" />
-		<ProjectReference Include="..\BotMaster.Twitch.MessageContract\BotMaster.Twitch.MessageContract.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
