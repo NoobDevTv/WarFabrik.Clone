@@ -19,4 +19,10 @@
     <ProjectReference Include="..\BotMaster.PluginSystem\BotMaster.PluginSystem.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

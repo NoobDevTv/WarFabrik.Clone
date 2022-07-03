@@ -6,7 +6,7 @@ public interface IPluginInstanceCreator
 {
     PluginInstance CreateServer(
             PluginManifest manifest,
-            FileInfo pluginHost);
+            DirectoryInfo runnersPath);
 
     PluginInstance CreateClient(
             PluginManifest manifest);

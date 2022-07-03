@@ -1,6 +1,7 @@
 ﻿using BotMaster.PluginHost;
 using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.PluginCreator;
+
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -36,7 +37,7 @@ namespace BotMaster.PluginHostProcessRunner
             LogManager.Configuration = config;
             var logger = LogManager.GetCurrentClassLogger();
             var plugins = new List<Plugin>();
-            
+
             try
             {
                 List<FileInfo> paths = new();

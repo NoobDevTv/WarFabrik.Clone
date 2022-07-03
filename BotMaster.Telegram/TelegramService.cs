@@ -115,7 +115,7 @@ namespace BotMaster.Telegram
                             .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"{toSend.message.UserName} hat mit {toSend.message.Count} Noobs geraidet"))
                         .Select(x => (LivestreamMessage)x.message),
                     live => live.SelectMany(message => noobDevGroupUser.Select(userId => (userId, message)))
-                            .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"Der Broadcast hat begonnen auf {toSend.message.SourcePlattform} für {toSend.message.UserId}"))
+                            //.Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"Der Broadcast hat begonnen auf {toSend.message.SourcePlattform} für {toSend.message.UserName}"))
                         .Select(x => (LivestreamMessage)x.message)
                    );
 
@@ -140,7 +140,7 @@ namespace BotMaster.Telegram
 
             foreach (var id in noobDevGroupUser)
             {
-                _ = client.SendTextMessageAsync(new ChatId(id), "New Bot started :)");
+                //_ = client.SendTextMessageAsync(new ChatId(id), "New Bot started :)");
             }
 
             var textMessages = SendMessageToGroup(pluginMessageWithGroups, logger, client);
@@ -163,8 +163,22 @@ namespace BotMaster.Telegram
 
                     return DefinedMessage.CreateCommandMessage(split[0].ToLower(), x.message.Item2.Message.From.Username, x.user?.Id ?? -1, x.plattformUser?.PlattformUserId ?? x.message.Item2.Message.From.Id.ToString(), "Telegram", true, split[1..]);
                 });
+            var liveStreamMessages = chatMessages
+                .Select(cm =>
+                {
+                    using var c = new RightsDbContext();
+                    var plattformUser = c.PlattformUsers.FirstOrDefault(pu => pu.PlattformUserId == cm.Item2.Message.Chat.Id.ToString());
+                    var user = plattformUser?.User;
+                    return (message: cm, plattformUser, user);
+                })
+                .Where(x => x.message.Item2.Message.Text == "checklivestream")
+                .Select(x =>
+                {
 
-            var fromUser = DefinedMessageContract.ToMessages(commandMessages);
+                    return LivestreamMessage.Create(new StreamLiveInformation((x.user?.Id ?? -1).ToString(), x.message.Item2.Message.From.Username, "Telegram", true));
+                });
+
+            var fromUser = DefinedMessageContract.ToMessages(commandMessages).Merge(LivestreamContract.ToMessages(liveStreamMessages));
 
             return Observable.Using(() => StableCompositeDisposable.Create(textMessages.Subscribe(), incommingCommandStream.Subscribe(), incommingLivestreamMessages.Subscribe(), incommingBetterplaceMessages.Subscribe()), _ => fromUser);
         }
@@ -190,7 +204,9 @@ namespace BotMaster.Telegram
                     .Where(message => message.Type == MessageType.Text && !string.IsNullOrWhiteSpace(message.Text))
                     .Do(message => logger.Debug($"Got Message: {message.Text}"))
                     .Where(message => message.Text.StartsWith('/'))
-                    .Select(message => (message.Text.TrimStart('/').ToLower(), new TelegramCommandArgs(message, client)));
+                    .Select(message => (message.Text.TrimStart('/').ToLower(), new TelegramCommandArgs(message, client)))
+                    .Publish()
+                    .RefCount();
 
         private static IObservable<TelegramMessage> SendMessageToGroup(IObservable<(List<long> userIds, TextMessage Message)> groupMessages,
             ILogger logger, TelegramBotClient client)

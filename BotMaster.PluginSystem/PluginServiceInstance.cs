@@ -1,6 +1,8 @@
 ﻿using BotMaster.PluginSystem.Messages;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using BotMaster.Core;
+using System.Reactive.Concurrency;
 
 namespace BotMaster.PluginSystem
 {
@@ -8,6 +10,7 @@ namespace BotMaster.PluginSystem
     {
         private readonly CompositeDisposable compositeDisposable;
         private readonly Func<FileInfo, IObservable<Package>> loadPlugin;
+        private int retries = 0;
 
         public PluginServiceInstance(
             PluginManifest manifest,
@@ -30,7 +33,13 @@ namespace BotMaster.PluginSystem
         public override void Start()
         {
             base.Start();
-            var subscription = loadPlugin(manifest.CurrentFileInfo).Subscribe();
+            var subscription
+                = loadPlugin(manifest.CurrentFileInfo)
+                    .Retry(
+                        x => Interlocked.Increment(ref retries) <= 12, 
+                        () => TimeSpan.FromSeconds((retries + 1) * 10), 
+                        Scheduler.Default)
+                    .Subscribe();
             compositeDisposable.Add(subscription);
         }
 

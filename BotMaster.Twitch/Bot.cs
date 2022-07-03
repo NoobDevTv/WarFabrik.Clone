@@ -80,15 +80,15 @@ namespace BotMaster.Twitch
                     var goneLiveMessages = LivestreamContract.ToMessages(Observable
                         .FromEventPattern<OnStreamUpArgs>(add => context.pubSub.OnStreamUp += add, remove => context.pubSub.OnStreamUp -= remove)
                         .Select(e => e.EventArgs)
-                        .Select(e => (LivestreamMessage)new StreamLiveInformation(e.ChannelId,e.ChannelId, SourcePlattform, true))
+                        .Select(e => (LivestreamMessage)new StreamLiveInformation(e.ChannelId, context.Channel, SourcePlattform, true))
                         );
                     var goneOfflineMessages = LivestreamContract.ToMessages(Observable
                         .FromEventPattern<OnStreamDownArgs>(add => context.pubSub.OnStreamDown += add, remove => context.pubSub.OnStreamDown -= remove)
                         .Select(e => e.EventArgs)
-                        .Select(e => (LivestreamMessage)new StreamLiveInformation(e.ChannelId, e.ChannelId, SourcePlattform, false))
+                        .Select(e => (LivestreamMessage)new StreamLiveInformation(e.ChannelId, context.Channel, SourcePlattform, false))
                         );
 
-                    context.pubSub.ListenToVideoPlayback(context.Channel);
+                    context.pubSub.ListenToVideoPlayback(context.UserId);
 
 
                     var messages = Observable

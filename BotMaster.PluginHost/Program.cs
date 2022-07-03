@@ -41,14 +41,12 @@ namespace BotMaster.PluginHost
             else
                 assemblyFileInfo = new(Path.Combine(manifestFileInfo.Directory.FullName, manifest.File));
 
-
             logger.Info($"Load {assemblyFileInfo.FullName}");
             var pluginContext = new AssemblyLoadContext(manifest.Name);
             var resolver = new ReaderLoadContext(manifest.Name, assemblyFileInfo.FullName);
 
             var pluginAssembly = resolver.LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(assemblyFileInfo.Name)));
             //var pluginAssembly = pluginContext.LoadFromAssemblyPath(assemblyFileInfo.FullName);
-
 
             logger.Trace("Get Typecontainer");
             var typecontainer = new StandaloneTypeContainer();

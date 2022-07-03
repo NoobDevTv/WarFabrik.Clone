@@ -94,7 +94,7 @@ public sealed class BetterplaceService : Plugin
                 .Retry()
                 .SelectMany(p => p.Data)
                 .Where(x => !DonationIds.Contains(x.Id))
-                .Where(o => o.Created_at > DateTime.Now.Subtract(TimeSpan.FromDays(40)))
+                .Where(o => o.Created_at > DateTime.Now.Subtract(TimeSpan.FromMinutes(4)))
                 .Do(x => DonationIds.Add(x.Id))
                 .Publish()
                 .RefCount();

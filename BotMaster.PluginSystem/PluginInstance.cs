@@ -1,4 +1,5 @@
 ﻿using BotMaster.PluginSystem.Messages;
+
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -9,6 +10,8 @@ namespace BotMaster.PluginSystem
     {
         public string Id => manifest.Id;
         protected readonly PluginManifest manifest;
+
+        internal event EventHandler<Exception> OnError;
 
         public PluginInstance(
             PluginManifest manifest)
@@ -26,6 +29,11 @@ namespace BotMaster.PluginSystem
         internal virtual void SendMessages(Func<IObservable<Message>, IDisposable> subscribeAsSender) { }
 
         internal virtual void ReceiveMessages(Func<string, IObservable<Message>> subscribeAsReceiver) { }
+
+        protected void TriggerOnError(Exception ex)
+        {
+            OnError?.Invoke(this, ex);
+        }
     }
 
     public class PluginInstance<TClient> : PluginInstance, IDisposable
@@ -66,7 +74,7 @@ namespace BotMaster.PluginSystem
                 disposables.Add(disposableClient);
         }
 
-        public override IObservable<Package> Send(IObservable<Package> packages) 
+        public override IObservable<Package> Send(IObservable<Package> packages)
             => Observable.Using(() => packages.Subscribe(package => sendPackages.OnNext(package)), _ => sendPipe);
 
         public override IObservable<Package> Receiv()

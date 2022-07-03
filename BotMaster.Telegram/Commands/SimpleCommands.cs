@@ -28,6 +28,7 @@ namespace BotMaster.Telegram.Commands
             context.PlattformUsers.Add(plattformUser);
             context.SaveChanges();
             botContext.Client.SendTextMessageAsync(new ChatId(long.Parse(plattformUser.PlattformUserId)), "Welcome! No additional help will be implemented in the next update");
+            
 
         }
 
