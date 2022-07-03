@@ -9,7 +9,7 @@ public class CommandosDbContext : DatabaseContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        var info = new FileInfo(Path.Combine(".", "additionalfiles", "Rights.db"));
+        var info = new FileInfo(Path.Combine("..", "..", "additionalfiles", "Rights.db"));
         _ = optionsBuilder.UseSqlite($"Data Source={info.FullName}");
         base.OnConfiguring(optionsBuilder);
     }

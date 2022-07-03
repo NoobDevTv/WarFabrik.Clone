@@ -33,7 +33,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="manifest.json">
+		<None Update="plugin.manifest.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="Telegram_Token.txt">

@@ -2,18 +2,13 @@
 using BotMaster.PluginSystem.PluginCreator;
 using BotMaster.Runtime;
 
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Auth.OAuth2.Flows;
-using Google.Apis.Auth.OAuth2.Responses;
-using Google.Apis.Services;
-using Google.Apis.YouTube.v3;
-
 using NLog;
 using NLog.Config;
 using NLog.Targets;
 
 using NonSucking.Framework.Extension.IoC;
 
+using System.Diagnostics;
 using System.Globalization;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -60,7 +55,8 @@ namespace BotMaster
 
 #if DEBUG
             var creatorLogger = LogManager.GetLogger("InProcessPlugin");
-            typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator(creatorLogger, PluginHost.PluginHoster.Load));
+            //typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator(creatorLogger, PluginHost.PluginHoster.Load));
+            typeContainer.Register<IPluginInstanceCreator>(new IPCPluginCreator());
 #else
             var creatorLogger = LogManager.GetLogger("InProcessPlugin");
 

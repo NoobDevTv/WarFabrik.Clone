@@ -34,18 +34,21 @@ namespace BotMaster.PluginSystem
         {
             OnError?.Invoke(this, ex);
         }
+
+        internal abstract PluginInstance Copy(); 
+
     }
 
     public class PluginInstance<TClient> : PluginInstance, IDisposable
     {
-        private TClient client;
-        private IObservable<Package> sendPipe;
-        private IObservable<Package> receivPipe;
-        private readonly Func<string, TClient> createPipe;
-        private readonly Func<TClient, IObservable<Package>, IObservable<Package>> createSender;
-        private readonly Func<TClient, IObservable<Package>> createReceiver;
-        private readonly Subject<Package> sendPackages;
-        private readonly CompositeDisposable disposables;
+        protected TClient client;
+        protected IObservable<Package> sendPipe;
+        protected IObservable<Package> receivPipe;
+        protected readonly Func<string, TClient> createPipe;
+        protected readonly Func<TClient, IObservable<Package>, IObservable<Package>> createSender;
+        protected readonly Func<TClient, IObservable<Package>> createReceiver;
+        protected readonly Subject<Package> sendPackages;
+        protected readonly CompositeDisposable disposables;
 
         public PluginInstance(
             PluginManifest manifest,
@@ -84,5 +87,7 @@ namespace BotMaster.PluginSystem
         {
             disposables.Dispose();
         }
+
+        internal override PluginInstance Copy() => new PluginInstance<TClient>(manifest, createPipe, createSender, createReceiver);
     }
 }

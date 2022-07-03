@@ -70,7 +70,10 @@ namespace BotMaster.PluginSystem
 
         private void InstanceOnError(object sender, Exception ex)
         {
-            StartPluginInstance(sender as PluginInstance);
+            if(sender is PluginInstance pi)
+            {
+                StartPluginInstance(pi.Copy());
+            }
         }
 
         public void Stop()

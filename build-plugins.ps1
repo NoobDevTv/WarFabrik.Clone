@@ -1,6 +1,6 @@
 Remove-Item "./publish/plugins" -Force -Recurse -ErrorAction SilentlyContinue
 
-Get-ChildItem -Path '.' -Filter 'manifest.json' -Depth 1 | ForEach-Object {
+Get-ChildItem -Path '.' -Filter 'plugin.manifest.json' -Depth 1 | ForEach-Object {
     $dirName = $_.Directory.Name
     "Build plugin into ../publish/plugins/${dirName}"
     Set-Location $_.DirectoryName

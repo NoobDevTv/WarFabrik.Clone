@@ -4,5 +4,5 @@
   "Author": "NoobDevTv",
   "Version": "1.0.0",
   "File": "BotMaster.Twitch.dll",
-  "ProcessRunner": "dotnetrunner"
+  "ProcessRunner": "BotMaster.DotNetRunner"
 }

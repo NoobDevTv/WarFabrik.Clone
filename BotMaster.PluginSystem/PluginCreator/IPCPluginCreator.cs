@@ -45,7 +45,7 @@ namespace BotMaster.PluginSystem.PluginCreator
         }
     }
 
-    public class ProcessExitedException: Exception
+    public class ProcessExitedException : Exception
     {
         public int ExitCode { get; set; }
         public ProcessExitedException(int exitCode)
@@ -59,6 +59,7 @@ namespace BotMaster.PluginSystem.PluginCreator
         private readonly Process process;
         private readonly CompositeDisposable compositeDisposable;
         private int retries = 0;
+        private readonly DirectoryInfo runnersPath;
 
         public IPCPluginInstance(
             DirectoryInfo runnersPath,
@@ -68,14 +69,15 @@ namespace BotMaster.PluginSystem.PluginCreator
             Func<PipeStream, IObservable<Package>> createReceiver)
             : base(manifest, createPipe, createSender, createReceiver)
         {
-            var runnerManifestPath = new FileInfo( Path.Combine(runnersPath.FullName, manifest.ProcessRunner, "manifest.json"));
+            this.runnersPath = runnersPath;
+            var runnerManifestPath = new FileInfo(Path.Combine(runnersPath.FullName, manifest.ProcessRunner, "runner.manifest.json"));
 
             if (!runnerManifestPath.Exists)
                 return; //TODO Logging, we cant load this plugin without the runner :(
 
             using var str = runnerManifestPath.OpenRead();
             var runnerManifest = System.Text.Json.JsonSerializer.Deserialize<RunnerManifest>(str);
-       
+
             var processPath = runnerManifest.Filename["default"];
             foreach (var item in runnerManifest.Filename)
             {
@@ -86,7 +88,10 @@ namespace BotMaster.PluginSystem.PluginCreator
             var args = runnerManifest.Args;
             foreach (var item in runnerManifest.EnviromentVariable)
             {
-                args = args.Replace($"{{{item.Key}}}", item.Value.Replace("{manifestpath}", manifest.CurrentFileInfo.FullName));
+                args = args.Replace($"{{{item.Key}}}", item.Value
+                    .Replace("{manifestpath}", manifest.CurrentFileInfo.FullName)
+                    .Replace("{runnerpath}", runnerManifestPath.Directory.FullName)
+                    );
             }
 
             process = new()
@@ -94,9 +99,9 @@ namespace BotMaster.PluginSystem.PluginCreator
                 StartInfo = new ProcessStartInfo(processPath, args)
                 {
                     WorkingDirectory = manifest.CurrentFileInfo.Directory.FullName,
-                    
                     UseShellExecute = true
                 },
+                EnableRaisingEvents = true
             };
             compositeDisposable = new CompositeDisposable();
         }
@@ -117,6 +122,7 @@ namespace BotMaster.PluginSystem.PluginCreator
         {
             base.Start();
             process.Exited += ProcessExited;
+
             process.Start();
             process.Refresh();
         }
@@ -124,7 +130,7 @@ namespace BotMaster.PluginSystem.PluginCreator
         private void ProcessExited(object sender, EventArgs e)
         {
             process.Exited -= ProcessExited;
-            if (process.ExitCode == 0)
+            if (process.ExitCode == 0 || process.ExitCode == -1073741510)
                 return;
             retries++;
             Thread.Sleep((retries + 1) * 10); //TODO Has this any side consequences, that we didn't consider in the heat of the moment?
@@ -149,5 +155,8 @@ namespace BotMaster.PluginSystem.PluginCreator
             var receivedMessages = MessageConvert.ToMessage(Receiv());
             compositeDisposable.Add(subscribeAsSender(receivedMessages));
         }
+
+
+        internal override PluginInstance Copy() => new IPCPluginInstance(runnersPath, manifest, createPipe, createSender, createReceiver);
     }
 }
