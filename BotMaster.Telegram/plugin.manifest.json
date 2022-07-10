@@ -3,5 +3,6 @@
   "Name": "Telegram Plugin",
   "Author": "NoobDevTv",
   "Version": "1.0.0",
-  "File": "BotMaster.Telegram.dll"
+  "File": "BotMaster.Telegram.dll",
+  "ProcessRunner": "BotMaster.DotNetRunner"
 }

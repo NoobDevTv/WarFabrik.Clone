@@ -9,7 +9,7 @@ namespace BotMaster.PluginSystem
 {
     public static class PluginProvider
     {
-        public static IObservable<PluginInstance> Watch(ILogger logger, ITypeContainer typeContainer, DirectoryInfo directory, FileInfo pluginHost)
+        public static IObservable<PluginInstance> Watch(ILogger logger, ITypeContainer typeContainer, DirectoryInfo directory, DirectoryInfo runnersPath)
             => GetPluginManifests(directory, logger)
                    .Select(manifest =>
                     {
@@ -19,7 +19,7 @@ namespace BotMaster.PluginSystem
                             = pluginCreator
                             .CreateServer(
                                 manifest,
-                                pluginHost
+                                runnersPath
                             );
 
                         return instance;
@@ -29,7 +29,7 @@ namespace BotMaster.PluginSystem
             => Observable
                 .Merge(
                     directory
-                        .GetFiles("manifest.json", SearchOption.AllDirectories)
+                        .GetFiles("plugin.manifest.json", SearchOption.AllDirectories)
                         .ToObservable(),
                     Observable.Using
                         (() =>
@@ -39,7 +39,7 @@ namespace BotMaster.PluginSystem
                                     IncludeSubdirectories = true,
                                     Path = directory.FullName,
                                 };
-                                watcher.Filters.Add("manifest.json");
+                                watcher.Filters.Add("plugin.manifest.json");
                                 watcher.EnableRaisingEvents = true;
                                 return watcher;
                             },

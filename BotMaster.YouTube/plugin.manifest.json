@@ -3,5 +3,6 @@
   "Name": "YouTube Plugin",
   "Author": "NoobDevTv",
   "Version": "1.0.0",
-  "File": "BotMaster.YouTube.dll"
+  "File": "BotMaster.YouTube.dll",
+  "ProcessRunner": "BotMaster.DotNetRunner"
 }

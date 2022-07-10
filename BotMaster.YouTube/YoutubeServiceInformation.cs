@@ -1,6 +1,6 @@
 ﻿using BotMaster.Core.NLog;
 using BotMaster.MessageContract;
-using BotMaster.Twitch.MessageContract;
+using BotMaster.Livestream.MessageContract;
 
 using Google.Apis.YouTube.v3;
 using Google.Apis.YouTube.v3.Data;
@@ -9,6 +9,7 @@ using NLog;
 
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using BotMaster.Core;
 
 using static Google.Apis.YouTube.v3.SearchResource.ListRequest;
 
@@ -28,7 +29,7 @@ namespace BotMaster.YouTube
                    .Do(req => { req.MyRecentSubscribers = true; req.MaxResults = 10; })
                    .Select(req => req.Execute())
                    .OnError(serviceContext.Logger, nameof(api.Subscriptions))
-                   .Retry()
+                   .Retry(x=>true, period)
                    .Select(followerResponse => GetNewFollower(followerResponse.Items, serviceContext.CurrentFollowers))
                    .Do(x => serviceContext.CurrentFollowers.AddRange(x))
                    .Skip(1)
@@ -44,21 +45,26 @@ namespace BotMaster.YouTube
                 .ToList();
         }
 
-        public static IObservable<IList<LiveBroadcast?>> GetBroadcasts(YouTubeService api, YoutubeMetaData metaData, TimeSpan liveStreamInterval, IScheduler scheduler)
+        public static IObservable<IList<LiveBroadcast?>> GetBroadcasts(YouTubeService api, YoutubeMetaData metaData, TimeSpan liveStreamInterval, IObservable<StreamLiveInformation> incommingLiveInformations, IScheduler scheduler)
         {
 
             var liveStreamsInterval
-                = Observable.Return(0L).Concat(Observable.Interval(liveStreamInterval, scheduler));
+                = Observable.Timer(TimeSpan.FromSeconds(5))
+                .Concat(Observable.Interval(liveStreamInterval, scheduler))
+                .Merge(incommingLiveInformations.Where(x=>x.SourcePlattform != Bot.SourcePlattform)
+                        .Select(x=>0L)
+                        .Delay(TimeSpan.FromSeconds(5)));
 
             return liveStreamsInterval
-                 .Select(_ => api.LiveBroadcasts.List("id,snippet,status"))
+                 .Select(_ => api.LiveBroadcasts.List("snippet"))
                  .Do(x => { x.BroadcastStatus = LiveBroadcastsResource.ListRequest.BroadcastStatusEnum.Active; x.MaxResults = 1; })
                  .Select(x => x.Execute())
+                 .Do(x => Console.WriteLine("Requested LiveStream snippets"))
+                 .Retry(x => true, TimeSpan.FromSeconds(10))
                  .DistinctUntilChanged(x => x.Items.FirstOrDefault()?.Snippet.LiveChatId)
                  .Select(x => x.Items)
                  .Publish()
-                 .RefCount()
-                 ;
+                 .RefCount();
         }
 
         public static IObservable<YoutubeChatMessage> GetMessageUpdates(YouTubeService api, YoutubeMetaData metaData, TimeSpan messageInterval, LiveBroadcastSnippet liveBroadcast, IScheduler scheduler)
@@ -74,7 +80,8 @@ namespace BotMaster.YouTube
                             .Select(_ => api.LiveChatMessages.List(liveBroadcast.LiveChatId, "snippet,authorDetails"))
                             .Do(x => x.MaxResults = 50)
                             .Select(x => x.Execute())
-                            .Delay(x => Observable.Return(TimeSpan.FromMilliseconds(x.PollingIntervalMillis.HasValue ? x.PollingIntervalMillis.Value : 0))) //TODO verwurschteln into interval
+                            .Retry(x => true,messageInterval)
+                            .Delay(x => Observable.Return(TimeSpan.FromMilliseconds(x.PollingIntervalMillis ?? 0))) //TODO verwurschteln into interval
                             .Select(x => GetNewChatMessages(x.Items, serviceContext.CurrentMessages))
                             .Do(x => serviceContext.CurrentMessages.AddRange(x))
                             .Skip(1)

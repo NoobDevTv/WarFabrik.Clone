@@ -13,6 +13,7 @@ namespace BotMaster.PluginSystem
         public string Author { get; set; }
         public string Version { get; set; }
         public string File { get; set; }
+        public string ProcessRunner { get; set; }
 
         public override bool Equals(object obj) 
             => Equals(obj as PluginManifest);
@@ -24,10 +25,11 @@ namespace BotMaster.PluginSystem
             && Description == other.Description 
             && Author == other.Author 
             && Version == other.Version 
+            && ProcessRunner == other.ProcessRunner
             && File == other.File;
 
         public override int GetHashCode() 
-            => HashCode.Combine(Id, Name, Description, Author, Version, File);
+            => HashCode.Combine(Id, Name, Description, Author, Version, File, ProcessRunner);
 
         public static bool operator ==(PluginManifest left, PluginManifest right) 
             => EqualityComparer<PluginManifest>.Default.Equals(left, right);

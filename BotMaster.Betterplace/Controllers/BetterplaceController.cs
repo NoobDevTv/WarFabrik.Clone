@@ -20,7 +20,6 @@ namespace BotMaster.Betterplace.Controllers
         public OpinionsCache OpinionsCache { get; }
 
         private readonly FileExtensionContentTypeProvider contentTypeProvider;
-        private readonly BetterplaceService betterplaceService;
 
         public BetterplaceController(OpinionsCache opinionsCache)
         {
@@ -39,7 +38,7 @@ namespace BotMaster.Betterplace.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            var file = new FileInfo(Path.Combine(".", "web", "alert.html"));
+            var file = new FileInfo(Path.Combine(".", "additionalfiles", "web", "betterplace", "alert.html"));
             contentTypeProvider.TryGetContentType(file.FullName, out var fileType);
             return File(file.OpenRead(), fileType);
         }

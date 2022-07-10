@@ -1,5 +1,5 @@
 ﻿using BotMaster.Core.NLog;
-using BotMaster.Twitch.MessageContract;
+using BotMaster.Livestream.MessageContract;
 
 using NLog;
 using System.Reactive.Concurrency;

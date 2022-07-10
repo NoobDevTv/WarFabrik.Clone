@@ -16,13 +16,13 @@ namespace BotMaster.Runtime
         private readonly IDisposable disposable;
         private readonly ILogger logger;
 
-        public Service(ITypeContainer typeContainer, ILogger logger, DirectoryInfo pluginFolder, FileInfo pluginHost)
+        public Service(ITypeContainer typeContainer, ILogger logger, DirectoryInfo pluginFolder, DirectoryInfo runnersPath)
         {
             messageHub = new MessageHub();
 
             var plugins =
                 PluginProvider
-                    .Watch(logger, typeContainer, pluginFolder, pluginHost);
+                    .Watch(logger, typeContainer, pluginFolder, runnersPath);
 
             pluginService = new PluginService(messageHub, plugins);
             disposable = StableCompositeDisposable.Create(pluginService, messageHub);

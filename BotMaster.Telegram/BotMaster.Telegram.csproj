@@ -25,14 +25,15 @@
 		<ProjectReference Include="..\BotMaster.Commandos\BotMaster.Commandos.csproj" />
 		<ProjectReference Include="..\BotMaster.Core\BotMaster.Core.csproj" />
 		<ProjectReference Include="..\BotMaster.Database\BotMaster.Database.csproj" />
+		<ProjectReference Include="..\BotMaster.Livestream.MessageContract\BotMaster.Livestream.MessageContract.csproj" />
 		<ProjectReference Include="..\BotMaster.MessageContract\BotMaster.MessageContract.csproj" />
 		<ProjectReference Include="..\BotMaster.PluginSystem\BotMaster.PluginSystem.csproj" />
 		<ProjectReference Include="..\BotMaster.RightsManagement\BotMaster.RightsManagement.csproj" />
-		<ProjectReference Include="..\BotMaster.Twitch.MessageContract\BotMaster.Twitch.MessageContract.csproj" />
+		<ProjectReference Include="..\BotMaster.Livestream.MessageContract\BotMaster.Livestream.MessageContract.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="manifest.json">
+		<None Update="plugin.manifest.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="Telegram_Token.txt">

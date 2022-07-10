@@ -3,5 +3,6 @@
   "Name": "Betterplace Plugin",
   "Author": "NoobDevTv",
   "Version": "1.0.0",
-  "File": "BotMaster.Betterplace.dll"
+  "File": "BotMaster.Betterplace.dll",
+  "ProcessRunner": "BotMaster.DotNetRunner"
 }

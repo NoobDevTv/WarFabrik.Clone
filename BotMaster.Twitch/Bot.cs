@@ -6,9 +6,10 @@ using BotMaster.PluginSystem.Messages;
 using BotMaster.RightsManagement;
 using BotMaster.Telegram.Database;
 using BotMaster.Twitch.Commands;
-using BotMaster.Twitch.MessageContract;
+using BotMaster.Livestream.MessageContract;
 
 using Microsoft.EntityFrameworkCore;
+
 using System.Diagnostics;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -18,9 +19,11 @@ using TwitchLib.Api;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
+using TwitchLib.PubSub;
+using TwitchLib.PubSub.Events;
 
 using DefinedContract = BotMaster.MessageContract.Contract;
-using TwitchContract = BotMaster.Twitch.MessageContract.TwitchContract;
+using LivestreamContract = BotMaster.Livestream.MessageContract.LivestreamContract;
 
 namespace BotMaster.Twitch
 {
@@ -74,6 +77,19 @@ namespace BotMaster.Twitch
                     {
                         context.AddCommand(x => SimpleCommands.SendTextCommand(x, item, context), item.Command);
                     }
+                    var goneLiveMessages = LivestreamContract.ToMessages(Observable
+                        .FromEventPattern<OnStreamUpArgs>(add => context.pubSub.OnStreamUp += add, remove => context.pubSub.OnStreamUp -= remove)
+                        .Select(e => e.EventArgs)
+                        .Select(e => (LivestreamMessage)new StreamLiveInformation(e.ChannelId, context.Channel, SourcePlattform, true))
+                        );
+                    var goneOfflineMessages = LivestreamContract.ToMessages(Observable
+                        .FromEventPattern<OnStreamDownArgs>(add => context.pubSub.OnStreamDown += add, remove => context.pubSub.OnStreamDown -= remove)
+                        .Select(e => e.EventArgs)
+                        .Select(e => (LivestreamMessage)new StreamLiveInformation(e.ChannelId, context.Channel, SourcePlattform, false))
+                        );
+
+                    context.pubSub.ListenToVideoPlayback(context.UserId);
+
 
                     var messages = Observable
                         .FromEventPattern<OnConnectedArgs>(add => client.OnConnected += add, remove => client.OnConnected -= remove)
@@ -84,7 +100,7 @@ namespace BotMaster.Twitch
                                .VisitMany(
                                     textMessage => Observable.Empty<DefinedMessage>(),
                                     commandMessage => context.CommandoCentral.CreateCommandStream(commandMessage)
-                                        .Where(x=>x.SourcePlattform == SourcePlattform)
+                                        .Where(x => x.SourcePlattform == SourcePlattform)
                                         .Select(x => (DefinedMessage)x),
                                     chatMessage => chatMessage
                                         .Where(x => x.Source != SourcePlattform)
@@ -92,15 +108,18 @@ namespace BotMaster.Twitch
                                         .Select(x => (DefinedMessage)x)
                                    );
 
-                            var incommingTwitchMessages = TwitchContract
+                            var incommingLivestreamMessages = LivestreamContract
                                .ToDefineMessages(notifications)
                                .VisitMany(
                                     follower => follower
                                         .Do(x => client.SendMessage(context.Channel, $"{x.UserName} hat sich verklickt. Vielen lieben Dank dafür <3"))
-                                        .Select(x => (TwitchMessage)x),
+                                        .Select(x => (LivestreamMessage)x),
                                     raid => raid
                                         .Do(message => client.SendMessage(context.Channel, $"{message.UserName} bringt jede Menge Noobs mit, nämlich 1 bis {message.Count}. Yippie"))
-                                        .Select(x => (TwitchMessage)x)
+                                        .Select(x => (LivestreamMessage)x),
+                                    live => live
+                                    .Where(x => x.SourcePlattform == SourcePlattform)
+                                    .Do(message => client.SendMessage(context.Channel, $"Der Bot ist weiterhin online :)")).Select(x => (LivestreamMessage)x)
                                    );
 
                             var incommingBetterplaceMessages = BetterplaceContract
@@ -108,8 +127,9 @@ namespace BotMaster.Twitch
                                   .VisitMany(
                                        donation => donation
                                            .Do(x => client.SendMessage(context.Channel, $"{x.Author} hat {x.Donated_amount_in_cents} Geld gespendet. Vielen lieben Dank dafür <3"))
-                                           .Select(x => (BetterplaceMessage)x)
-                                      );
+                                           .Select(x => (BetterplaceMessage)x));
+
+
 
                             var raidInfo = Observable
                             .FromEventPattern<OnRaidNotificationArgs>(add => client.OnRaidNotification += add, remove => client.OnRaidNotification -= remove)
@@ -118,7 +138,7 @@ namespace BotMaster.Twitch
                             {
                                 if (!int.TryParse(e.RaidNotification.MsgParamViewerCount, out int count))
                                     count = 0;
-                                return (TwitchMessage)new RaidInformation(e.RaidNotification.MsgParamDisplayName, count, e.RaidNotification.SystemMsgParsed);
+                                return (LivestreamMessage)new RaidInformation(e.RaidNotification.MsgParamDisplayName, count, e.RaidNotification.SystemMsgParsed);
                                 /*client.SendMessage(initialChannel, $"{channel} bringt jede Menge Noobs mit, nämlich 1 bis {count}. Yippie");
                         OnRaid?.Invoke(this, e.RaidNotification.SystemMsgParsed);*/
                             });
@@ -187,9 +207,9 @@ namespace BotMaster.Twitch
 
                             var follower = FollowerService
                                 .GetFollowerUpdates(context.Api, context.UserId, TimeSpan.FromSeconds(10), Scheduler.Default)
-                                .Select(x => (TwitchMessage)x);
+                                .Select(x => (LivestreamMessage)x);
 
-                            var twitchMessages = TwitchContract.ToMessages(raidInfo.Merge(follower));
+                            var LivestreamMessages = LivestreamContract.ToMessages(raidInfo.Merge(follower));
                             var definedMessages = DefinedContract.ToMessages(commandMessages.Merge(chatMessages));
                             var pnS = DefinedContract.ToMessages(privateCommandMessages);
 
@@ -197,17 +217,18 @@ namespace BotMaster.Twitch
                                 () => StableCompositeDisposable.Create(
                                     incommingDefinedMessages.Subscribe(),
                                     incommingBetterplaceMessages.Subscribe(),
-                                    incommingTwitchMessages.Subscribe()),
-                                (_) => Observable.Merge(twitchMessages, definedMessages, pnS));
+                                    incommingLivestreamMessages.Subscribe()),
+                                (_) => Observable.Merge(LivestreamMessages, definedMessages, pnS));
                         })
-                        .Merge();
+                        .Merge()
+                        ;
 
                     if (!context.Client.Connect())
                         throw new HttpRequestException();
 
                     t.ThrowIfCancellationRequested();
 
-                    return Task.FromResult(messages);
+                    return Task.FromResult(Observable.Merge(messages, goneOfflineMessages, goneLiveMessages));
                 }
             );
         }
@@ -227,7 +248,10 @@ namespace BotMaster.Twitch
             var userResponse = await api.Helix.Users.GetUsersAsync(logins: new List<string> { channelName });
             var userId = userResponse.Users.First().Id;
 
-            return new TwitchContext(api, client, userId, channelName, commandoCentral, new());
+
+            var pubSub = new TwitchPubSub();
+
+            return new TwitchContext(api, client, pubSub, userId, channelName, commandoCentral, new());
         }
 
     }

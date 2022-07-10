@@ -2,11 +2,11 @@
 	- ASP Net Core Web Core and Extensions
 		- ✓(Maybe) Betterplace donation alert
 
+	- Improve Logging
+
 	- Save IDs of follows / donations, so we know which are new 
 
 	- Appconfig per Plugin
-
-	- Support multiple runners
 
 	- Set Title on Youtube and Twitch?
 		- https://dev.twitch.tv/docs/api/reference#modify-channel-information
@@ -36,7 +36,7 @@ Done:
 		- ✓ Cleanup FollowerService
 		- ✓ Send Twitch messages / Command to the ouside
 		- ✓ Rework BotCommandManager (Look @ Rule Of Silvester)
-
+		
 
 	- Rightsmanagement (Platform User mandatory, User currently handy)
 
@@ -50,3 +50,10 @@ Done:
 		- ✓  Message Relay YT <=> Twitch <(Not for now)> (Telegram, maybe 2nd Bot?)
 
 	- ✓ (Fix self message on twitch?)
+
+	- ✓ Exception inside Plugin shouldn't crash the bot
+		- ✓ Does the external process get restarted after exception? No
+
+	- ✓ Support multiple runners
+
+	- ✓ Telegram => Subscribe to Notifications

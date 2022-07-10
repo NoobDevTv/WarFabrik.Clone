@@ -1,13 +1,13 @@
 ﻿using BotMaster.Betterplace.MessageContract;
 using BotMaster.Commandos;
 using BotMaster.Core.NLog;
+using BotMaster.Livestream.MessageContract;
 using BotMaster.MessageContract;
 using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.Messages;
 using BotMaster.RightsManagement;
 using BotMaster.Telegram.Commands;
 using BotMaster.Telegram.Database;
-using BotMaster.Twitch.MessageContract;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -96,6 +96,7 @@ namespace BotMaster.Telegram
                 .Distinct()
                 .ToList() ?? new List<long>();
 
+
             var definedMessages = DefinedMessageContract
                     .ToDefineMessages(notifications)
                     .Log(logger, nameof(TelegramService) + " Incomming", onNext: LogLevel.Debug)
@@ -103,44 +104,105 @@ namespace BotMaster.Telegram
                     .RefCount();
 
 
-            var incommingTwitchMessages = TwitchContract
+            var incommingLivestreamMessages = LivestreamContract
                .ToDefineMessages(notifications)
                .VisitMany(
                     follower => follower
-                        .SelectMany(message => noobDevGroupUser.Select(userId => (userId, message)))
-                            .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"{toSend.message.UserName} hat soeben auf {toSend.message.SourcePlattform} gefollowed"))
-                        .Select(x => (TwitchMessage)x.message),
+                        .SelectMany(message =>
+                        {
+
+                            var userIds = GetIdsOfGroup("follower");
+                            foreach (var item in noobDevGroupUser)
+                            {
+                                userIds.Add(item);
+                            }
+
+                            return userIds.Select(userId => (userId, message));
+
+                        })
+                        .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"{toSend.message.UserName} hat soeben auf {toSend.message.SourcePlattform} gefollowed"))
+                        .Select(x => (LivestreamMessage)x.message),
                     raid => raid
-                        .SelectMany(message => noobDevGroupUser.Select(userId => (userId, message)))
+                        .SelectMany(message =>
+                        {
+
+                            var userIds = GetIdsOfGroup("raid");
+                            foreach (var item in noobDevGroupUser)
+                            {
+                                userIds.Add(item);
+                            }
+
+                            return userIds.Select(userId => (userId, message));
+
+                        })
                             .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"{toSend.message.UserName} hat mit {toSend.message.Count} Noobs geraidet"))
-                        .Select(x => (TwitchMessage)x.message)
+                        .Select(x => (LivestreamMessage)x.message),
+                    live => live
+                        .Where(x => x.SourcePlattform != "Telegram")
+                        .SelectMany(message =>
+                        {
+
+                            var userIds = GetIdsOfGroup("livestream");
+                            foreach (var item in noobDevGroupUser)
+                            {
+                                userIds.Add(item);
+                            }
+
+                            return userIds.Select(userId => (userId, message));
+
+                        })
+                        .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"Der Broadcast hat begonnen auf {toSend.message.SourcePlattform} für {toSend.message.UserName}"))
+                        .Select(x => (LivestreamMessage)x.message)
                    );
 
             var incommingBetterplaceMessages = BetterplaceContract
                   .ToDefineMessages(notifications)
                   .VisitMany(
                        donation => donation
-                            .SelectMany(donation => noobDevGroupUser.Select(userId => (userId, donation)))
+                            .SelectMany(donation =>
+                            {
+
+                                var userIds = GetIdsOfGroup("donation");
+                                foreach (var item in noobDevGroupUser)
+                                {
+                                    userIds.Add(item);
+                                }
+
+                                return userIds.Select(userId => (userId, donation));
+
+                            })
                             .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"{toSend.donation.Author} hat {toSend.donation.Donated_amount_in_cents} Geld gespendet. Vielen lieben Dank dafür <3"))
                             .Select(x => (BetterplaceMessage)x.donation)
                       );
 
             //Messages from other plugins
-            IObservable<(List<long>, TextMessage n)> pluginMessageWithGroups
+            IObservable<DefinedMessage> pluginMessageWithGroups
                 = definedMessages
-                    .Match<TextMessage>(n => n) //TODO What about ChatMessage?!
-                    .Select(n => (noobDevGroupUser, n));
+                .VisitMany(textMessage => textMessage
+                        .SelectMany(message =>
+                        {
+                            var userIds = GetIdsOfGroup("text");
+
+                            return userIds.Select(userId => (userId, message));
+                        })
+                        .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"{toSend.message.Text}"))
+                        .Select(x => (DefinedMessage)x.message),
+
+                        commandMessage => commandMessage
+                        .Select(x => (DefinedMessage)x),
+                        chatMessage => chatMessage
+                        .SelectMany(message =>
+                        {
+                            var userIds = GetIdsOfGroup("chat");
+
+                            return userIds.Select(userId => (userId, message));
+                        })
+                        .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"[{toSend.message.Username} ({toSend.message.Source})]: {toSend.message.Text}"))
+                        .Select(x => (DefinedMessage)x.message));
 
             var incommingCommandStream = botContext.CommandoCentral.CreateCommandStream(definedMessages
                 .Match<CommandMessage>(n => n));
 
-
-            foreach (var id in noobDevGroupUser)
-            {
-                _ = client.SendTextMessageAsync(new ChatId(id), "New Bot started :)");
-            }
-
-            var textMessages = SendMessageToGroup(pluginMessageWithGroups, logger, client);
 
             //Messages from User from telegram
             IObservable<(string, TelegramCommandArgs)> chatMessages = CreateCommands(client);
@@ -153,20 +215,57 @@ namespace BotMaster.Telegram
                     var user = plattformUser?.User;
                     return (message: cm, plattformUser, user);
                 })
-                //.Where(x => x.user is not null || x.plattformUser is not null)
                 .Select(x =>
                 {
                     string[] split = x.message.Item2.Message.Text.TrimStart('/').Split(' ');
 
                     return DefinedMessage.CreateCommandMessage(split[0].ToLower(), x.message.Item2.Message.From.Username, x.user?.Id ?? -1, x.plattformUser?.PlattformUserId ?? x.message.Item2.Message.From.Id.ToString(), "Telegram", true, split[1..]);
                 });
+            var liveStreamMessages = chatMessages
+                .Select(cm =>
+                {
+                    using var c = new RightsDbContext();
+                    var plattformUser = c.PlattformUsers.FirstOrDefault(pu => pu.PlattformUserId == cm.Item2.Message.Chat.Id.ToString());
+                    var user = plattformUser?.User;
+                    return (message: cm, plattformUser, user);
+                })
+                .Where(x => x.message.Item2.Message.Text == "/checklivestream")
+                .Select(x =>
+                {
 
-            var fromUser = DefinedMessageContract.ToMessages(commandMessages);
+                    return LivestreamMessage.Create(new StreamLiveInformation((x.user?.Id ?? -1).ToString(), x.message.Item2.Message.From.Username, "Telegram", true));
+                });
 
-            return Observable.Using(() => StableCompositeDisposable.Create(textMessages.Subscribe(), incommingCommandStream.Subscribe(), incommingTwitchMessages.Subscribe(), incommingBetterplaceMessages.Subscribe()), _ => fromUser);
+            var fromUser = DefinedMessageContract.ToMessages(commandMessages).Merge(LivestreamContract.ToMessages(liveStreamMessages));
+
+            return Observable.Using(() => StableCompositeDisposable.Create(pluginMessageWithGroups.Subscribe(), incommingCommandStream.Subscribe(), incommingLivestreamMessages.Subscribe(), incommingBetterplaceMessages.Subscribe()), _ => fromUser);
         }
 
+        private static HashSet<long> GetIdsOfGroup(string groupname)
+        {
+            HashSet<long> userIds = new();
+            using var ctx = new RightsDbContext();
+            var livestreamgroup = ctx.Groups.FirstOrDefault(x => x.Name == groupname);
 
+
+            if (livestreamgroup is not null)
+            {
+                foreach (var item in livestreamgroup.PlattformUsers)
+                {
+                    if (item.Platform != "Telegram")
+                        continue;
+                    userIds.Add(long.Parse(item.PlattformUserId));
+                }
+            }
+            return userIds;
+        }
+
+        private static Dictionary<string, string> commandDescriptions = new Dictionary<string, string>() {
+            {"start", "Start the bot interactions"},
+            {"connect", "Connect two accounts of different plattforms" },
+            {"subscribe", "Subscribe to a group of your liking" },
+            {"unsubscribe", "Unsubscribe from a previous subscribed group" },
+        };
         private static void CreateIncommingCommandCallbacks(TelegramContext botContext)
         {
             var commands = CommandoCentral.GetCommandsFor("Telegram");
@@ -177,8 +276,10 @@ namespace BotMaster.Telegram
             }
             botContext.AddCommand(x => SimpleCommands.Start(x, botContext), "start");
             botContext.AddCommand(x => SimpleCommands.Connect(botContext, x), "connect");
+            botContext.AddCommand(x => SimpleCommands.Subscribe(botContext, x), "subscribe");
+            botContext.AddCommand(x => SimpleCommands.Unsubscribe(botContext, x), "unsubscribe");
 
-            botContext.Client.SetMyCommandsAsync(botContext.CommandoCentral.Commands.Select(x => new BotCommand() { Command = x.Text, Description = " " }));
+            botContext.Client.SetMyCommandsAsync(botContext.CommandoCentral.Commands.Select(x => new BotCommand() { Command = x.Command, Description = commandDescriptions.ContainsKey(x.Command) ? commandDescriptions[x.Command] : "_" })).GetAwaiter().GetResult();
         }
 
         private static IObservable<(string, TelegramCommandArgs)> CreateCommands(TelegramBotClient client) =>
@@ -187,19 +288,9 @@ namespace BotMaster.Telegram
                     .Where(message => message.Type == MessageType.Text && !string.IsNullOrWhiteSpace(message.Text))
                     .Do(message => logger.Debug($"Got Message: {message.Text}"))
                     .Where(message => message.Text.StartsWith('/'))
-                    .Select(message => (message.Text.TrimStart('/').ToLower(), new TelegramCommandArgs(message, client)));
-
-        private static IObservable<TelegramMessage> SendMessageToGroup(IObservable<(List<long> userIds, TextMessage Message)> groupMessages,
-            ILogger logger, TelegramBotClient client)
-        {
-            return groupMessages
-                .Select(m => m
-                            .userIds
-                            .Select(x => client.SendTextMessageAsync(new ChatId(x), m.Message.Text).ToObservable())
-                            .Concat())
-                .Concat()
-                .OnError(logger, nameof(SendMessageToGroup), ex => $"{ex.Message}\n{ex.StackTrace}");
-        }
+                    .Select(message => (message.Text.TrimStart('/').ToLower(), new TelegramCommandArgs(message, client)))
+                    .Publish()
+                    .RefCount();
 
         private static IObservable<Update> StartReceivingMessageUpdates(TelegramBotClient botClient)
         {

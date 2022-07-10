@@ -1,4 +1,5 @@
 ﻿using BotMaster.PluginSystem.Messages;
+
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -9,6 +10,8 @@ namespace BotMaster.PluginSystem
     {
         public string Id => manifest.Id;
         protected readonly PluginManifest manifest;
+
+        internal event EventHandler<Exception> OnError;
 
         public PluginInstance(
             PluginManifest manifest)
@@ -26,18 +29,26 @@ namespace BotMaster.PluginSystem
         internal virtual void SendMessages(Func<IObservable<Message>, IDisposable> subscribeAsSender) { }
 
         internal virtual void ReceiveMessages(Func<string, IObservable<Message>> subscribeAsReceiver) { }
+
+        protected void TriggerOnError(Exception ex)
+        {
+            OnError?.Invoke(this, ex);
+        }
+
+        internal abstract PluginInstance Copy(); 
+
     }
 
     public class PluginInstance<TClient> : PluginInstance, IDisposable
     {
-        private TClient client;
-        private IObservable<Package> sendPipe;
-        private IObservable<Package> receivPipe;
-        private readonly Func<string, TClient> createPipe;
-        private readonly Func<TClient, IObservable<Package>, IObservable<Package>> createSender;
-        private readonly Func<TClient, IObservable<Package>> createReceiver;
-        private readonly Subject<Package> sendPackages;
-        private readonly CompositeDisposable disposables;
+        protected TClient client;
+        protected IObservable<Package> sendPipe;
+        protected IObservable<Package> receivPipe;
+        protected readonly Func<string, TClient> createPipe;
+        protected readonly Func<TClient, IObservable<Package>, IObservable<Package>> createSender;
+        protected readonly Func<TClient, IObservable<Package>> createReceiver;
+        protected readonly Subject<Package> sendPackages;
+        protected readonly CompositeDisposable disposables;
 
         public PluginInstance(
             PluginManifest manifest,
@@ -66,7 +77,7 @@ namespace BotMaster.PluginSystem
                 disposables.Add(disposableClient);
         }
 
-        public override IObservable<Package> Send(IObservable<Package> packages) 
+        public override IObservable<Package> Send(IObservable<Package> packages)
             => Observable.Using(() => packages.Subscribe(package => sendPackages.OnNext(package)), _ => sendPipe);
 
         public override IObservable<Package> Receiv()
@@ -76,5 +87,7 @@ namespace BotMaster.PluginSystem
         {
             disposables.Dispose();
         }
+
+        internal override PluginInstance Copy() => new PluginInstance<TClient>(manifest, createPipe, createSender, createReceiver);
     }
 }

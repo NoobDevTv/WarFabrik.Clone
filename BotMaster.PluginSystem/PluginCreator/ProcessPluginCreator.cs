@@ -37,7 +37,7 @@ public class ProcessPluginCreator : IPluginInstanceCreator
                 );
     }
 
-    public PluginInstance CreateServer(PluginManifest manifest, FileInfo pluginHost)
+    public PluginInstance CreateServer(PluginManifest manifest, DirectoryInfo runnersPath)
     {
         return Create(
             manifest,

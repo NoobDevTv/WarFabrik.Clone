@@ -24,42 +24,56 @@ namespace BotMaster.PluginSystem
         {
             logger.Info("Start Service");
             subscription = instances
-                              .Do(instance =>
-                              {
-                                  logger.Debug("rcv new plugin instance");
+                              .Subscribe(StartPluginInstance);
+        }
 
-                                  if (plugins.TryGetValue(instance.Id, out var oldInstance))
-                                  {
-                                      if (oldInstance is IPCPluginInstance instanceProcess)
-                                      {
-                                          logger.Debug("try to stop plugin instance");
-                                          if (!instanceProcess.TryStop())
-                                          {
-                                              logger.Debug("stopping instance failed, kill the process");
-                                              instanceProcess.Kill();
-                                          }
-                                      }
+        private void StartPluginInstance(PluginInstance instance)
+        {
+            logger.Debug("rcv new plugin instance");
 
-                                      logger.Debug("Update instance");
+            if (plugins.TryGetValue(instance.Id, out var oldInstance))
+            {
+                oldInstance.OnError -= InstanceOnError;
 
-                                      if (oldInstance is IDisposable oldDisposableInstance)
-                                          oldDisposableInstance.Dispose();
+                if (oldInstance is IPCPluginInstance instanceProcess)
+                {
+                    logger.Debug("try to stop plugin instance");
+                    if (!instanceProcess.TryStop())
+                    {
+                        logger.Debug("stopping instance failed, kill the process");
+                        instanceProcess.Kill();
+                    }
+                }
 
-                                      plugins[instance.Id] = instance;
-                                  }
-                                  else
-                                  {
-                                      logger.Debug("Add instance");
-                                      plugins.Add(instance.Id, instance);
-                                  }
+                logger.Debug("Update instance");
 
-                                  logger.Debug($"Start Plugin instance {instance.Id}");
-                                  instance.Start();
-                                  instance.ReceiveMessages(messageHub.SubscribeAsReceiver);
-                                  instance.SendMessages(messageHub.SubscribeAsSender);
-                                  logger.Debug($"{instance.Id} started");
-                              })
-                              .Subscribe();
+                if (oldInstance is IDisposable oldDisposableInstance)
+                    oldDisposableInstance.Dispose();
+
+                plugins[instance.Id] = instance;
+            }
+            else
+            {
+                logger.Debug("Add instance");
+                plugins.Add(instance.Id, instance);
+            }
+
+            logger.Debug($"Start Plugin instance {instance.Id}");
+            instance.OnError += InstanceOnError;
+
+
+            instance.Start();
+            instance.ReceiveMessages(messageHub.SubscribeAsReceiver);
+            instance.SendMessages(messageHub.SubscribeAsSender);
+            logger.Debug($"{instance.Id} started");
+        }
+
+        private void InstanceOnError(object sender, Exception ex)
+        {
+            if(sender is PluginInstance pi)
+            {
+                StartPluginInstance(pi.Copy());
+            }
         }
 
         public void Stop()

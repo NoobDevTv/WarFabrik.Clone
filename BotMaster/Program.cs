@@ -8,21 +8,23 @@ using NLog.Targets;
 
 using NonSucking.Framework.Extension.IoC;
 
+using System.Diagnostics;
+using System.Globalization;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Text;
 
 namespace BotMaster
 {
-    internal class Program
+    internal partial class Program
     {
         internal static async Task Main(string[] args)
         {
-
             var config = new LoggingConfiguration();
 
             var info = new FileInfo(Path.Combine(".", "additionalfiles", "botmaster.log"));
             var pluginInfo = new DirectoryInfo(Path.Combine(".", "plugins"));
-            var pluginHost = new FileInfo(Path.Combine(".", "pluginhost", "BotMaster.PluginHostProcessRunner.exe"));
-
+            var runnersPath = new DirectoryInfo(Path.Combine(".", "runners"));
 
             if (!info.Directory.Exists)
                 info.Directory.Create();
@@ -54,17 +56,18 @@ namespace BotMaster
 #if DEBUG
             var creatorLogger = LogManager.GetLogger("InProcessPlugin");
             typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator(creatorLogger, PluginHost.PluginHoster.Load));
-#else
             //typeContainer.Register<IPluginInstanceCreator>(new IPCPluginCreator());
+#else
             var creatorLogger = LogManager.GetLogger("InProcessPlugin");
-            typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator(creatorLogger, PluginHost.PluginHoster.Load));
 
+            typeContainer.Register<IPluginInstanceCreator>(new IPCPluginCreator());
+            //typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator(creatorLogger, PluginHost.PluginHoster.Load));
 #endif
 
             var serviceLogger = LogManager.GetLogger($"{nameof(BotMaster)}.{nameof(Service)}");
 
             logger.Info("BotMaster PluginService Started");
-            using var service = new Service(typeContainer, serviceLogger, pluginInfo, pluginHost);
+            using var service = new Service(typeContainer, serviceLogger, pluginInfo, runnersPath);
             service.Start();
 
             resetEvent.WaitOne();

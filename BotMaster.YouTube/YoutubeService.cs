@@ -35,7 +35,7 @@ namespace BotMaster.YouTube
 
             this.logger = logger;
 
-            return MessageConvert.ToPackage(Bot.Create(MessageConvert.ToMessage(receivedPackages.Do(package => logger.Trace("rcv new package")))));
+            return MessageConvert.ToPackage(Bot.Create(MessageConvert.ToMessage(receivedPackages)));
 
         }
 

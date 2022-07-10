@@ -94,5 +94,26 @@ namespace BotMaster.Core
                 .Retry()
                 .Dematerialize();
 
+
+        /// <summary>
+        ///     Repeats the source observable sequence until it completes successfully unless the predicate returns false, delaying each repetition by the given amount of time
+        ///     using the provided scheduler for its internal timer.
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <param name="source">Observable sequence to repeat until it successfully terminates.</param>
+        /// <param name="predicate">Predicate evaluated for each failed termination to determine whether to repeat the sequence.</param>
+        /// <param name="delay">The amount of time to delay each repetation.</param>
+        /// <param name="scheduler">The scheduler to run timers on.</param>
+        /// <returns>An observable sequence producing the elements of the given sequence repeatedly until it terminates successfully or the predicate fails.</returns>
+        public static IObservable<TSource> Retry<TSource>(this IObservable<TSource> source, Func<Exception, bool> predicate, Func<TimeSpan> delay, IScheduler scheduler)
+            => source
+                .Materialize()
+                .SelectMany(n
+                    => n.Kind == NotificationKind.OnError && predicate(n.Exception)
+                        ? Observable.Timer(delay(), scheduler).SelectMany(Observable.Throw<Notification<TSource>>(n.Exception))
+                        : Observable.Return(n))
+                .Retry()
+                .Dematerialize();
+
     }
 }
