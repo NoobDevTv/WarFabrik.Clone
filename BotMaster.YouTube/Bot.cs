@@ -46,13 +46,7 @@ namespace BotMaster.YouTube
 
         public static IObservable<Message> Create(IObservable<Message> notifications)
         {
-            return
-                       //Observable
-                       //    .Return(0L)
-                       //    .Concat(Observable.Interval(TimeSpan.FromSeconds(25)))
-                       //    .Do(x=>Console.WriteLine("Making new Context"))
-                       //    .Select(x =>
-                       Observable
+            return Observable
                         .Using(() => CreateContext(new CommandoCentral()).Result, (context) =>
                         {
                             var client = context.Client;
@@ -60,8 +54,7 @@ namespace BotMaster.YouTube
 
                             var subscriptions = SubscribeExternMessages(notifications, context, client);
 
-                     
-
+                            var refreshSubscription = CreateTokenRefresh(context).Subscribe();
 
                             var follower = YoutubeServiceInformation
                                 .GetFollowerUpdates(context.Api, context.MetaData, TimeSpan.FromSeconds(300), Scheduler.Default)
@@ -69,7 +62,7 @@ namespace BotMaster.YouTube
 
                             var broadcasts = YoutubeServiceInformation
                                 .GetBroadcasts(context.Api, context.MetaData, TimeSpan.FromMinutes(5), LivestreamContract
-                               .ToDefineMessages(notifications).Match<StreamLiveInformation>(x=>x), Scheduler.Default);
+                               .ToDefineMessages(notifications).Match<StreamLiveInformation>(x => x), Scheduler.Default);
 
                             var liveStreamInformations = broadcasts
                                 .Select(x => (LivestreamMessage)new StreamLiveInformation(context.Channel.Id, context.Channel.Snippet.Title, SourcePlattform, x.Count > 0));
@@ -79,12 +72,19 @@ namespace BotMaster.YouTube
                             var LivestreamMessages = LivestreamContract.ToMessages(follower.Merge(liveStreamInformations)).Merge(messages);
 
                             return Observable.Using(
-                                            () => subscriptions,
+                                            () => StableCompositeDisposable.Create(subscriptions, refreshSubscription),
                                             (_) => LivestreamMessages);
                         });
+        }
 
-                    //)
-                    //.Merge();
+        private static IObservable<long> CreateTokenRefresh(YoutubeContext context)
+        {
+            return Observable
+                .Timer(TimeSpan.FromSeconds(Math.Max(context.Credential.Token.ExpiresInSeconds ?? 120 - 120, 0)))
+                .Select(x => Observable.FromAsync(x => context.Credential.RefreshTokenAsync(x)))
+                .Concat()
+                .SelectMany(x => CreateTokenRefresh(context))
+                ;
         }
 
         private static IObservable<Message> GetChatMessages(IObservable<Message> notifications, YoutubeContext context, IObservable<IList<LiveBroadcast?>> liveBroadcasts)
@@ -145,7 +145,6 @@ namespace BotMaster.YouTube
                         var definedMessages = DefinedContract.ToMessages(commandMessages.Merge(chatMessages));
 
                         return definedMessages;
-
                     })
                     .Concat();
         }
@@ -233,15 +232,14 @@ namespace BotMaster.YouTube
                     {
                         ClientSecrets = GoogleClientSecrets.Load(stream).Secrets
                     }),
-                metaData.User_Id,
-                token
+                    metaData.User_Id,
+                    token
                 );
             if (token.IsExpired(Google.Apis.Util.SystemClock.Default))
             {
                 var res = await credential.RefreshTokenAsync(CancellationToken.None);
                 Console.WriteLine("Made new Token");
             }
-
 
             var youtubeService = new YouTubeService(new BaseClientService.Initializer
             {
@@ -255,7 +253,7 @@ namespace BotMaster.YouTube
 
             var noobDevChannel = channelReq.Execute().Items.First();
 
-            return new YoutubeContext(youtubeService, new(youtubeService), metaData, noobDevChannel, commandoCentral, new());
+            return new YoutubeContext(youtubeService, new(youtubeService), metaData, noobDevChannel, commandoCentral, new(), credential);
         }
 
     }

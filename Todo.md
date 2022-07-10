@@ -1,6 +1,4 @@
 ﻿TODOS:
-	- Support multiple runners
-
 	- ASP Net Core Web Core and Extensions
 		- ✓(Maybe) Betterplace donation alert
 
@@ -55,3 +53,7 @@ Done:
 
 	- ✓ Exception inside Plugin shouldn't crash the bot
 		- ✓ Does the external process get restarted after exception? No
+
+	- ✓ Support multiple runners
+
+	- ✓ Telegram => Subscribe to Notifications

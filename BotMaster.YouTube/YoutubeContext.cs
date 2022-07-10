@@ -1,6 +1,7 @@
 ﻿using BotMaster.Commandos;
 using BotMaster.MessageContract;
 
+using Google.Apis.Auth.OAuth2;
 using Google.Apis.YouTube.v3;
 using Google.Apis.YouTube.v3.Data;
 
@@ -11,7 +12,7 @@ using System.Reactive.Disposables;
 
 namespace BotMaster.YouTube
 {
-    internal record YoutubeContext(YouTubeService Api, YoutubeClient Client, YoutubeMetaData MetaData, Channel Channel, CommandoCentral CommandoCentral, CompositeDisposable Disposables) : IDisposable
+    internal record YoutubeContext(YouTubeService Api, YoutubeClient Client, YoutubeMetaData MetaData, Channel Channel, CommandoCentral CommandoCentral, CompositeDisposable Disposables, UserCredential Credential) : IDisposable
     {
         public Logger Logger { get; } = LogManager.GetLogger($"{nameof(Bot)}_{MetaData.User_Id}");
         internal const string Plattform = "Youtube";
