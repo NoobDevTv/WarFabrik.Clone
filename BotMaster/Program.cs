@@ -1,9 +1,11 @@
-﻿using BotMaster.PluginSystem;
+﻿using BotMaster.Configuraiton;
+using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.PluginCreator;
 using BotMaster.Runtime;
 
 using NLog;
 using NLog.Config;
+using NLog.Extensions.Logging;
 using NLog.Targets;
 
 using NonSucking.Framework.Extension.IoC;
@@ -20,32 +22,25 @@ namespace BotMaster
     {
         internal static async Task Main(string[] args)
         {
-            var config = new LoggingConfiguration();
+            var config = ConfigManager.GetConfiguration("appsettings.json", args);
 
-            var info = new FileInfo(Path.Combine(".", "additionalfiles", "botmaster.log"));
-            var pluginInfo = new DirectoryInfo(Path.Combine(".", "plugins"));
-            var runnersPath = new DirectoryInfo(Path.Combine(".", "runners"));
+            var botmasterConfig = config.GetSettings<BotmasterConfig>();
 
-            if (!info.Directory.Exists)
-                info.Directory.Create();
+
+            using var iDisposablemanagerDispose = Disposable.Create(LogManager.Shutdown);
+            
+            var logger = LogManager
+                .Setup()
+                .LoadConfigurationFromSection(config)
+                .GetCurrentClassLogger();
+
+            var pluginInfo = new DirectoryInfo(botmasterConfig.PluginsPath);
+            var runnersPath = new DirectoryInfo(botmasterConfig.RunnersPath);
+
             if (!pluginInfo.Exists)
                 pluginInfo.Create();
-
-            //LogManager.Setup().LoadConfigurationFromFile();
-
-            using var fileTarget = new FileTarget("botmaster.logfile") { FileName = info.FullName };
-            using var colorTarget = new ColoredConsoleTarget("botmaster.logconsole");
-#if DEBUG
-            config.AddRule(LogLevel.Trace, LogLevel.Fatal, fileTarget);
-            config.AddRule(LogLevel.Debug, LogLevel.Fatal, colorTarget);
-#else
-            config.AddRule(LogLevel.Trace, LogLevel.Fatal, fileTarget);
-            config.AddRule(LogLevel.Trace, LogLevel.Fatal, colorTarget);
-#endif
-            LogManager.Configuration = config;
-
-            using var IDisposablemanagerDispose = Disposable.Create(LogManager.Shutdown);
-            var logger = LogManager.GetCurrentClassLogger();
+            if (!runnersPath.Exists)
+                runnersPath.Create();
 
             logger.Info("BotMaster started");
 
@@ -53,17 +48,16 @@ namespace BotMaster
             Console.CancelKeyPress += (s, e) => resetEvent.Set();
             var typeContainer = TypeContainer.Get<ITypeContainer>();
 
-#if DEBUG
-            var creatorLogger = LogManager.GetLogger("InProcessPlugin");
-            typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator(creatorLogger, PluginHost.PluginHoster.Load));
-            //typeContainer.Register<IPluginInstanceCreator>(new IPCPluginCreator());
-#else
-            var creatorLogger = LogManager.GetLogger("InProcessPlugin");
+            if (botmasterConfig.RunPluginsInOwnProcess)
+            {
+                var creatorLogger = LogManager.GetLogger("InProcessPlugin");
+                typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator(creatorLogger, PluginHost.PluginHoster.Load));
 
-            typeContainer.Register<IPluginInstanceCreator>(new IPCPluginCreator());
-            //typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator(creatorLogger, PluginHost.PluginHoster.Load));
-
-#endif
+            }
+            else
+            {
+                typeContainer.Register<IPluginInstanceCreator>(new IPCPluginCreator());
+            }
 
             var serviceLogger = LogManager.GetLogger($"{nameof(BotMaster)}.{nameof(Service)}");
 

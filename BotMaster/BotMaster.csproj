@@ -13,13 +13,17 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
-		<PackageReference Include="NLog" Version="4.7.13" />
+		<PackageReference Include="NLog" Version="5.0.1" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="*" />
+		<PackageReference Include="NLog.Extensions.Logging" Version="5.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\BotMaster.Configuraiton\BotMaster.Configuration.csproj" />
 		<ProjectReference Include="..\BotMaster.PluginHost\BotMaster.PluginHost.csproj" />
 		<ProjectReference Include="..\BotMaster.Runtime\BotMaster.Runtime.csproj" />
 	</ItemGroup>
+
+	<ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 
 </Project>

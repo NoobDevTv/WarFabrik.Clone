@@ -1,12 +1,15 @@
 ﻿TODOS:
 	- ASP Net Core Web Core and Extensions
 		- ✓(Maybe) Betterplace donation alert
+	
+	- Configuration Files
+		- Move Nlog to Config File
+		- Appconfig per Plugin
+		- Appconfig for core service
 
 	- Improve Logging
 
 	- Save IDs of follows / donations, so we know which are new 
-
-	- Appconfig per Plugin
 
 	- Set Title on Youtube and Twitch?
 		- https://dev.twitch.tv/docs/api/reference#modify-channel-information

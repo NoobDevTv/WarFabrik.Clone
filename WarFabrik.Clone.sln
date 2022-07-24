@@ -23,7 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.PluginSystem", "B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Betterplace.MessageContract", "BotMaster.Betterplace.MessageContract\BotMaster.Betterplace.MessageContract.csproj", "{18594AAC-4A00-4697-BF71-DE3B16D76809}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{89A6BB40-CC87-4630-A59F-1C0BA0DB2EB8}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "01_Solution Items", "01_Solution Items", "{89A6BB40-CC87-4630-A59F-1C0BA0DB2EB8}"
 	ProjectSection(SolutionItems) = preProject
 		Todo.md = Todo.md
 	EndProjectSection
@@ -40,11 +40,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.YouTube", "BotMas
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Twitch", "BotMaster.Twitch\BotMaster.Twitch.csproj", "{D59894E6-50FA-4083-8A13-AF896558EEC9}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{872B999A-C9A5-4D57-A5E2-EF48D6718373}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "04_Plugins", "04_Plugins", "{872B999A-C9A5-4D57-A5E2-EF48D6718373}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{7EF84A8C-21C7-4F8B-8A36-E85A65F795E4}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "02_Core", "02_Core", "{7EF84A8C-21C7-4F8B-8A36-E85A65F795E4}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Runner", "Runner", "{79FE7D4D-740B-489E-ADC9-FBB1623110D0}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03_Runner", "03_Runner", "{79FE7D4D-740B-489E-ADC9-FBB1623110D0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Configuration", "BotMaster.Configuraiton\BotMaster.Configuration.csproj", "{3CA333F1-BC1E-4914-842D-62E0F2E88CAC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -116,6 +118,10 @@ Global
 		{D59894E6-50FA-4083-8A13-AF896558EEC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D59894E6-50FA-4083-8A13-AF896558EEC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D59894E6-50FA-4083-8A13-AF896558EEC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3CA333F1-BC1E-4914-842D-62E0F2E88CAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3CA333F1-BC1E-4914-842D-62E0F2E88CAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3CA333F1-BC1E-4914-842D-62E0F2E88CAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3CA333F1-BC1E-4914-842D-62E0F2E88CAC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -136,6 +142,7 @@ Global
 		{9D3B16DC-8237-460D-8335-F37D20E6771D} = {872B999A-C9A5-4D57-A5E2-EF48D6718373}
 		{1D8BC496-653B-46AF-A77C-B41AD374C6B4} = {872B999A-C9A5-4D57-A5E2-EF48D6718373}
 		{D59894E6-50FA-4083-8A13-AF896558EEC9} = {872B999A-C9A5-4D57-A5E2-EF48D6718373}
+		{3CA333F1-BC1E-4914-842D-62E0F2E88CAC} = {7EF84A8C-21C7-4F8B-8A36-E85A65F795E4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8A92FB12-1FB4-4186-AD4C-40C63CAD735C}
