@@ -62,7 +62,6 @@ namespace BotMaster
 
             typeContainer.Register<IPluginInstanceCreator>(new IPCPluginCreator());
             //typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator(creatorLogger, PluginHost.PluginHoster.Load));
-
 #endif
 
             var serviceLogger = LogManager.GetLogger($"{nameof(BotMaster)}.{nameof(Service)}");
