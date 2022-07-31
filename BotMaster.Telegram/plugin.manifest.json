@@ -1,0 +1,8 @@
+{
+  "Id": "BotMaster.Telegram",
+  "Name": "Telegram Plugin",
+  "Author": "NoobDevTv",
+  "Version": "1.0.0",
+  "File": "BotMaster.Telegram.dll",
+  "ProcessRunner": "BotMaster.DotNetRunner"
+}

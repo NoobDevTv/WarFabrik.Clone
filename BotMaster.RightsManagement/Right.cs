@@ -1,0 +1,12 @@
+﻿using BotMaster.Database;
+
+namespace BotMaster.RightsManagement;
+
+public class Right : IdEntity<int>
+{
+    public string Name { get; set; }
+
+    public virtual ICollection<PlattformUser> PlattformUsers { get; set; } = new List<PlattformUser>();
+    public virtual ICollection<Group> Groups { get; set; } = new List<Group>();
+    public virtual ICollection<User> Users { get; set; } = new List<User>();
+}

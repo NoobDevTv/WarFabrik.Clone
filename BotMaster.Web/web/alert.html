@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alert</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://fonts.googleapis.com/css?family=Oswald"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css"
+    />
+    <style type="text/css">
+      body {
+        font-family: Oswald;
+        font-size: 25px;
+        font-weight: normal;
+        color: #ffffff;
+      }
+      .text-shadow {
+        text-shadow: rgb(0, 0, 0) 0px 0px 1px, rgb(0, 0, 0) 0.1px 1px 0.1px,
+          rgb(0, 0, 0) 1px 1px 0.1px, rgb(0, 0, 0) 1px 0.1px 0.1px,
+          rgb(0, 0, 0) -1px 1px 0.1px, rgb(0, 0, 0) -1px 0.1px 0.1px,
+          rgb(0, 0, 0) -1px -1px 0.1px, rgb(0, 0, 0) 0.1px -1px 0.1px,
+          rgb(0, 0, 0) 1px -1px 0.1px;
+      }
+      .no-display {
+        display: none;
+      }
+      .strong {
+        font-weight: bold;
+        color: #199e15;
+      }
+      .name-container {
+        display: flex;
+        font-size: 30px;
+        text-align: center;
+        justify-content: center;
+      }
+      .center {
+        text-align: center;
+      }
+      .space {
+        margin-left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="alert" class="text-shadow no-display">
+      <div class="name-container">
+        <div id="name" class="strong"></div>
+        <div class="space">spendete</div>
+        <div id="amount" class="space strong"></div>
+        <div class="space">Geld</div>
+      </div>
+      <div id="message" class="center"></div>
+    </div>
+  </body>
+  <script type="text/javascript">
+    const name = document.getElementById("name");
+    const message = document.getElementById("message");
+    const amount = document.getElementById("amount");
+    const alertBox = document.getElementById("alert");
+    const tadaTokens = ["animated", "tada", "duration-2s"];
+    const bounceTokens = ["animated", "bounceOut", "delay-5s"];
+    const alertQueue = [];
+    var lastId = 0;
+
+    setInterval(() => {
+      let request = new XMLHttpRequest();
+      request.open("GET", "/betterplace/alert");
+      request.addEventListener("loadend", event => {
+        if (request.status < 200 && request.status > 300) return;
+
+        let alerts = JSON.parse(request.response);
+        alertQueue.push(...alerts);
+      });
+      request.send();
+    }, 5000);
+
+    setInterval(() => {
+      if (alertQueue.length < 1) {
+        if (!alertBox.classList.contains("no-display"))
+          alertBox.classList.add("no-display");
+        return;
+      }
+
+      alertBox.classList.remove(bounceTokens);
+
+      let alert;
+      while (alertQueue.length > 0) {
+        alert = alertQueue.shift();
+        if (alert.id <= lastId) continue;
+        else break;
+      }
+      if (alert.id <= lastId) return;
+      //sound: C:\Windows\Media\Windows Background.wav
+      name.innerHTML = alert.name;
+      message.innerHTML = alert.message;
+      amount.innerHTML = alert.amount;
+      alertBox.classList.remove("no-display");
+      animateCSS(alertBox, tadaTokens, () => {
+        animateCSS(alertBox, bounceTokens, () => {
+          if (!alertBox.classList.contains("no-display"))
+            alertBox.classList.add("no-display");
+        });
+      });
+      lastId = alert.id;
+    }, 10000);
+
+    function animateCSS(element, animationTokens, callback) {
+      element.classList.add(...animationTokens);
+
+      function handleAnimationEnd() {
+        element.classList.remove(...animationTokens);
+        element.removeEventListener("animationend", handleAnimationEnd);
+
+        if (typeof callback === "function") callback();
+      }
+
+      element.addEventListener("animationend", handleAnimationEnd);
+    }
+  </script>
+</html>

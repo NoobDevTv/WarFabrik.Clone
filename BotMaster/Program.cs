@@ -1,73 +1,78 @@
-﻿using NLog;
+﻿using BotMaster.PluginSystem;
+using BotMaster.PluginSystem.PluginCreator;
+using BotMaster.Runtime;
+
+using NLog;
 using NLog.Config;
 using NLog.Targets;
-using NoobDevBot.Telegram;
-using System;
-using System.IO;
-using System.Threading;
-using WarFabrik.Clone;
-using static WarFabrik.Clone.FollowerServiceNew;
+
+using NonSucking.Framework.Extension.IoC;
+
+using System.Diagnostics;
+using System.Globalization;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Text;
 
 namespace BotMaster
 {
-    class Program
+    internal partial class Program
     {
-        private static Logger logger;
-        private static ManualResetEvent manualReset;
-        private static Bot twitchBot;
-        private static TelegramBot telegramBot;
-
-        static void Main(string[] args)
+        internal static async Task Main(string[] args)
         {
             var config = new LoggingConfiguration();
 
             var info = new FileInfo(Path.Combine(".", "additionalfiles", "botmaster.log"));
+            var pluginInfo = new DirectoryInfo(Path.Combine(".", "plugins"));
+            var runnersPath = new DirectoryInfo(Path.Combine(".", "runners"));
 
             if (!info.Directory.Exists)
                 info.Directory.Create();
+            if (!pluginInfo.Exists)
+                pluginInfo.Create();
 
+            //LogManager.Setup().LoadConfigurationFromFile();
+
+            using var fileTarget = new FileTarget("botmaster.logfile") { FileName = info.FullName };
+            using var colorTarget = new ColoredConsoleTarget("botmaster.logconsole");
 #if DEBUG
-            config.AddRule(LogLevel.Debug, LogLevel.Fatal, new ColoredConsoleTarget("botmaster.logconsole"));
-            config.AddRule(LogLevel.Trace, LogLevel.Fatal, new FileTarget("botmaster.logfile") { FileName = info.FullName });
+            config.AddRule(LogLevel.Trace, LogLevel.Fatal, fileTarget);
+            config.AddRule(LogLevel.Debug, LogLevel.Fatal, colorTarget);
 #else
-            config.AddRule(LogLevel.Info, LogLevel.Fatal, new FileTarget("botmaster.logfile") { FileName = info.FullName });
+            config.AddRule(LogLevel.Trace, LogLevel.Fatal, fileTarget);
+            config.AddRule(LogLevel.Trace, LogLevel.Fatal, colorTarget);
 #endif
             LogManager.Configuration = config;
-            logger = LogManager.GetCurrentClassLogger();
 
+            using var IDisposablemanagerDispose = Disposable.Create(LogManager.Shutdown);
+            var logger = LogManager.GetCurrentClassLogger();
 
-            manualReset = new ManualResetEvent(false);
+            logger.Info("BotMaster started");
 
-            telegramBot = new TelegramBot();
+            using var resetEvent = new ManualResetEvent(false);
+            Console.CancelKeyPress += (s, e) => resetEvent.Set();
+            var typeContainer = TypeContainer.Get<ITypeContainer>();
 
-            twitchBot = new Bot();
-            twitchBot.Connect();
-            
-            twitchBot.FollowerService.OnNewFollowersDetected += TwitchNewFollower;
-            twitchBot.OnHosted += TwitchBotOnHosted;
-            Console.CancelKeyPress += ConsoleCancelKeyPress;
-            logger.Info("Der Bot ist Online");
-            telegramBot.SendMessageToGroup("NoobDev", "Der Bot ist Online");
-            manualReset.WaitOne();
+#if DEBUG
+            var creatorLogger = LogManager.GetLogger("InProcessPlugin");
+            typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator(creatorLogger, PluginHost.PluginHoster.Load));
+            //typeContainer.Register<IPluginInstanceCreator>(new IPCPluginCreator());
+#else
+            var creatorLogger = LogManager.GetLogger("InProcessPlugin");
 
-        }
+            typeContainer.Register<IPluginInstanceCreator>(new IPCPluginCreator());
+            //typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator(creatorLogger, PluginHost.PluginHoster.Load));
 
-        private static void TwitchBotOnHosted(object sender, (string Name, int Count) e) 
-            => telegramBot.SendMessageToGroup("NoobDev", $"We are hosted by {e.Name} with {e.Count} viewers");
+#endif
 
-        private static void ConsoleCancelKeyPress(object sender, ConsoleCancelEventArgs e)
-        {
-            logger.Info("Quit Bot master");
-            telegramBot.Exit();
-            twitchBot.Disconnect();
-            manualReset.Set();
-        }
+            var serviceLogger = LogManager.GetLogger($"{nameof(BotMaster)}.{nameof(Service)}");
 
-        private static void TwitchNewFollower(object sender, NewFollowerDetectedArgs e)
-        {
-            string followerNames = "";
-            e.NewFollowers.ForEach(x => followerNames += x.User.DisplayName + ", ");
-            telegramBot.SendMessageToGroup("NoobDev", "Following people just followed: " + followerNames.Trim(',').Trim());
+            logger.Info("BotMaster PluginService Started");
+            using var service = new Service(typeContainer, serviceLogger, pluginInfo, runnersPath);
+            service.Start();
+
+            resetEvent.WaitOne();
+            logger.Info("BotMaster stopped");
         }
     }
 }

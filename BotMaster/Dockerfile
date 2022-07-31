@@ -1,20 +1,21 @@
-FROM mcr.microsoft.com/dotnet/core/runtime:2.1-stretch-slim AS base
+#See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
+
+FROM mcr.microsoft.com/dotnet/runtime:6.0 AS base
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/core/sdk:2.1-stretch AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS publish
 WORKDIR /src
 COPY ["BotMaster/BotMaster.csproj", "BotMaster/"]
-COPY ["WarFabrik.Clone/WarFabrik.Clone.csproj", "WarFabrik.Clone/"]
-COPY ["NoobDevBot.Telegram/NoobDevBot.Telegram.csproj", "NoobDevBot.Telegram/"]
+COPY ["BotMaster.Runtime/BotMaster.Runtime.csproj", "BotMaster.Runtime/"]
+COPY ["BotMaster.Core/BotMaster.Core.csproj", "BotMaster.Core/"]
+COPY ["BotMaster.PluginSystem/BotMaster.PluginSystem.csproj", "BotMaster.PluginSystem/"]
+COPY ["BotMaster.PluginHost/BotMaster.PluginHost.csproj", "BotMaster.PluginHost/"]
 RUN dotnet restore "BotMaster/BotMaster.csproj"
 COPY . .
 WORKDIR "/src/BotMaster"
-RUN dotnet build "BotMaster.csproj" -c Release -o /app
-
-FROM build AS publish
-RUN dotnet publish "BotMaster.csproj" -c Release -o /app
+RUN dotnet publish "BotMaster.csproj" --no-restore -c Release -o /app/publish 
 
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app .
+COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "BotMaster.dll"]
