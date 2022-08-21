@@ -56,7 +56,10 @@ namespace BotMaster.Telegram
                 botInstance
                     => MessageConvert
                         .ToPackage(
-                            Create(MessageConvert.ToMessage(receivedPackages), botInstance))
+                            Create(MessageConvert.ToMessage(receivedPackages), botInstance)
+                            .OnError(logger, nameof(Create))
+                            .Retry()
+                        )
             );
         }
 
@@ -153,7 +156,8 @@ namespace BotMaster.Telegram
                         })
                         .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"Der Broadcast hat begonnen auf {toSend.message.SourcePlattform} für {toSend.message.UserName}"))
                         .Select(x => (LivestreamMessage)x.message)
-                   );
+                   )
+                  .Log(logger, "incommingLivestreamMessages", subscription: LogLevel.Debug);
 
             var incommingBetterplaceMessages = BetterplaceContract
                   .ToDefineMessages(notifications)
@@ -173,8 +177,9 @@ namespace BotMaster.Telegram
                             })
                             .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"{toSend.donation.Author} hat {toSend.donation.Donated_amount_in_cents} Geld gespendet. Vielen lieben Dank dafür <3"))
                             .Select(x => (BetterplaceMessage)x.donation)
-                      );
-
+                   )
+                  .Log(logger, "incommingBetterplaceMessages", subscription: LogLevel.Debug);
+            
             //Messages from other plugins
             IObservable<DefinedMessage> pluginMessageWithGroups
                 = definedMessages
@@ -189,16 +194,18 @@ namespace BotMaster.Telegram
                         .Select(x => (DefinedMessage)x.message),
 
                         commandMessage => commandMessage
-                        .Select(x => (DefinedMessage)x),
+                            .Select(x => (DefinedMessage)x),
                         chatMessage => chatMessage
-                        .SelectMany(message =>
-                        {
-                            var userIds = GetIdsOfGroup("chat");
+                            .SelectMany(message =>
+                            {
+                                var userIds = GetIdsOfGroup("chat");
 
-                            return userIds.Select(userId => (userId, message));
-                        })
-                        .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"[{toSend.message.Username} ({toSend.message.Source})]: {toSend.message.Text}"))
-                        .Select(x => (DefinedMessage)x.message));
+                                return userIds.Select(userId => (userId, message));
+                            })
+                            .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"[{toSend.message.Username} ({toSend.message.Source})]: {toSend.message.Text}"))
+                            .Select(x => (DefinedMessage)x.message)
+                )
+                .Log(logger, "pluginMessageWithGroups", subscription: LogLevel.Debug);
 
             var incommingCommandStream = botContext.CommandoCentral.CreateCommandStream(definedMessages
                 .Match<CommandMessage>(n => n));

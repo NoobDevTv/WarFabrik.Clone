@@ -7,7 +7,9 @@
 	  <CompilerGeneratedFilesOutputPath>GeneratedFiles</CompilerGeneratedFilesOutputPath>-->
 	  <EnablePreviewFeatures>True</EnablePreviewFeatures>
 	  <ImplicitUsings>enable</ImplicitUsings>
+	  <LangVersion>preview</LangVersion>
   </PropertyGroup>
+
 
 	<ItemGroup>
 		<PackageReference Include="NonSucking.Framework.Extension" Version="0.1.0.74-alpha" />

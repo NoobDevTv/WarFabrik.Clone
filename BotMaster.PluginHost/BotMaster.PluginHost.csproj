@@ -4,10 +4,11 @@
 		<TargetFramework>net6.0</TargetFramework>
 		<EnablePreviewFeatures>True</EnablePreviewFeatures>
 		<ImplicitUsings>enable</ImplicitUsings>
+		<LangVersion>preview</LangVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="NLog" Version="4.7.13" />
+		<PackageReference Include="NLog" Version="5.0.2" />
 		<PackageReference Include="NonSucking.Framework.Extension" Version="0.1.0.74-alpha" />
 	</ItemGroup>
 

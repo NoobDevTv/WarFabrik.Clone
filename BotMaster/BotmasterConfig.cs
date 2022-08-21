@@ -1,4 +1,4 @@
-﻿using BotMaster.Configuraiton;
+﻿using BotMaster.Core.Configuration;
 
 using System;
 using System.Collections.Generic;

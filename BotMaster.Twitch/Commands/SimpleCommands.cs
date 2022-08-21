@@ -71,7 +71,7 @@ namespace BotMaster.Twitch.Commands
             SendMessage(context, message, "Github: https://github.com/NoobDevTv");
         }
 
-        internal static void Add(TwitchContext context, CommandMessage message)
+        internal static void Add(TwitchContext context, CommandMessage message, bool global = false)
         {
             var toAddCommand = message.Parameter.First().ToLower();
             var text = " " + string.Join(" ", message.Parameter.Skip(1));
@@ -88,13 +88,15 @@ namespace BotMaster.Twitch.Commands
                     Secure = message.Secure,
                     Text = text,
                     Command = toAddCommand,
-                    Target = message.Secure ? message.Username : context.Channel
+                    Target = message.Secure ? message.Username : context.Channel,
+                    Global = global
                 });
 
                 ctx.SaveChanges();
             }
 
         }
+
 
         internal static void Register(TwitchContext context, CommandMessage c)
         {
@@ -248,17 +250,17 @@ namespace BotMaster.Twitch.Commands
 
         private static async Task UptimeAsync(TwitchContext context, CommandMessage message)
         {
-            var uptime = await context.Api.V5.Streams.GetUptimeAsync(context.Channel); //Helix.Streams.GetStreamsAsync().
+            var streamsResponse = await context.Api.Helix.Streams.GetStreamsAsync(userIds: new List<string> { context.UserId });
+            var stream = streamsResponse.Streams.FirstOrDefault();
 
-            if (uptime == null)
+            if (stream == default)
             {
                 SendMessage(context, message, "Irgendwas ist mit dem !uptime Befehl kaputt gegangen :(");
-
                 return;
             }
 
-            SendMessage(context, message,
-                $"Der Stream läuft schon {uptime.Value.Hours.ToString("d2")}:{uptime.Value.Minutes.ToString("d2")}:{uptime.Value.Seconds.ToString("d2")}");
+            var runtime = DateTime.UtcNow - stream.StartedAt.ToUniversalTime();
+            SendMessage(context, message, $"Der Stream läuft schon {runtime.Hours:d2}:{runtime.Minutes:d2}:{runtime.Seconds:d2}");
 
         }
     }

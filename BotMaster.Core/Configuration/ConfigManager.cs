@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 
-namespace BotMaster.Configuration;
+namespace BotMaster.Core.Configuration;
 
 public static class ConfigManager
 {

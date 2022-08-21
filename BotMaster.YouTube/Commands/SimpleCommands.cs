@@ -76,7 +76,7 @@ namespace BotMaster.YouTube.Commands
             SendMessage(context, message, "Github: https://github.com/NoobDevTv");
         }
 
-        internal static void Add(YoutubeContext context, CommandMessage message)
+        internal static void Add(YoutubeContext context, CommandMessage message, bool global = false)
         {
             var toAddCommand = message.Parameter.First().ToLower();
             var text = " " + string.Join(" ", message.Parameter.Skip(1));
@@ -93,7 +93,8 @@ namespace BotMaster.YouTube.Commands
                     Secure = message.Secure,
                     Text = text,
                     Command = toAddCommand,
-                    Target = context.Channel.Id
+                    Target = context.Channel.Id,
+                    Global = global
                 });
 
                 ctx.SaveChanges();

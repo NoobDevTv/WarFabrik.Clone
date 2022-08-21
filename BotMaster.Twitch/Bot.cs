@@ -24,6 +24,8 @@ using TwitchLib.PubSub.Events;
 
 using DefinedContract = BotMaster.MessageContract.Contract;
 using LivestreamContract = BotMaster.Livestream.MessageContract.LivestreamContract;
+using BotMaster.Core.NLog;
+using NLog;
 
 namespace BotMaster.Twitch
 {
@@ -71,6 +73,7 @@ namespace BotMaster.Twitch
                     context.AddCommand((c) => !c.Secure, (c) => SimpleCommands.PublicConnect(context, c), "connect");
 
                     context.AddCommand((c) => GetUser(c.SourcePlattform, c.PlattformUserId)?.HasRight("AddCommand") ?? false && c.SourcePlattform == SourcePlattform, (c) => SimpleCommands.Add(context, c), "add");
+                    context.AddCommand((c) => GetUser(c.SourcePlattform, c.PlattformUserId)?.HasRight("AddCommand") ?? false && c.SourcePlattform == SourcePlattform, (c) => SimpleCommands.Add(context, c, true), "addglobal");
 
                     var commands = CommandoCentral.GetCommandsFor("Twitch");
                     foreach (var item in commands)
@@ -91,10 +94,17 @@ namespace BotMaster.Twitch
                     context.pubSub.ListenToVideoPlayback(context.UserId);
 
 
+
                     var messages = Observable
                         .FromEventPattern<OnConnectedArgs>(add => client.OnConnected += add, remove => client.OnConnected -= remove)
                         .Select(e =>
                         {
+
+                            notifications = notifications
+                                    .Log(context.Logger, nameof(TwitchService) + " Incomming", onNext: LogLevel.Debug)
+                                    .Publish()
+                                    .RefCount();
+
                             var incommingDefinedMessages = DefinedContract
                                .ToDefineMessages(notifications)
                                .VisitMany(
@@ -106,7 +116,8 @@ namespace BotMaster.Twitch
                                         .Where(x => x.Source != SourcePlattform)
                                         .Do(message => client.SendMessage(context.Channel, $"[{message.Username}]: {message.Text}"))
                                         .Select(x => (DefinedMessage)x)
-                                   );
+                                )
+                               .Log(context.Logger, "incommingDefinedMessages", subscription: LogLevel.Debug);
 
                             var incommingLivestreamMessages = LivestreamContract
                                .ToDefineMessages(notifications)
@@ -120,14 +131,17 @@ namespace BotMaster.Twitch
                                     live => live
                                     .Where(x => x.SourcePlattform == SourcePlattform)
                                     .Do(message => client.SendMessage(context.Channel, $"Der Bot ist weiterhin online :)")).Select(x => (LivestreamMessage)x)
-                                   );
+                               )
+                               .Log(context.Logger, "incommingLivestreamMessages", subscription: LogLevel.Debug);
 
                             var incommingBetterplaceMessages = BetterplaceContract
                                   .ToDefineMessages(notifications)
                                   .VisitMany(
                                        donation => donation
                                            .Do(x => client.SendMessage(context.Channel, $"{x.Author} hat {x.Donated_amount_in_cents} Geld gespendet. Vielen lieben Dank dafür <3"))
-                                           .Select(x => (BetterplaceMessage)x));
+                                           .Select(x => (BetterplaceMessage)x)
+                                  )
+                                  .Log(context.Logger, "incommingBetterplaceMessages", subscription: LogLevel.Debug);
 
 
 

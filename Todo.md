@@ -2,14 +2,7 @@
 	- ASP Net Core Web Core and Extensions
 		- ✓(Maybe) Betterplace donation alert
 	
-	- Configuration Files
-		- Move Nlog to Config File
-		- Appconfig per Plugin
-		- Appconfig for core service
-
 	- Improve Logging
-
-	- Save IDs of follows / donations, so we know which are new 
 
 	- Set Title on Youtube and Twitch?
 		- https://dev.twitch.tv/docs/api/reference#modify-channel-information
@@ -18,10 +11,7 @@
 
 	- Discord BOT Api?
 
-	- Database Problem? How To Why and When
-		- Global Commands
-		- Twitch/YT Command Message Creation
-		- Save current followers, so we know the diff
+	- Save IDs of follows / donations, so we know which are new 
 
 	- Betterplace Optimizing (Webhooks)
 
@@ -30,6 +20,18 @@
 	- TeamSpeak Bot
 
 	- Cleanup again
+
+	To Fix:
+		- Telegram goes offline
+		- Twitch send 4 messages on follow after longer runtime
+		- No Twitch reconnect after restart
+
+How To Migrate:
+- Add reference of target to botmaster
+- cd into Botmaster
+- execute: dotnet ef migrations add MIGRATIONNAME --project ../TARGETPROJECT
+- Remvoe reference of target to botmaster
+
 
 Done:
 	- Dispatch Command (always) to itself
@@ -60,3 +62,12 @@ Done:
 	- ✓ Support multiple runners
 
 	- ✓ Telegram => Subscribe to Notifications
+
+	- ✓ Configuration Files
+		- ✓ Move Nlog to Config File
+		- ✓ Appconfig per Plugin
+		- ✓ Appconfig for core service
+
+	- Database Problem? How To Why and When
+		- ✓ Global Commands
+		- ✓ Twitch/ ✓ YT Command Message Creation

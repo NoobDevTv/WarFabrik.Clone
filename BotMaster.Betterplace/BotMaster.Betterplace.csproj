@@ -9,6 +9,7 @@
 		<RuntimeIdentifier>linux-x64</RuntimeIdentifier>
 		<RuntimeIdentifiers>win-x64;linux-x64</RuntimeIdentifiers>
 		<SelfContained>True</SelfContained>
+		<LangVersion>preview</LangVersion>
 	</PropertyGroup>
 
 

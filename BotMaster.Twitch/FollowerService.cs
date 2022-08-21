@@ -44,7 +44,7 @@ namespace BotMaster.Twitch
         private record FollowerServiceContext(TwitchAPI Api, string UserId) : IDisposable
         {
             public List<FollowInformation> CurrentFollowers { get; } = new();
-            public Logger Logger { get; } = LogManager.GetLogger($"{nameof(FollowerService)}_{UserId}");
+            public Logger Logger { get; } = LogManager.GetLogger($"{nameof(Twitch)}.{nameof(FollowerService)}.{UserId}");
 
             public void Dispose()
             {

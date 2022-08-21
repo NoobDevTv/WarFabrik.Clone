@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using NLog;
 using System.Reactive.Linq;
+using BotMaster.Core.NLog;
 
 namespace BotMaster.Twitch
 {
@@ -33,12 +34,12 @@ namespace BotMaster.Twitch
 
             this.logger = logger;
 
-            return MessageConvert.ToPackage(Create(MessageConvert.ToMessage(receivedPackages)));
+            return MessageConvert.ToPackage(Create(MessageConvert.ToMessage(receivedPackages), logger));
 
         }
 
 
-        private static IObservable<Message> Create(IObservable<Message> notifications)
+        private static IObservable<Message> Create(IObservable<Message> notifications, ILogger logger)
         {
             var tokenFileInfo = new FileInfo(Path.Combine(".", "additionalfiles", "Token.json"));
 
@@ -50,6 +51,7 @@ namespace BotMaster.Twitch
             return GetAccessToken(new FileInfo(Path.Combine(".", "additionalfiles", "access.json")), tokenFile)
                 .Select(accessToken => Bot.Create(tokenFile, accessToken, "NoobDevTv", notifications))
                 .Concat()
+                .OnError(logger, nameof(Create))
                 .Retry();
         }
 

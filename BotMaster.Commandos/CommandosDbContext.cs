@@ -1,4 +1,6 @@
-﻿using BotMaster.Database;
+﻿using BotMaster.Core.Configuration;
+using BotMaster.Database;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
@@ -9,8 +11,9 @@ public class CommandosDbContext : DatabaseContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        //var info = new FileInfo(Path.Combine("..", "..", "additionalfiles", "Rights.db"));
-        var info = new FileInfo(Path.Combine("additionalfiles", "Rights.db"));
+        var config = ConfigManager.GetConfiguration(Path.Combine("additionalfiles", "CommandosConfig.json")).GetSettings<CommandoConfiguration>();
+
+        var info = new FileInfo(config.DbPath);
         _ = optionsBuilder.UseSqlite($"Data Source={info.FullName}");
         base.OnConfiguring(optionsBuilder);
     }

@@ -1,4 +1,4 @@
-﻿using BotMaster.Configuraiton;
+﻿using BotMaster.Core.Configuration;
 using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.PluginCreator;
 using BotMaster.Runtime;
@@ -28,7 +28,7 @@ namespace BotMaster
 
 
             using var iDisposablemanagerDispose = Disposable.Create(LogManager.Shutdown);
-            
+
             var logger = LogManager
                 .Setup()
                 .LoadConfigurationFromSection(config)
@@ -70,3 +70,24 @@ namespace BotMaster
         }
     }
 }
+
+
+//using System;
+
+//// Token: 0x02000003 RID: 3
+//public static class Program
+//{
+//    // Token: 0x06000001 RID: 1 RVA: 0x00002050 File Offset: 0x00000250
+//    public static void greet(string name)
+//    {
+//        Console.WriteLine("Morning, " + name + "!");
+//    }
+
+//    // Token: 0x06000002 RID: 2 RVA: 0x00002068 File Offset: 0x00000268
+//    public static int Main()
+//    {
+//        Console.Write("Hello World 12");
+//        Program.greet("Peter");
+//        return 0;
+//    }
+//}

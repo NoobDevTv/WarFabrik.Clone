@@ -3,6 +3,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using NonSucking.Framework.Extension.Collections;
+
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -45,7 +46,7 @@ public class CommandoCentral
     {
         using var ctx = new CommandosDbContext();
         ctx.Database.Migrate();
-        return ctx.Commands.ToList().Where(x => x.Plattforms.Count == 0 || x.Plattforms.Contains(plattform)).ToList();
+        return ctx.Commands.ToList().Where(x => x.Plattforms.Count == 0 || x.Global || x.Plattforms.Contains(plattform)).ToList();
     }
 
     /// <summary>
@@ -78,11 +79,11 @@ public class CommandoCentral
     public virtual IDisposable AddCommand(Action<CommandMessage> action, params PersistentCommand[] commandNames)
     {
         var commandStrs = _commands.Select(x => x.Command).ToList();
-        commandNames = commandNames.Where(x=> !commandStrs.Contains(x.Command)).ToArray();
+        commandNames = commandNames.Where(x => !commandStrs.Contains(x.Command)).ToArray();
         if (commandNames.Length == 0)
             return Disposable.Empty;
         _commands.AddRange(commandNames);
-        return messageSubject.Where(c => commandNames.Any(x=>x.Command == c.Command && x.Target == c.SourcePlattform)).Subscribe(action);
+        return messageSubject.Where(c => commandNames.Any(x => x.Command == c.Command && x.Target == c.SourcePlattform)).Subscribe(action);
     }
 
     public virtual IDisposable AddCommand(Func<CommandMessage, bool> guard, Action<CommandMessage> action, params PersistentCommand[] commandNames)

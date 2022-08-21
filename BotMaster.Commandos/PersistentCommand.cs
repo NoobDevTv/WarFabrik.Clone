@@ -8,6 +8,7 @@ public class PersistentCommand : IdEntity<int>
     public string Command { get; set; }
     public string Text { get; set; }
     public bool Secure { get; set; }
+    public bool Global { get; set; }
 
     public virtual List<string> Plattforms { get; set; }
 
@@ -15,18 +16,20 @@ public class PersistentCommand : IdEntity<int>
     {
         Command = Text = "";
         Secure = false;
+        Global = false;
         Plattforms = new();
     }
 
-    public PersistentCommand(string command, string text, string target = "", bool secure = false)
+    public PersistentCommand(string command, string text, string target = "", bool secure = false, bool global = false)
     {
         Plattforms = new();
         Command = command;
         Text = text;
         Secure = secure;
         Target = target;
+        Global = global;
     }
-    public PersistentCommand(string command, string text, List<string> plattforms, string target = "", bool secure = false) : this(command, text, target, secure)
+    public PersistentCommand(string command, string text, List<string> plattforms, string target = "", bool secure = false, bool global = false) : this(command, text, target, secure, global)
     {
         Plattforms = plattforms;
     }

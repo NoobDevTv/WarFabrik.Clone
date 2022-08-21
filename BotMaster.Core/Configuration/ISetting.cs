@@ -1,4 +1,4 @@
-﻿namespace BotMaster.Configuration;
+﻿namespace BotMaster.Core.Configuration;
 
 public interface ISetting
 {
