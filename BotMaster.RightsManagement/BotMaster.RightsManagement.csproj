@@ -12,7 +12,4 @@
 		<ProjectReference Include="..\BotMaster.Database\BotMaster.Database.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.8" />
-	</ItemGroup>
 </Project>

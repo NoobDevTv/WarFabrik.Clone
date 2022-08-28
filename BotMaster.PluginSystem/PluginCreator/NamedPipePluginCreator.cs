@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 
 namespace BotMaster.PluginSystem.PluginCreator
 {
-    public class IPCPluginCreator : IPluginInstanceCreator
+    public class NamedPipePluginCreator : IPluginInstanceCreator
     {
 
 
@@ -27,9 +27,9 @@ namespace BotMaster.PluginSystem.PluginCreator
         {
             return new PluginInstance<PipeStream>(
                         manifest,
-                        PluginClient.CreateClient,
-                        PluginConnection.CreateSendPipe,
-                        PluginConnection.CreateReceiverPipe
+                        NamedPipePluginClient.CreateClient,
+                        (s,p)=> PluginConnection.CreateSendPipe(s, p, (s)=>s.IsConnected),
+                        (s) => PluginConnection.CreateReceiverPipe(s, (s) => s.IsConnected)
                     );
         }
 
@@ -38,19 +38,28 @@ namespace BotMaster.PluginSystem.PluginCreator
             return Create(
                 manifest,
                 runnersPath,
-                PluginServer.CreateServer,
-                PluginConnection.CreateSendPipe,
-                PluginConnection.CreateReceiverPipe
+                NamedPipePluginServer.CreateServer,
+                (s, p) => PluginConnection.CreateSendPipe(s, p, (s) => s.IsConnected),
+                (s) => PluginConnection.CreateReceiverPipe(s, (s) => s.IsConnected)
             );
         }
     }
 
-    public class ProcessExitedException : Exception
+    public class NamedPipePluginServer
     {
-        public int ExitCode { get; set; }
-        public ProcessExitedException(int exitCode)
+        public static NamedPipeServerStream CreateServer(string id)
+            => new(id, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+
+    }
+    public static class NamedPipePluginClient
+    {
+        public static NamedPipeClientStream CreateClient(string id)
         {
-            ExitCode = exitCode;
+            var client = new NamedPipeClientStream(".", id, PipeDirection.InOut, PipeOptions.Asynchronous);
+
+            client.Connect();
+
+            return client;
         }
     }
 

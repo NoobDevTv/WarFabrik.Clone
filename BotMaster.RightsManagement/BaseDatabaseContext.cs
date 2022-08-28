@@ -1,4 +1,5 @@
-﻿using BotMaster.Configuration;
+﻿
+using BotMaster.Core.Configuration;
 using BotMaster.Database;
 
 using Microsoft.EntityFrameworkCore;
@@ -12,9 +13,17 @@ public class BaseDatabaseContext : DatabaseContext
     {
         var config = ConfigManager.GetConfiguration(Path.Combine("additionalfiles", "Rightsconfig.json")).GetSettings<RightConfiguration>();
 
-        var info = new FileInfo(config.DbPath);
-        //var info = new FileInfo(Path.Combine("..", "..", "additionalfiles", "Rights.db"));
-        _ = optionsBuilder.UseSqlite($"Data Source={info.FullName}");
+
+
+        DatabaseFactory.Initialize(config.DatabasePluginName);
+        foreach (var item in DatabaseFactory.DatabaseConfigurators)
+        {
+            item.OnConfiguring(optionsBuilder, config.ConnectionString);
+        }
+
+        //var info = new FileInfo(config.DbPath);
+        ////var info = new FileInfo(Path.Combine("..", "..", "additionalfiles", "Rights.db"));
+        //_ = optionsBuilder.UseSqlite($"Data Source={info.FullName}");
         base.OnConfiguring(optionsBuilder);
     }
 }

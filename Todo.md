@@ -1,6 +1,7 @@
 ﻿TODOS:
 	- ASP Net Core Web Core and Extensions
 		- ✓(Maybe) Betterplace donation alert
+		- Web Hook / Call for Twitch / YT Follows
 	
 	- Improve Logging
 
@@ -20,6 +21,13 @@
 	- TeamSpeak Bot
 
 	- Cleanup again
+
+	- Plugins Store Install / As docker container?
+		- Standalone Database Plugin 
+		- TCP Plugin Creator
+		- Manifests Location, Information, etc. pp.
+
+	- WebUi for Config, Logging, Start & Stop, etc. pp.
 
 	To Fix:
 		- Telegram goes offline

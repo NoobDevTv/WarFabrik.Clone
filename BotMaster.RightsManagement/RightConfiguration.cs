@@ -11,9 +11,10 @@ namespace BotMaster.RightsManagement;
 public class RightConfiguration : ISetting
 {
     public string ConfigName => nameof(RightConfiguration);
-    public string DbPath { get; set; }
+    public string ConnectionString { get; set; }
+    public string DatabasePluginName { get; set; }
     public RightConfiguration()
     {
-        DbPath = Path.Combine("additionalfiles", "Rights.db");
+        ConnectionString = Path.Combine("additionalfiles", "Rights.db");
     }
 }

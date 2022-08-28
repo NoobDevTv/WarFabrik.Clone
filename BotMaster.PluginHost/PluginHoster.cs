@@ -1,4 +1,5 @@
-﻿using BotMaster.Core.NLog;
+﻿using BotMaster.Core.Extensibility;
+using BotMaster.Core.NLog;
 using BotMaster.PluginSystem;
 
 using NLog;
@@ -42,10 +43,11 @@ namespace BotMaster.PluginHost
                 assemblyFileInfo = new(Path.Combine(manifestFileInfo.Directory.FullName, manifest.File));
 
             logger.Info($"Load {assemblyFileInfo.FullName}");
-            var pluginContext = new AssemblyLoadContext(manifest.Name);
             var resolver = new ReaderLoadContext(manifest.Name, assemblyFileInfo.FullName);
 
             var pluginAssembly = resolver.LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(assemblyFileInfo.Name)));
+
+            //var pluginContext = new AssemblyLoadContext(manifest.Name);
             //var pluginAssembly = pluginContext.LoadFromAssemblyPath(assemblyFileInfo.FullName);
 
             logger.Trace("Get Typecontainer");
@@ -81,44 +83,6 @@ namespace BotMaster.PluginHost
 
         }
 
-        public class ReaderLoadContext : AssemblyLoadContext
-        {
-            private readonly AssemblyDependencyResolver _resolver;
-
-            public ReaderLoadContext(string name, string readerLocation) : base(name)
-            {
-                _resolver = new AssemblyDependencyResolver(readerLocation);
-            }
-
-            protected override Assembly Load(AssemblyName assemblyName)
-            {
-                var existing = Default.Assemblies.FirstOrDefault(x => x.FullName == assemblyName.FullName);
-                if (existing is not null)
-                    return existing;
-
-                string assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
-
-                if (assemblyPath != null)
-                {
-
-                    return LoadFromAssemblyPath(assemblyPath);
-                }
-
-                return null;
-            }
-
-            protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
-            {
-                string libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
-
-                if (libraryPath != null)
-                {
-                    return LoadUnmanagedDllFromPath(libraryPath);
-                }
-
-                return IntPtr.Zero;
-            }
-        }
 
         private record PluginContext(ITypeContainer TypeContainer, PluginInstance PluginInstance) : IDisposable
         {

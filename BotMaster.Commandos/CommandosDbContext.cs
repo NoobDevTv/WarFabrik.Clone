@@ -13,8 +13,14 @@ public class CommandosDbContext : DatabaseContext
     {
         var config = ConfigManager.GetConfiguration(Path.Combine("additionalfiles", "CommandosConfig.json")).GetSettings<CommandoConfiguration>();
 
-        var info = new FileInfo(config.DbPath);
-        _ = optionsBuilder.UseSqlite($"Data Source={info.FullName}");
+        DatabaseFactory.Initialize(config.DatabasePluginName);
+        foreach (var item in DatabaseFactory.DatabaseConfigurators)
+        {
+            item.OnConfiguring(optionsBuilder, config.ConnectionString);
+        }
+
+        //var info = new FileInfo(config.ConnectionString);
+        //_ = optionsBuilder.UseSqlite($"Data Source={info.FullName}");
         base.OnConfiguring(optionsBuilder);
     }
 

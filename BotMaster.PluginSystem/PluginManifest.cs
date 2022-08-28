@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace BotMaster.PluginSystem
 {
@@ -14,6 +15,9 @@ namespace BotMaster.PluginSystem
         public string Version { get; set; }
         public string File { get; set; }
         public string ProcessRunner { get; set; }
+
+        [JsonExtensionData]
+        public Dictionary<string, JsonElement> ExtensionData { get; set; }
 
         public override bool Equals(object obj) 
             => Equals(obj as PluginManifest);

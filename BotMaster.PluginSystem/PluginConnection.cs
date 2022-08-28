@@ -7,9 +7,9 @@ namespace BotMaster.PluginSystem
 {
     public static class PluginConnection
     {
-        public static IObservable<Package> CreateSendPipe(PipeStream clientStream, IObservable<Package> sendPipe)
+        public static IObservable<Package> CreateSendPipe<T>(T clientStream, IObservable<Package> sendPipe, Func<T, bool> checkConnectionStatus) where T : Stream            
             => sendPipe
-                .Where(p => clientStream.IsConnected)
+                .Where(_=> checkConnectionStatus(clientStream))
                 .Select(p =>
                 {
                     using var buffer = MemoryPool<byte>.Shared.Rent(p.Length);
@@ -25,7 +25,7 @@ namespace BotMaster.PluginSystem
                 .Concat()
                 .Where(p => false);
 
-        public static IObservable<Package> CreateReceiverPipe(PipeStream clientStream)
+        public static IObservable<Package> CreateReceiverPipe<T>(T clientStream, Func<T, bool> checkConnectionStatus) where T : Stream
             => Observable
                 .Create<Package>((observer, token) => Task.Run(async () =>
                 {
@@ -40,7 +40,7 @@ namespace BotMaster.PluginSystem
                         token.ThrowIfCancellationRequested();
                         try
                         {
-                            if (!clientStream.IsConnected)
+                            if (!checkConnectionStatus(clientStream))
                             {
                                 observer.OnCompleted();
                                 return;
@@ -62,7 +62,7 @@ namespace BotMaster.PluginSystem
                     }
                 }, token));
 
-        private static async Task<int> ReadContent(PipeStream clientStream, int packageSize, IMemoryOwner<byte> buffer, CancellationToken token)
+        private static async Task<int> ReadContent(Stream clientStream, int packageSize, IMemoryOwner<byte> buffer, CancellationToken token)
         {
             int size = 0;
 
@@ -74,7 +74,7 @@ namespace BotMaster.PluginSystem
             return size;
         }
 
-        private static async Task ReadHeader(PipeStream clientStream, Memory<byte> headerMemory, CancellationToken token)
+        private static async Task ReadHeader(Stream clientStream, Memory<byte> headerMemory, CancellationToken token)
         {
             int headerSize = 0;
 

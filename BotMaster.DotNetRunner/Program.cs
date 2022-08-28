@@ -47,7 +47,7 @@ namespace BotMaster.DotNetRunner
                     }
                 }
 
-                var porcessCreator = new IPCPluginCreator();
+                var porcessCreator = new NamedPipePluginCreator();
                 using var manualReset = new ManualResetEvent(false);
 
                 using var disp = PluginHoster.LoadAll(logger, porcessCreator, paths)

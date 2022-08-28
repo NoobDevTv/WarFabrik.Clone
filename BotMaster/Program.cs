@@ -56,7 +56,7 @@ namespace BotMaster
             }
             else
             {
-                typeContainer.Register<IPluginInstanceCreator>(new IPCPluginCreator());
+                typeContainer.Register<IPluginInstanceCreator>(new NamedPipePluginCreator());
             }
 
             var serviceLogger = LogManager.GetLogger($"{nameof(BotMaster)}.{nameof(Service)}");

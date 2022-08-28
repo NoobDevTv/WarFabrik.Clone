@@ -6,6 +6,8 @@ using System.Runtime.Loader;
 
 namespace BotMaster.Database
 {
+
+
     public abstract class DatabaseContext : DbContext
     {
         //public DbSet<User> Users => Set<User>();

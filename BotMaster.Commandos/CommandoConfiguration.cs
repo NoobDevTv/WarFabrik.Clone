@@ -9,10 +9,11 @@ namespace BotMaster.Commandos;
 public class CommandoConfiguration : ISetting
 {
     public string ConfigName => nameof(CommandoConfiguration);
-    public string DbPath { get; set; }
+    public string ConnectionString { get; set; }
+    public string DatabasePluginName { get; set; }
 
     public CommandoConfiguration()
     {
-        DbPath = Path.Combine("additionalfiles", "Rights.db");
+        ConnectionString = Path.Combine("additionalfiles", "Rights.db");
     }
 }
