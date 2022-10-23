@@ -10,6 +10,7 @@ using NLog.Extensions.Logging;
 
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Diagnostics;
 
 namespace BotMaster.DotNetRunner
 {
@@ -18,6 +19,8 @@ namespace BotMaster.DotNetRunner
 
         static void Main(string[] args)
         {
+            Thread.Sleep(30000);
+
             var config = ConfigManager.GetConfiguration("appsettings.json", args);
 
             using var logManager = Disposable.Create(LogManager.Shutdown);
@@ -47,10 +50,10 @@ namespace BotMaster.DotNetRunner
                     }
                 }
 
-                var porcessCreator = new NamedPipePluginCreator();
+                var porcessCreator = new TCPPluginCreator();
                 using var manualReset = new ManualResetEvent(false);
 
-                using var disp = PluginHoster.LoadAll(logger, porcessCreator, paths)
+                using var disp = PluginHoster.LoadAll(logger, porcessCreator, paths, false)
                     .Subscribe(p => { }, ex => throw ex, () => manualReset.Set());
 
                 manualReset.WaitOne();

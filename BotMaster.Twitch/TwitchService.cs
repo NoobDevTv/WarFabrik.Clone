@@ -28,7 +28,7 @@ namespace BotMaster.Twitch
         public override IObservable<Package> Start(ILogger logger, IObservable<Package> receivedPackages)
         {
             using (var ctx = new RightsDbContext())
-                ctx.Database.Migrate();
+                ctx.Migrate();
             using (var ctx = new UserConnectionContext())
                 ctx.Database.Migrate();
 
@@ -48,8 +48,9 @@ namespace BotMaster.Twitch
 
             var tokenFile = JsonConvert.DeserializeObject<TokenFile>(File.ReadAllText(tokenFileInfo.FullName));
 
-            return GetAccessToken(new FileInfo(Path.Combine(".", "additionalfiles", "access.json")), tokenFile)
+            return GetAccessToken(new FileInfo(Path.Combine(".", "additionalfiles", "access.json")), tokenFile, logger)
                 .Select(accessToken => Bot.Create(tokenFile, accessToken, "NoobDevTv", notifications))
+                .Trace(logger, x => "BotCreate|New Bot created")
                 .Concat()
                 .OnError(logger, nameof(Create))
                 .Retry();
@@ -73,16 +74,16 @@ namespace BotMaster.Twitch
             return false;
         }
 
-        private static IObservable<AccessToken> GetAccessToken(FileInfo info, TokenFile tokenFile)
+        private static IObservable<AccessToken> GetAccessToken(FileInfo info, TokenFile tokenFile, ILogger logger)
         {
             if (TryGetAccessToken(info, out var token))
                 return Observable.Return(token);
 
-            return CreateToken(tokenFile)
+            return CreateToken(tokenFile, logger)
             .Do(token => File.WriteAllText(info.FullName, JsonConvert.SerializeObject(token)));
         }
 
-        private static IObservable<AccessToken> CreateToken(TokenFile tokenFile)
+        private static IObservable<AccessToken> CreateToken(TokenFile tokenFile, ILogger logger)
         {
             var url = $"https://id.twitch.tv/oauth2/token?client_id={tokenFile.ClientId}&client_secret={tokenFile.ClientSecret}&grant_type=client_credentials";
 
@@ -92,6 +93,7 @@ namespace BotMaster.Twitch
                     client =>
                         Observable
                         .Return(0)
+                        .Trace(logger, x=> "Create new Token")
                         .Select(_ => Observable.FromAsync(token => client.PostAsync(url, null, token)))
                         .Concat()
                         .Do(response => response.EnsureSuccessStatusCode())

@@ -113,7 +113,7 @@ namespace BotMaster.Core.NLog
             var logged =
                 source
                 .Do(x => log.Log(onNext ?? LogLevel.Off, $"{name}: {(onNextMessage == null ? x.ToString() : onNextMessage(x))}"),
-                    ex => log.Log(onError ?? LogLevel.Off, ex, $"{name}: {(onErrorMessage == null ? $"OnError: {ex.Message}" : onErrorMessage(ex))}"),
+                    ex => log.Log(onError ?? LogLevel.Error, ex, $"{name}: {(onErrorMessage == null ? $"OnError: {ex.Message}" : onErrorMessage(ex))}"),
                     () => log.Log(onCompleted ?? LogLevel.Off, $"{name}: {(onCompletedMessage == null ? "OnCompleted" : onCompletedMessage())}"));
 
             // Avoid creating a new observable if subscription events aren't supposed to be logged.

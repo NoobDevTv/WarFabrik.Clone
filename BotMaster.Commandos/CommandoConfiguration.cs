@@ -14,6 +14,7 @@ public class CommandoConfiguration : ISetting
 
     public CommandoConfiguration()
     {
-        ConnectionString = Path.Combine("additionalfiles", "Rights.db");
+        ConnectionString = "Data Source=../../additionalfiles/Rights.db";
+        DatabasePluginName = "bin\\Debug\\net6.0\\BotMaster.Database.SqLite.dll";
     }
 }

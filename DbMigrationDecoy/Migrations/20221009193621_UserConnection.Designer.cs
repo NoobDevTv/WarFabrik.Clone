@@ -8,29 +8,31 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace BotMaster.RightsManagement.Migrations.UserConnection
+namespace DbMigrationDecoy.Migrations
 {
     [DbContext(typeof(UserConnectionContext))]
-    [Migration("20220606193526_UserConnection")]
+    [Migration("20221009193621_UserConnection")]
     partial class UserConnection
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "6.0.5");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "6.0.9")
+                .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("BotMaster.RightsManagement.Group", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsDefault")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -41,22 +43,22 @@ namespace BotMaster.RightsManagement.Migrations.UserConnection
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Platform")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("PlattformUserId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<int?>("UserId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -69,11 +71,11 @@ namespace BotMaster.RightsManagement.Migrations.UserConnection
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -84,11 +86,11 @@ namespace BotMaster.RightsManagement.Migrations.UserConnection
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -97,19 +99,24 @@ namespace BotMaster.RightsManagement.Migrations.UserConnection
 
             modelBuilder.Entity("BotMaster.RightsManagement.UserConnection", b =>
                 {
-                    b.Property<string>("ConnectionCode")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
                     b.Property<bool>("Connected")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ConnectionCode")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<int>("PlattformUserId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("ValidUntil")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
-                    b.HasKey("ConnectionCode");
+                    b.HasKey("Id");
 
                     b.HasIndex("PlattformUserId");
 
@@ -119,10 +126,10 @@ namespace BotMaster.RightsManagement.Migrations.UserConnection
             modelBuilder.Entity("GroupPlattformUser", b =>
                 {
                     b.Property<int>("GroupsId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("PlattformUsersId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("GroupsId", "PlattformUsersId");
 
@@ -134,10 +141,10 @@ namespace BotMaster.RightsManagement.Migrations.UserConnection
             modelBuilder.Entity("GroupRight", b =>
                 {
                     b.Property<int>("GroupsId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("RightsId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("GroupsId", "RightsId");
 
@@ -149,10 +156,10 @@ namespace BotMaster.RightsManagement.Migrations.UserConnection
             modelBuilder.Entity("GroupUser", b =>
                 {
                     b.Property<int>("GroupsId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("UsersId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("GroupsId", "UsersId");
 
@@ -164,10 +171,10 @@ namespace BotMaster.RightsManagement.Migrations.UserConnection
             modelBuilder.Entity("PlattformUserRight", b =>
                 {
                     b.Property<int>("PlattformUsersId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("RightsId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("PlattformUsersId", "RightsId");
 
@@ -179,10 +186,10 @@ namespace BotMaster.RightsManagement.Migrations.UserConnection
             modelBuilder.Entity("RightUser", b =>
                 {
                     b.Property<int>("RightsId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("UsersId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("RightsId", "UsersId");
 

@@ -7,18 +7,29 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 namespace BotMaster.Commandos;
 public class CommandosDbContext : DatabaseContext
 {
+    public CommandosDbContext()
+    {
+    }
+
+    public CommandosDbContext(DbContextOptions options) : base(options)
+    {
+    }
+
     public DbSet<PersistentCommand> Commands => Set<PersistentCommand>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
+#if !MIGRATION
         var config = ConfigManager.GetConfiguration(Path.Combine("additionalfiles", "CommandosConfig.json")).GetSettings<CommandoConfiguration>();
 
+        //var ilogger = NLog.LogManager.GetCurrentClassLogger();
+        //ilogger.Debug("Commando Config: " + System.Text.Json.JsonSerializer.Serialize(config));
         DatabaseFactory.Initialize(config.DatabasePluginName);
         foreach (var item in DatabaseFactory.DatabaseConfigurators)
         {
             item.OnConfiguring(optionsBuilder, config.ConnectionString);
         }
-
+#endif
         //var info = new FileInfo(config.ConnectionString);
         //_ = optionsBuilder.UseSqlite($"Data Source={info.FullName}");
         base.OnConfiguring(optionsBuilder);

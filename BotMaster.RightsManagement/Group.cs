@@ -1,7 +1,10 @@
 ﻿using BotMaster.Database;
 
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace BotMaster.RightsManagement;
 
+[Table("Groups")]
 public class Group : IdEntity<int>
 {
     public bool IsDefault { get; set; }

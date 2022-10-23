@@ -16,6 +16,9 @@ public class RightsDbContext : BaseDatabaseContext
     {
     }
 
+    public RightsDbContext(DbContextOptions options) : base(options)
+    {
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "BotMaster.PluginHost": {
+      "commandName": "Project",
+      "commandLineArgs": "-l \"D:\\Projekte\\Visual 2019\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net5.0\\plugins\\BotMaster.Twitch\\plugin.manifest.json\""
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "DockerfileRunArguments": "-v /var/run/docker.sock:/var/run/docker.sock -v C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net6.0\\plugins:/app/plugins --network=botmaster"
+    }
+  }
+}

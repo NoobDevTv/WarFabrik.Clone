@@ -9,10 +9,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace BotMaster.RightsManagement;
-public class UserConnection : Entity
+public class UserConnection : IdEntity<int>
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public string ConnectionCode { get; set; }
     public DateTime ValidUntil { get; set; }
     public bool Connected { get; set; }

@@ -38,7 +38,7 @@ How To Migrate:
 - Add reference of target to botmaster
 - cd into Botmaster
 - execute: dotnet ef migrations add MIGRATIONNAME --project ../TARGETPROJECT
-- Remvoe reference of target to botmaster
+- Remove reference of target to botmaster
 
 
 Done:

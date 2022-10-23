@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace BotMaster.Database.SqLite;
+namespace BotMaster.Database.MySql;
 public class MySQLConfigurator : IDatabaseConfigurator
 {
     public void OnConfiguring(DbContextOptionsBuilder optionsBuilder, string connectionString)

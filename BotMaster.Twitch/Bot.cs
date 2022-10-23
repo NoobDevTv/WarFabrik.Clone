@@ -54,6 +54,7 @@ namespace BotMaster.Twitch
                     t.ThrowIfCancellationRequested();
                     var client = context.Client;
 
+                    context.Logger.Debug("Starting to add all commands and subscriptions");
                     context.AddCommand((c) => SimpleCommands.Hype(context, c), "hype");
                     context.AddCommand((c) => SimpleCommands.Uptime(context, c), "uptime");
                     context.AddCommand((c) => SimpleCommands.Help(context, c), "?", "help");
@@ -265,7 +266,9 @@ namespace BotMaster.Twitch
 
             var pubSub = new TwitchPubSub();
 
-            return new TwitchContext(api, client, pubSub, userId, channelName, commandoCentral, new());
+            var ctx = new TwitchContext(api, client, pubSub, userId, channelName, commandoCentral, new());
+            ctx.Logger.Debug("Created a new twitch context");
+            return ctx;
         }
 
     }

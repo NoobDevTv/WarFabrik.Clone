@@ -29,7 +29,7 @@ namespace BotMaster.PluginSystem.PluginCreator
                         manifest,
                         NamedPipePluginClient.CreateClient,
                         (s,p)=> PluginConnection.CreateSendPipe(s, p, (s)=>s.IsConnected),
-                        (s) => PluginConnection.CreateReceiverPipe(s, (s) => s.IsConnected)
+                        (s) => PluginConnection.CreateReceiverPipe(()=>s, (s) => s.IsConnected)
                     );
         }
 
@@ -40,7 +40,7 @@ namespace BotMaster.PluginSystem.PluginCreator
                 runnersPath,
                 NamedPipePluginServer.CreateServer,
                 (s, p) => PluginConnection.CreateSendPipe(s, p, (s) => s.IsConnected),
-                (s) => PluginConnection.CreateReceiverPipe(s, (s) => s.IsConnected)
+                (s) => PluginConnection.CreateReceiverPipe(() => s, (s) => s.IsConnected)
             );
         }
     }

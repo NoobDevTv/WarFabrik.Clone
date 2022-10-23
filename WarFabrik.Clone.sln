@@ -56,6 +56,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Database.PostrgeS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Database.Sqlite", "10_DatabaseAdapter\BotMaster.Database.Sqlite\BotMaster.Database.Sqlite.csproj", "{CCAFAAD8-5821-4254-B6D6-76442D7ED0EF}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.DockerRunner", "BotMaster.DockerRunner\BotMaster.DockerRunner.csproj", "{762F5F80-C214-41BA-BA39-CADDEF567FA1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -142,6 +144,10 @@ Global
 		{CCAFAAD8-5821-4254-B6D6-76442D7ED0EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CCAFAAD8-5821-4254-B6D6-76442D7ED0EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CCAFAAD8-5821-4254-B6D6-76442D7ED0EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{762F5F80-C214-41BA-BA39-CADDEF567FA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{762F5F80-C214-41BA-BA39-CADDEF567FA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{762F5F80-C214-41BA-BA39-CADDEF567FA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{762F5F80-C214-41BA-BA39-CADDEF567FA1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -166,6 +172,7 @@ Global
 		{694AA66E-7EB2-4780-8853-1E1289189ABA} = {6C01A4DF-E93B-4B0F-B256-664247F55F31}
 		{9AD2D3DB-9FB1-410C-8518-8BE0A8EC388E} = {6C01A4DF-E93B-4B0F-B256-664247F55F31}
 		{CCAFAAD8-5821-4254-B6D6-76442D7ED0EF} = {6C01A4DF-E93B-4B0F-B256-664247F55F31}
+		{762F5F80-C214-41BA-BA39-CADDEF567FA1} = {79FE7D4D-740B-489E-ADC9-FBB1623110D0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8A92FB12-1FB4-4186-AD4C-40C63CAD735C}

@@ -14,6 +14,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace BotMaster
@@ -22,6 +23,7 @@ namespace BotMaster
     {
         internal static async Task Main(string[] args)
         {
+
             var config = ConfigManager.GetConfiguration("appsettings.json", args);
 
             var botmasterConfig = config.GetSettings<BotmasterConfig>();
@@ -48,16 +50,17 @@ namespace BotMaster
             Console.CancelKeyPress += (s, e) => resetEvent.Set();
             var typeContainer = TypeContainer.Get<ITypeContainer>();
 
-            if (botmasterConfig.RunPluginsInOwnProcess)
+            if (botmasterConfig.PluginCreator == nameof(ProcessPluginCreator))
             {
                 var creatorLogger = LogManager.GetLogger("InProcessPlugin");
-                typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator(creatorLogger, PluginHost.PluginHoster.Load));
-
+                typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator(creatorLogger, 
+                    (l,pic,fi)=>PluginHost.PluginHoster.Load(l,pic,fi,true)));
             }
-            else
-            {
+            else if (botmasterConfig.PluginCreator == nameof(NamedPipePluginCreator))
                 typeContainer.Register<IPluginInstanceCreator>(new NamedPipePluginCreator());
-            }
+            else if (botmasterConfig.PluginCreator == nameof(TCPPluginCreator))
+                typeContainer.Register<IPluginInstanceCreator>(new TCPPluginCreator());
+
 
             var serviceLogger = LogManager.GetLogger($"{nameof(BotMaster)}.{nameof(Service)}");
 
@@ -70,24 +73,3 @@ namespace BotMaster
         }
     }
 }
-
-
-//using System;
-
-//// Token: 0x02000003 RID: 3
-//public static class Program
-//{
-//    // Token: 0x06000001 RID: 1 RVA: 0x00002050 File Offset: 0x00000250
-//    public static void greet(string name)
-//    {
-//        Console.WriteLine("Morning, " + name + "!");
-//    }
-
-//    // Token: 0x06000002 RID: 2 RVA: 0x00002068 File Offset: 0x00000268
-//    public static int Main()
-//    {
-//        Console.Write("Hello World 12");
-//        Program.greet("Peter");
-//        return 0;
-//    }
-//}

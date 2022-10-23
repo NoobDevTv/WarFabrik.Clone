@@ -22,8 +22,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\10_DatabaseAdapter\BotMaster.Database.SqLite\BotMaster.Database.SqLite.csproj" />
 		<ProjectReference Include="..\BotMaster.PluginHost\BotMaster.PluginHost.csproj" />
+		<ProjectReference Include="..\BotMaster.RightsManagement\BotMaster.RightsManagement.csproj" />
 		<ProjectReference Include="..\BotMaster.Runtime\BotMaster.Runtime.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="appsettings.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
 
 	<ProjectExtensions>

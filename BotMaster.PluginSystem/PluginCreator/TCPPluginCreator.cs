@@ -1,73 +1,85 @@
-﻿using BotMaster.PluginSystem.Messages;
+﻿using BotMaster.Core.Extensibility;
+using BotMaster.PluginSystem.Messages;
 
 using System.Diagnostics;
 using System.IO.Pipes;
+using System.Net;
 using System.Net.Sockets;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
 namespace BotMaster.PluginSystem.PluginCreator
 {
     public class TCPPluginCreator : IPluginInstanceCreator
     {
+        private TcpListener listener;
 
-        //Remove
-        private static PluginInstance Create(
-            PluginManifest manifest,
-            DirectoryInfo runnersPath,
-            Func<string, TcpListener> createPipe,
-            Func<TcpClient, IObservable<Package>,
-            IObservable<Package>> createSender,
-            Func<TcpClient, IObservable<Package>> createReceiver)
-        {
-            return new TCPPluginInstance(runnersPath, manifest, createPipe, createSender, createReceiver);
-        }
-
-        //Just create listener and connector
         public PluginInstance CreateClient(PluginManifest manifest)
         {
-            TcpClient a = null;
-            NetworkStream ns = a.GetStream();
+            var tcpData = manifest.ExtensionData["TcpData"];
 
-            return new PluginInstance<TcpClient>(
-                        manifest,
-                        NamedPipePluginClient.CreateClient,
-                        (s, p)=> PluginConnection.CreateSendPipe(s.GetStream(), p, (_)=>s.Connected),
-                        (s)=>PluginConnection.CreateReceiverPipe(s.GetStream(), (_) => s.Connected)
-                    );
+            var ilogger = NLog.LogManager.GetCurrentClassLogger();
+            var port = tcpData.GetProperty("Port");
+            ilogger.Debug($"Got Port {port}");
+            var host = tcpData.GetProperty("Hostname");
+            ilogger.Debug($"Got Hostname {host}");
+            TcpClient a = new(host.GetString(), port.GetInt16());
+            ilogger.Debug($"Connecting with tcp client");
+            return new TCPPluginInstance(manifest, a);
         }
 
         public PluginInstance CreateServer(PluginManifest manifest, DirectoryInfo runnersPath)
         {
-            return Create(
-                manifest,
-                runnersPath,
-                NamedPipePluginServer.CreateServer,
-                (s, p) => PluginConnection.CreateSendPipe(s.GetStream(), p, (_) => s.Connected),
-                (s) => PluginConnection.CreateReceiverPipe(s.GetStream(), (_) => s.Connected)
-            );
+            var tcpData = manifest.ExtensionData["TcpData"];
+
+            var port = tcpData.GetProperty("Port");
+            listener = new TcpListener(IPAddress.IPv6Any, port.GetInt16());
+            listener.Server.DualMode = true;
+            listener.Start();
+            return new TCPPluginInstance(runnersPath, manifest, GetClient);
+        }
+
+        private async Task<TcpClient> GetClient()
+        {
+            TcpClient client = null;
+            await Task.Run(() =>
+            {
+                client = listener.AcceptTcpClient();
+            });
+
+            return client;
         }
 
     }
 
-    //Implement PluginInstance yourself
     public class TCPPluginInstance : PluginInstance
     {
-        private readonly Process process;
+        private readonly Process runnerProcess;
         private readonly CompositeDisposable compositeDisposable;
-        private int retries = 0;
         private readonly DirectoryInfo runnersPath;
+        private readonly Func<Task<TcpClient>>? clientRetriever = null;
+        private TcpClient client;
+        private NetworkStream networkStream;
+
+        public TCPPluginInstance(PluginManifest manifest, TcpClient client) : base(manifest)
+        {
+            runnerProcess = null;
+            compositeDisposable = null;
+            runnersPath = null;
+            this.client = client;
+            networkStream = client.GetStream();
+        }
 
         public TCPPluginInstance(
             DirectoryInfo runnersPath,
             PluginManifest manifest,
-            Func<string, TcpListener> createPipe,
-            Func<TcpClient, IObservable<Package>, IObservable<Package>> createSender,
-            Func<TcpClient, IObservable<Package>> createReceiver) 
+            Func<Task<TcpClient>> clientRetriever)
             : base(manifest)
         {
             this.runnersPath = runnersPath;
+            this.clientRetriever = clientRetriever;
             var runnerManifestPath = new FileInfo(Path.Combine(runnersPath.FullName, manifest.ProcessRunner, "runner.manifest.json"));
 
             if (!runnerManifestPath.Exists)
@@ -76,11 +88,11 @@ namespace BotMaster.PluginSystem.PluginCreator
             using var str = runnerManifestPath.OpenRead();
             var runnerManifest = System.Text.Json.JsonSerializer.Deserialize<RunnerManifest>(str);
 
-            var processPath = runnerManifest.Filename["default"];
+            var runnersProcessPath = runnerManifest.Filename["default"];
             foreach (var item in runnerManifest.Filename)
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Create(item.Key)))
-                    processPath = item.Value;
+                    runnersProcessPath = item.Value;
             }
 
             var args = runnerManifest.Args;
@@ -91,10 +103,15 @@ namespace BotMaster.PluginSystem.PluginCreator
                     .Replace("{runnerpath}", runnerManifestPath.Directory.FullName)
                     );
             }
+            clientRetriever().ContinueWith(async (t) =>
+           {
+               client = await t;
+               networkStream = client.GetStream();
+           });
 
-            process = new()
+            runnerProcess = new()
             {
-                StartInfo = new ProcessStartInfo(processPath, args)
+                StartInfo = new ProcessStartInfo(runnersProcessPath, args)
                 {
                     WorkingDirectory = manifest.CurrentFileInfo.Directory.FullName,
                     UseShellExecute = true
@@ -104,41 +121,15 @@ namespace BotMaster.PluginSystem.PluginCreator
             compositeDisposable = new CompositeDisposable();
         }
 
-        internal void Kill()
+        public override IObservable<Package> Send(IObservable<Package> packages) => packages.Do(x =>
         {
-            process.Exited -= ProcessExited;
-            process.Kill(true);
-            process.WaitForExit(1000);
-        }
+            Span<byte> buffer = stackalloc byte[x.Length];
+            networkStream.Write(x.AsSpan(buffer));
+        });
 
-        internal bool TryStop()
+        public override IObservable<Package> Receiv()
         {
-            return process.WaitForExit(10000);
-        }
-
-        public override void Start()
-        {
-            base.Start();
-            process.Exited += ProcessExited;
-
-            process.Start();
-            process.Refresh();
-        }
-
-        private void ProcessExited(object sender, EventArgs e)
-        {
-            process.Exited -= ProcessExited;
-            if (process.ExitCode == 0 || process.ExitCode == -1073741510)
-                return;
-            retries++;
-            Thread.Sleep((retries + 1) * 10); //TODO Has this any side consequences, that we didn't consider in the heat of the moment?
-            TriggerOnError(new ProcessExitedException(process.ExitCode));
-        }
-
-        public void Dispose()
-        {
-            compositeDisposable.Dispose();
-            process.Dispose();
+            return PluginConnection.CreateReceiverPipe(() => networkStream, (_) => client is not null && client.Connected).RetryDelayed(TimeSpan.FromSeconds(1));
         }
 
         internal override void ReceiveMessages(Func<string, IObservable<Message>> subscribeAsReceiver)
@@ -153,17 +144,19 @@ namespace BotMaster.PluginSystem.PluginCreator
             compositeDisposable.Add(subscribeAsSender(receivedMessages));
         }
 
-
-        internal override PluginInstance Copy() => new TCPPluginInstance(runnersPath, manifest, createPipe, createSender, createReceiver);
-
-        public override IObservable<Package> Send(IObservable<Package> packages)
+        public override void Start()
         {
-            throw new NotImplementedException();
+            if (runnerProcess is not null)
+                runnerProcess.Start();
         }
 
-        public override IObservable<Package> Receiv()
+        internal override PluginInstance Copy()
         {
-            throw new NotImplementedException();
+            if (clientRetriever is null)
+                return new TCPPluginInstance(manifest, client);
+            else
+                return new TCPPluginInstance(runnersPath, manifest, clientRetriever);
+
         }
     }
 }

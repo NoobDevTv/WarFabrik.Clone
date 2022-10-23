@@ -36,6 +36,9 @@ public class ReaderLoadContext : AssemblyLoadContext
 
     protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
     {
+        var baseResult = base.LoadUnmanagedDll(unmanagedDllName);
+        if(baseResult != IntPtr.Zero)
+            return baseResult;
         string libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
 
         if (libraryPath != null)

@@ -25,10 +25,11 @@ namespace BotMaster.PluginSystem
                 .Concat()
                 .Where(p => false);
 
-        public static IObservable<Package> CreateReceiverPipe<T>(T clientStream, Func<T, bool> checkConnectionStatus) where T : Stream
+        public static IObservable<Package> CreateReceiverPipe<T>(Func<T> getClientStream, Func<T, bool> checkConnectionStatus) where T : Stream
             => Observable
                 .Create<Package>((observer, token) => Task.Run(async () =>
                 {
+                    var clientStream = getClientStream();
                     if (clientStream is NamedPipeServerStream serverStream)
                         await serverStream.WaitForConnectionAsync(token);
 
@@ -42,7 +43,7 @@ namespace BotMaster.PluginSystem
                         {
                             if (!checkConnectionStatus(clientStream))
                             {
-                                observer.OnCompleted();
+                                observer.OnError(new Exception("Client is not connected"));
                                 return;
                             }
 

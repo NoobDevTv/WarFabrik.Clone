@@ -5,6 +5,7 @@
 
 	  <ImplicitUsings>enable</ImplicitUsings>
 	  <LangVersion>preview</LangVersion>
+	  <Nullable>enable</Nullable>
   </PropertyGroup>
 
 
@@ -12,6 +13,11 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="6.0.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.8" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\BotMaster.Core\BotMaster.Core.csproj" />
   </ItemGroup>
 
 </Project>

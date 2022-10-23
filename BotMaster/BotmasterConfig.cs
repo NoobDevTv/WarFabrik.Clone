@@ -11,7 +11,7 @@ internal class BotmasterConfig : ISetting
 {
     public string ConfigName => "Botmaster";
 
-    public bool RunPluginsInOwnProcess { get; set; }
+    public string PluginCreator { get; set; }
     public string RunnersPath { get; set; }
     public string PluginsPath { get; set; }
 }

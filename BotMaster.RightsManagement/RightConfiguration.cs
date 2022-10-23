@@ -15,6 +15,7 @@ public class RightConfiguration : ISetting
     public string DatabasePluginName { get; set; }
     public RightConfiguration()
     {
-        ConnectionString = Path.Combine("additionalfiles", "Rights.db");
+        ConnectionString = "Data Source=../../additionalfiles/Rights.db";
+        DatabasePluginName = "BotMaster.Database.Sqlite.dll";
     }
 }
