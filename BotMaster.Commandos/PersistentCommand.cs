@@ -1,7 +1,10 @@
 ﻿using BotMaster.Database;
 
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace BotMaster.Commandos;
 
+[Table("PersistentCommands")]
 public class PersistentCommand : IdEntity<int>
 {
     public string? Target { get; set; }

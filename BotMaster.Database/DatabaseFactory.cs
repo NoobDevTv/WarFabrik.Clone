@@ -1,4 +1,5 @@
 ﻿using BotMaster.Core.Extensibility;
+using BotMaster.Database.Migrations;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,7 @@ namespace BotMaster.Database
     public interface IDatabaseConfigurator
     {
         void OnConfiguring(DbContextOptionsBuilder optionsBuilder, string connectionString);
+        IAutoMigrationContextBuilder GetEmptyForMigration();
     }
 
     public static class DatabaseFactory

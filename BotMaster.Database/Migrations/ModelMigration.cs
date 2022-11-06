@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
@@ -28,10 +29,15 @@ public static class ModelMigration
         }
     }
 
-    public static void SetUpgradeOperations(this MigrationBuilder migrationBuilder, Migration migration, DatabaseContext context)
+    public static void SetUpgradeOperations(this MigrationBuilder migrationBuilder, Migration migration)
     {
+        var providerContextBuilder = DatabaseFactory.DatabaseConfigurators.First().GetEmptyForMigration();
+
         var migrationType = migration.GetType();
-        var targetBuilder = context.CreateBuilder();
+        var contextAttribute = migrationType.GetCustomAttribute<DbContextAttribute>() ?? throw new ArgumentNullException();
+        var currentContext = (IAutoMigrationContext)Activator.CreateInstance(contextAttribute.ContextType)!;
+
+        var targetBuilder = providerContextBuilder.CreateBuilder();
 
         if (migration is IAutoMigrationTypeProvider autoTypeProvider)
         {
@@ -45,12 +51,12 @@ public static class ModelMigration
             targetBuilder.BuildVersion(idAttribute.Id);
         }
 
-        var target = context.FinalizeModel((IModel) targetBuilder.Model);
+        var target = providerContextBuilder.FinalizeModel((IModel) targetBuilder.Model);
         IModel? source = null;
 
-        if (context.FindLastMigration(out var lastMigration, out var lastMigrationId))
+        if (currentContext.FindLastMigration(contextAttribute.ContextType.Name, out var lastMigration, out var lastMigrationId))
         {
-            var sourceBuilder = context.CreateBuilder();
+            var sourceBuilder = providerContextBuilder.CreateBuilder();
 
             if (lastMigration is IAutoMigrationTypeProvider lastTypeProvider)
             {
@@ -61,10 +67,10 @@ public static class ModelMigration
                 sourceBuilder.BuildVersion(lastMigrationId);
             }
 
-            source = context.FinalizeModel((IModel)sourceBuilder.Model);
+            source = providerContextBuilder.FinalizeModel((IModel)sourceBuilder.Model);
         }
 
-        var diff = context.GenerateDiff(source, target);
+        var diff = providerContextBuilder.GenerateDiff(source, target);
         migrationBuilder.Operations.AddRange(diff);
     }
 }

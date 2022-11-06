@@ -10,6 +10,10 @@ namespace BotMaster.RightsManagement;
 
 public class UserConnectionContext  : BaseDatabaseContext
 {
+    public DbSet<UserConnection> UserConnections => Set<UserConnection>();
+    public DbSet<PlattformUser> PlattformUsers => Set<PlattformUser>();
+    public DbSet<User> Users => Set<User>();
+
     public UserConnectionContext()
     {
     }
@@ -17,10 +21,6 @@ public class UserConnectionContext  : BaseDatabaseContext
     public UserConnectionContext(DbContextOptions options) : base(options)
     {
     }
-
-    public DbSet<UserConnection> UserConnections => Set<UserConnection>();
-    public DbSet<PlattformUser> PlattformUsers => Set<PlattformUser>();
-    public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

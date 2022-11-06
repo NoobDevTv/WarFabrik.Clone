@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 namespace BotMaster.Commandos;
 public class CommandosDbContext : DatabaseContext
 {
+    public DbSet<PersistentCommand> Commands => Set<PersistentCommand>();
+
     public CommandosDbContext()
     {
     }
@@ -14,8 +16,6 @@ public class CommandosDbContext : DatabaseContext
     public CommandosDbContext(DbContextOptions options) : base(options)
     {
     }
-
-    public DbSet<PersistentCommand> Commands => Set<PersistentCommand>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

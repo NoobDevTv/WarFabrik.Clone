@@ -15,6 +15,33 @@ using System.Runtime.Loader;
 namespace BotMaster.Database
 {
 
+    public abstract class MigrationDatabaseContext : DbContext, IAutoMigrationContextBuilder
+    {
+        public ModelBuilder CreateBuilder()
+        {
+            var dependencies = Database.GetService<ModelDependencies>();
+            var setBuilder = Database.GetService<IConventionSetBuilder>();
+            var modelConfigurationBuilder =
+                new ModelConfigurationBuilder(setBuilder.CreateConventionSet());
+
+            return modelConfigurationBuilder.CreateModelBuilder(dependencies);
+        }
+
+        public IModel FinalizeModel(IModel model)
+        {
+            var initializer = Database.GetService<IModelRuntimeInitializer>();
+            return initializer.Initialize(model);
+        }
+
+        public IReadOnlyList<MigrationOperation> GenerateDiff(IModel? source, IModel? target)
+        {
+            var sourceModel = source?.GetRelationalModel();
+            var targetModel = target?.GetRelationalModel();
+
+            var differ = Database.GetService<IMigrationsModelDiffer>();
+            return differ.GetDifferences(sourceModel, targetModel);
+        }
+    }
 
     public abstract class DatabaseContext : DbContext, IAutoMigrationContext
     {
@@ -26,26 +53,10 @@ namespace BotMaster.Database
         {
         }
 
-        public ModelBuilder CreateBuilder()
-        {
-            var dependencies = Database.GetService<ModelDependencies>();
-            var setBuilder = Database.GetService<IConventionSetBuilder>();
-            var modelConfigurationBuilder =
-                new ModelConfigurationBuilder(setBuilder.CreateConventionSet());
-            
-            return modelConfigurationBuilder.CreateModelBuilder(dependencies);
-        }
-
-        public IModel FinalizeModel(IModel model)
-        {
-            var initializer = Database.GetService<IModelRuntimeInitializer>();
-            return initializer.Initialize(model);
-        }
-
-        public bool FindLastMigration([MaybeNullWhen(false)] out Migration migration, [MaybeNullWhen(false)] out string id)
+        public bool FindLastMigration(string contextName, [MaybeNullWhen(false)] out Migration migration, [MaybeNullWhen(false)] out string id)
         {
             migration = null;
-            id = Database.GetAppliedMigrations().MaxBy(id => id);
+            id = Database.GetAppliedMigrations().Where(x=>x.Contains(contextName, StringComparison.OrdinalIgnoreCase)).MaxBy(id => id);
 
             if (id is null)
                 return false;
@@ -56,15 +67,6 @@ namespace BotMaster.Database
             migration = (Migration)Activator.CreateInstance(migrationType)!;
 
             return true;
-        }
-
-        public IReadOnlyList<MigrationOperation> GenerateDiff(IModel? source, IModel? target)
-        {
-            var sourceModel = source?.GetRelationalModel();
-            var targetModel = target?.GetRelationalModel();
-
-            var differ = Database.GetService<IMigrationsModelDiffer>();
-            return differ.GetDifferences(sourceModel, targetModel);
         }
 
         //public DbSet<User> Users => Set<User>();

@@ -1,5 +1,6 @@
 ﻿using BotMaster.Database;
 using BotMaster.Database.Migrations;
+using BotMaster.Telegram.Database;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -15,9 +16,9 @@ using System.Threading.Tasks;
 namespace BotMaster.RightsManagement.Migrations;
 
 
-public partial class InitialMigration : IAutoMigrationTypeProvider
+public partial class RightsContextMigration001 : IAutoMigrationTypeProvider
 {
-    public const string Id = "2022_10_23-20_39_01-InitialMigration";
+    public const string Id = $"2022_10_23-20_39_01-{nameof(RightsDbContext)}-InitialMigration";
     public IReadOnlyList<Type> GetEntityTypes()
     {
         return new[]

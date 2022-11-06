@@ -21,6 +21,8 @@ namespace BotMaster
 {
     internal partial class Program
     {
+
+
         internal static async Task Main(string[] args)
         {
 

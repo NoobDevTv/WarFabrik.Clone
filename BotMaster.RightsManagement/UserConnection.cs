@@ -9,6 +9,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace BotMaster.RightsManagement;
+
+[Table("UserConnections")]
 public class UserConnection : IdEntity<int>
 {
     public string ConnectionCode { get; set; }

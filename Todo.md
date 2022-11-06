@@ -34,13 +34,6 @@
 		- Twitch send 4 messages on follow after longer runtime
 		- No Twitch reconnect after restart
 
-How To Migrate:
-- Add reference of target to botmaster
-- cd into Botmaster
-- execute: dotnet ef migrations add MIGRATIONNAME --project ../TARGETPROJECT
-- Remove reference of target to botmaster
-
-
 Done:
 	- Dispatch Command (always) to itself
 	- Botmaster Twitch & Telegram to library

@@ -15,22 +15,10 @@ namespace BotMaster.RightsManagement.Migrations;
 
 [Migration(Id)]
 [DbContext(typeof(RightsDbContext))]
-public partial class InitialMigration : Migration
+public partial class RightsContextMigration001 : Migration
 {
-    public InitialMigration()
-    {
-        ;
-    }
-
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        //TODO: Context
-        using var ctx = new RightsDbContext();
-        migrationBuilder.SetUpgradeOperations(this, ctx);
-    }
-
-    protected override void BuildTargetModel(ModelBuilder modelBuilder)
-    {
-        base.BuildTargetModel(modelBuilder);
+        migrationBuilder.SetUpgradeOperations(this);
     }
 }
