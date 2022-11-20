@@ -93,8 +93,8 @@ namespace BotMaster.DockerRunner
                             bindings = bindingsJson.EnumerateArray().Select(x => x.GetString()).ToList();
 
                         var success = await CreateContainer(client, imageName, containerName, bindings);
-                        if (!success)
-                            ;
+          
+
                         //TODO Later
                         //var containtsNetworks = dockerData.TryGetProperty("Networks", out var networks);
                         //var containtsPublishedPorts = dockerData.TryGetProperty("PublishedPorts", out var publishedPorts);
@@ -102,11 +102,6 @@ namespace BotMaster.DockerRunner
                     }
                 }
 
-                //var porcessCreator = new TCPPluginCreator();
-                //using var manualReset = new ManualResetEvent(false);
-
-                //using var disp = PluginHoster.LoadAll(logger, porcessCreator, paths)
-                //    .Subscribe(p => { }, ex => throw ex, () => manualReset.Set());
 
             }
             catch (Exception ex)

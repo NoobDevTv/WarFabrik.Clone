@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net7.0</TargetFramework>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 
 		<EnablePreviewFeatures>True</EnablePreviewFeatures>
@@ -10,6 +10,7 @@
 		<RuntimeIdentifiers>win-x64;linux-x64</RuntimeIdentifiers>
 		<SelfContained>True</SelfContained>
 		<LangVersion>preview</LangVersion>
+		<UserSecretsId>04c19d89-bd41-4dcb-aaec-d71893b97f4c</UserSecretsId>
 	</PropertyGroup>
 
 

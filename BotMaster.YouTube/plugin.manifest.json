@@ -4,5 +4,19 @@
   "Author": "NoobDevTv",
   "Version": "1.0.0",
   "File": "BotMaster.YouTube.dll",
-  "ProcessRunner": "BotMaster.DotNetRunner"
+  "ProcessRunner": "BotMaster.DockerRunner",
+  "TcpData": {
+    "Port": 5762,
+    "Hostname": "Botmaster"
+  },
+  "DockerData": {
+    "ImageName": "botmaster_twitch:latest",
+    "ContainerName": "BotMaster_YouTube_NoobDevTV",
+    "Bindings": [
+      "C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net7.0\\additionalfiles:/app/additionalfiles",
+      "C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net7.0\\additionalfiles\\ytlogs:/app/logs"
+    ],
+    "PublishedPorts": [],
+    "Networks": []
+  }
 }

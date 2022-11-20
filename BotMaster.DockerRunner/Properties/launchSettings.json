@@ -6,7 +6,7 @@
     },
     "Docker": {
       "commandName": "Docker",
-      "DockerfileRunArguments": "-v /var/run/docker.sock:/var/run/docker.sock -v C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net6.0\\plugins:/app/plugins --network=botmaster"
+      "DockerfileRunArguments": "-v /var/run/docker.sock:/var/run/docker.sock -v C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net7.0\\plugins:/app/plugins --network=botmaster"
     }
   }
 }

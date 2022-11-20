@@ -272,3 +272,4 @@ __pycache__/
 /BotMaster.Twitch/Token.json
 **/GeneratedFiles/
 *.db
+*pipe*docker*

@@ -1,4 +1,17 @@
 ﻿TODOS:
+	- Plugins Store Install / As docker container?
+		- ✓ Standalone Database Plugin 
+		- ✓ TCP Plugin Creator 
+		- Manifests Location, Information, etc. pp.
+		- reinstantiate connection when plugin docker reboot
+		- Telegram crashes after 3 messages :(
+		- Twitch duplicates messages when multiple plugins are running
+		- existing container detection
+		- reboot on error inside plugin
+		- twitch not working after other plugins are removed
+
+	- Bots / Restream Bot is not allowed to execute commands
+
 	- ASP Net Core Web Core and Extensions
 		- ✓(Maybe) Betterplace donation alert
 		- Web Hook / Call for Twitch / YT Follows
@@ -21,11 +34,6 @@
 	- TeamSpeak Bot
 
 	- Cleanup again
-
-	- Plugins Store Install / As docker container?
-		- Standalone Database Plugin 
-		- TCP Plugin Creator
-		- Manifests Location, Information, etc. pp.
 
 	- WebUi for Config, Logging, Start & Stop, etc. pp.
 

@@ -1,6 +1,8 @@
 ﻿using BotMaster.Core.Extensibility;
 using BotMaster.PluginSystem.Messages;
 
+using NLog;
+
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Net;
@@ -14,13 +16,18 @@ namespace BotMaster.PluginSystem.PluginCreator
 {
     public class TCPPluginCreator : IPluginInstanceCreator
     {
-        private TcpListener listener;
+        private Dictionary<ushort, TcpListener> listeners = new();
+        private ILogger ilogger;
+
+        public TCPPluginCreator()
+        {
+            ilogger = NLog.LogManager.GetCurrentClassLogger();
+        }
 
         public PluginInstance CreateClient(PluginManifest manifest)
         {
             var tcpData = manifest.ExtensionData["TcpData"];
 
-            var ilogger = NLog.LogManager.GetCurrentClassLogger();
             var port = tcpData.GetProperty("Port");
             ilogger.Debug($"Got Port {port}");
             var host = tcpData.GetProperty("Hostname");
@@ -34,19 +41,24 @@ namespace BotMaster.PluginSystem.PluginCreator
         {
             var tcpData = manifest.ExtensionData["TcpData"];
 
-            var port = tcpData.GetProperty("Port");
-            listener = new TcpListener(IPAddress.IPv6Any, port.GetInt16());
-            listener.Server.DualMode = true;
-            listener.Start();
-            return new TCPPluginInstance(runnersPath, manifest, GetClient);
+            var port = tcpData.GetProperty("Port").GetUInt16();
+            if (!listeners.ContainsKey(port))
+            {
+                var listener = new TcpListener(IPAddress.IPv6Any, port);
+                ilogger.Debug($"Listening on Port {port}");
+                listener.Server.DualMode = true;
+                listener.Start();
+                listeners.Add(port, listener);
+            }
+            return new TCPPluginInstance(runnersPath, manifest, () => GetClient(port));
         }
 
-        private async Task<TcpClient> GetClient()
+        private async Task<TcpClient> GetClient(ushort port)
         {
             TcpClient client = null;
             await Task.Run(() =>
             {
-                client = listener.AcceptTcpClient();
+                client = listeners[port].AcceptTcpClient();
             });
 
             return client;

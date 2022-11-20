@@ -46,9 +46,10 @@ namespace BotMaster.Telegram
         public override IObservable<Package> Start(ILogger logger, IObservable<Package> receivedPackages)
         {
             using (var ctx = new RightsDbContext())
-                ctx.Database.Migrate();
+                ctx.Migrate();
+
             using (var ctx = new UserConnectionContext())
-                ctx.Database.Migrate();
+                ctx.Migrate();
 
             return Observable
             .Using(
@@ -179,7 +180,7 @@ namespace BotMaster.Telegram
                             .Select(x => (BetterplaceMessage)x.donation)
                    )
                   .Log(logger, "incommingBetterplaceMessages", subscription: LogLevel.Debug);
-            
+
             //Messages from other plugins
             IObservable<DefinedMessage> pluginMessageWithGroups
                 = definedMessages

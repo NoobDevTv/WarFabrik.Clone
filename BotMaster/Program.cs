@@ -25,7 +25,6 @@ namespace BotMaster
 
         internal static async Task Main(string[] args)
         {
-
             var config = ConfigManager.GetConfiguration("appsettings.json", args);
 
             var botmasterConfig = config.GetSettings<BotmasterConfig>();

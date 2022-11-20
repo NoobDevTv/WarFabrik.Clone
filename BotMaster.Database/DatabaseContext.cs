@@ -56,7 +56,7 @@ namespace BotMaster.Database
         public bool FindLastMigration(string contextName, [MaybeNullWhen(false)] out Migration migration, [MaybeNullWhen(false)] out string id)
         {
             migration = null;
-            id = Database.GetAppliedMigrations().Where(x=>x.Contains(contextName, StringComparison.OrdinalIgnoreCase)).MaxBy(id => id);
+            id = Database.GetAppliedMigrations().Where(x => x.Contains(contextName, StringComparison.OrdinalIgnoreCase)).MaxBy(id => id);
 
             if (id is null)
                 return false;
@@ -93,13 +93,27 @@ namespace BotMaster.Database
 
             base.OnModelCreating(modelBuilder);
         }
-
+        /// <summary>
+        /// Migrates with a transaction
+        ///     <para>
+        ///         Applies any pending migrations for the context to the database. Will create the database
+        ///         if it does not already exist.
+        ///     </para>
+        ///     <para>
+        ///         Note that this API is mutually exclusive with <see cref="DatabaseFacade.EnsureCreated" />. EnsureCreated does not use migrations
+        ///         to create the database and therefore the database that is created cannot be later updated using migrations.
+        ///     </para>
+        /// </summary>
+        /// <remarks>
+        ///     See <see href="https://aka.ms/efcore-docs-migrations">Database migrations</see> for more information.
+        /// </remarks>
+        /// <param name="databaseFacade">The <see cref="DatabaseFacade" /> for the context.</param>
         public void Migrate()
         {
-
-            var assembly = Database.GetService<IMigrationsAssembly>();
-            Console.WriteLine(assembly);
+            using var transRights = Database.BeginTransaction();
             Database.Migrate();
+            transRights.Commit();
+
         }
     }
 }

@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net7.0</TargetFramework>
 
 		<EnablePreviewFeatures>True</EnablePreviewFeatures>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -39,4 +39,17 @@
 		</None>
 	</ItemGroup>
 
+	<Target Name="CopyDLLs" AfterTargets="Build" Condition="'$(Configuration)'=='DEBUG'">
+		<Message Text="Executing CopyDLLs task ($(SolutionDir)BotMaster\$(OutDir)runners\$(ProjectName))" Importance="High" />
+		<Message Text="Executing CopyDLLs $(TargetDir)" Importance="High" />
+
+		<ItemGroup>
+			<MySourceFiles Include="$(TargetDir)\**\*.*" />
+		</ItemGroup>
+
+		<Copy SourceFiles="@(MySourceFiles)" DestinationFiles="@(MySourceFiles->'$(SolutionDir)BotMaster\$(OutDir)runners\$(ProjectName)\%(RecursiveDir)%(Filename)%(Extension)')" />
+
+		<Message Text="Copied build files" Importance="High" />
+
+	</Target>
 </Project>

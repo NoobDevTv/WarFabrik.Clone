@@ -13,8 +13,8 @@
     "ImageName": "botmaster_twitch:latest",
     "ContainerName": "BotMaster_Twitch_NoobDevTV",
     "Bindings": [
-      "C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net6.0\\plugins\\BotMaster.Twitch\\additionalfiles:/app/additionalfiles",
-      "C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net6.0\\plugins\\BotMaster.Twitch\\logs:/app/logs"
+      "C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net7.0\\additionalfiles:/app/additionalfiles",
+      "C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net7.0\\plugins\\BotMaster.Twitch\\logs:/app/logs"
     ],
     "PublishedPorts": [],
     "Networks": []

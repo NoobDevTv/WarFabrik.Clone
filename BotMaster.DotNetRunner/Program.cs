@@ -19,7 +19,7 @@ namespace BotMaster.DotNetRunner
 
         static void Main(string[] args)
         {
-            Thread.Sleep(30000);
+            //Thread.Sleep(30000);
 
             var config = ConfigManager.GetConfiguration("appsettings.json", args);
 

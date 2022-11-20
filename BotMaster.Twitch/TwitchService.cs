@@ -30,7 +30,7 @@ namespace BotMaster.Twitch
             using (var ctx = new RightsDbContext())
                 ctx.Migrate();
             using (var ctx = new UserConnectionContext())
-                ctx.Database.Migrate();
+                ctx.Migrate();
 
             this.logger = logger;
 
@@ -93,7 +93,7 @@ namespace BotMaster.Twitch
                     client =>
                         Observable
                         .Return(0)
-                        .Trace(logger, x=> "Create new Token")
+                        .Trace(logger, x => "Create new Token")
                         .Select(_ => Observable.FromAsync(token => client.PostAsync(url, null, token)))
                         .Concat()
                         .Do(response => response.EnsureSuccessStatusCode())

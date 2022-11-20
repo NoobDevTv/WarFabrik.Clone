@@ -8,9 +8,9 @@ WORKDIR /src
 COPY ["BotMaster.DotNetRunner/BotMaster.DotNetRunner.csproj", "BotMaster.DotNetRunner/"]
 COPY ["BotMaster.Core/BotMaster.Core.csproj", "BotMaster.Core/"]
 COPY ["BotMaster.PluginHost/BotMaster.PluginHost.csproj", "BotMaster.PluginHost/"]
-COPY ["BotMaster.RightsManagement/BotMaster.RightsManagement.csproj", "BotMaster.RightsManagement/"]
 COPY ["BotMaster.PluginSystem/BotMaster.PluginSystem.csproj", "BotMaster.PluginSystem/"]
-COPY ["BotMaster.Twitch/BotMaster.Twitch.csproj", "BotMaster.Twitch/"]
+COPY ["BotMaster.YouTube/BotMaster.YouTube.csproj", "BotMaster.YouTube/"]
+COPY ["BotMaster.RightsManagement/BotMaster.RightsManagement.csproj", "BotMaster.RightsManagement/"]
 COPY ["BotMaster.Betterplace.MessageContract/BotMaster.Betterplace.MessageContract.csproj", "BotMaster.Betterplace.MessageContract/"]
 COPY ["BotMaster.Livestream.MessageContract/BotMaster.Livestream.MessageContract.csproj", "BotMaster.Livestream.MessageContract/"]
 COPY ["BotMaster.MessageContract/BotMaster.MessageContract.csproj", "BotMaster.MessageContract/"]
@@ -20,10 +20,10 @@ COPY ["10_DatabaseAdapter/BotMaster.Database.MySql/BotMaster.Database.MySql.cspr
 RUN dotnet restore "BotMaster.DotNetRunner/BotMaster.DotNetRunner.csproj"
 COPY . .
 RUN dotnet publish "BotMaster.DotNetRunner/BotMaster.DotNetRunner.csproj" -c Debug -o /app/publish /p:UseAppHost=false
-RUN dotnet publish "BotMaster.Twitch/BotMaster.Twitch.csproj" -c Debug -o "/app/publish/plugins/BotMaster.Twitch"
+RUN dotnet publish "BotMaster.YouTube/BotMaster.YouTube.csproj" -c Debug -o "/app/publish/plugins/BotMaster.YouTube"
 RUN dotnet publish "10_DatabaseAdapter/BotMaster.Database.MySql/BotMaster.Database.MySql.csproj" -c Debug -o "/app/publish"
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "BotMaster.DotNetRunner.dll", "-l", "plugins/BotMaster.Twitch/plugin.manifest.json"]
+ENTRYPOINT ["dotnet", "BotMaster.DotNetRunner.dll", "-l", "plugins/BotMaster.YouTube/plugin.manifest.json"]
