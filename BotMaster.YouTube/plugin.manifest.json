@@ -7,10 +7,11 @@
   "ProcessRunner": "BotMaster.DockerRunner",
   "TcpData": {
     "Port": 5762,
+    "HandshakePort": 6789,
     "Hostname": "Botmaster"
   },
   "DockerData": {
-    "ImageName": "botmaster_twitch:latest",
+    "ImageName": "botmaster_youtube:latest",
     "ContainerName": "BotMaster_YouTube_NoobDevTV",
     "Bindings": [
       "C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net7.0\\additionalfiles:/app/additionalfiles",

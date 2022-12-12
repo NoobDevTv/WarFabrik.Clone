@@ -37,13 +37,6 @@ namespace BotMaster
                 .LoadConfigurationFromSection(config)
                 .GetCurrentClassLogger();
 
-            var pluginInfo = new DirectoryInfo(botmasterConfig.PluginsPath);
-            var runnersPath = new DirectoryInfo(botmasterConfig.RunnersPath);
-
-            if (!pluginInfo.Exists)
-                pluginInfo.Create();
-            if (!runnersPath.Exists)
-                runnersPath.Create();
 
             logger.Info("BotMaster started");
 
@@ -60,13 +53,19 @@ namespace BotMaster
             else if (botmasterConfig.PluginCreator == nameof(NamedPipePluginCreator))
                 typeContainer.Register<IPluginInstanceCreator>(new NamedPipePluginCreator());
             else if (botmasterConfig.PluginCreator == nameof(TCPPluginCreator))
-                typeContainer.Register<IPluginInstanceCreator>(new TCPPluginCreator());
+            {
+                var creator = new TCPPluginCreator();
+                typeContainer.Register<IPluginInstanceCreator>(creator);
+                typeContainer.Register(creator);
 
+            }
+
+            typeContainer.Register(botmasterConfig);
 
             var serviceLogger = LogManager.GetLogger($"{nameof(BotMaster)}.{nameof(Service)}");
 
             logger.Info("BotMaster PluginService Started");
-            using var service = new Service(typeContainer, serviceLogger, pluginInfo, runnersPath);
+            using var service = new Service(typeContainer, serviceLogger);
             service.Start();
 
             resetEvent.WaitOne();

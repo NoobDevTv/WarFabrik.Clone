@@ -28,7 +28,7 @@ namespace BotMaster.PluginSystem.PluginCreator
             return new PluginInstance<PipeStream>(
                         manifest,
                         NamedPipePluginClient.CreateClient,
-                        (s,p)=> PluginConnection.CreateSendPipe(s, p, (s)=>s.IsConnected),
+                        (s,p)=> PluginConnection.CreateSendPipe(() => s, p, (s)=>s.IsConnected),
                         (s) => PluginConnection.CreateReceiverPipe(()=>s, (s) => s.IsConnected)
                     );
         }
@@ -39,7 +39,7 @@ namespace BotMaster.PluginSystem.PluginCreator
                 manifest,
                 runnersPath,
                 NamedPipePluginServer.CreateServer,
-                (s, p) => PluginConnection.CreateSendPipe(s, p, (s) => s.IsConnected),
+                (s, p) => PluginConnection.CreateSendPipe(()=>s, p, (s) => s.IsConnected),
                 (s) => PluginConnection.CreateReceiverPipe(() => s, (s) => s.IsConnected)
             );
         }
@@ -161,7 +161,7 @@ namespace BotMaster.PluginSystem.PluginCreator
 
         internal override void SendMessages(Func<IObservable<Message>, IDisposable> subscribeAsSender)
         {
-            var receivedMessages = MessageConvert.ToMessage(Receiv());
+            var receivedMessages = MessageConvert.ToMessage(Receive());
             compositeDisposable.Add(subscribeAsSender(receivedMessages));
         }
 

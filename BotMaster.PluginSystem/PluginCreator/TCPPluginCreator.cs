@@ -28,12 +28,25 @@ namespace BotMaster.PluginSystem.PluginCreator
         {
             var tcpData = manifest.ExtensionData["TcpData"];
 
+            var host = tcpData.GetProperty("Hostname");
+            var handshakePort = tcpData.GetProperty("HandshakePort");
             var port = tcpData.GetProperty("Port");
             ilogger.Debug($"Got Port {port}");
-            var host = tcpData.GetProperty("Hostname");
+            ilogger.Debug($"Got HandshakePort {handshakePort}");
             ilogger.Debug($"Got Hostname {host}");
+
+            TcpClient b = new(host.GetString(), handshakePort.GetInt16());
+            ilogger.Debug($"Connected to handshake server");
+            var str = b.GetStream();
+
+            System.Text.Json.JsonSerializer.Serialize(str, manifest);
+            str.Flush();
+            ilogger.Debug($"Written handshake");
+            Thread.Sleep(5000);
+
             TcpClient a = new(host.GetString(), port.GetInt16());
             ilogger.Debug($"Connecting with tcp client");
+            a.SendTimeout = 1000;
             return new TCPPluginInstance(manifest, a);
         }
 
@@ -59,6 +72,8 @@ namespace BotMaster.PluginSystem.PluginCreator
             await Task.Run(() =>
             {
                 client = listeners[port].AcceptTcpClient();
+                client.NoDelay = true;
+                client.SendTimeout = 1000;
             });
 
             return client;
@@ -74,6 +89,7 @@ namespace BotMaster.PluginSystem.PluginCreator
         private readonly Func<Task<TcpClient>>? clientRetriever = null;
         private TcpClient client;
         private NetworkStream networkStream;
+        private readonly Logger logger;
 
         public TCPPluginInstance(PluginManifest manifest, TcpClient client) : base(manifest)
         {
@@ -82,6 +98,7 @@ namespace BotMaster.PluginSystem.PluginCreator
             runnersPath = null;
             this.client = client;
             networkStream = client.GetStream();
+            logger = LogManager.GetCurrentClassLogger();
         }
 
         public TCPPluginInstance(
@@ -90,58 +107,76 @@ namespace BotMaster.PluginSystem.PluginCreator
             Func<Task<TcpClient>> clientRetriever)
             : base(manifest)
         {
-            this.runnersPath = runnersPath;
             this.clientRetriever = clientRetriever;
-            var runnerManifestPath = new FileInfo(Path.Combine(runnersPath.FullName, manifest.ProcessRunner, "runner.manifest.json"));
+            this.runnersPath = runnersPath;
 
-            if (!runnerManifestPath.Exists)
-                return; //TODO Logging, we cant load this plugin without the runner :(
-
-            using var str = runnerManifestPath.OpenRead();
-            var runnerManifest = System.Text.Json.JsonSerializer.Deserialize<RunnerManifest>(str);
-
-            var runnersProcessPath = runnerManifest.Filename["default"];
-            foreach (var item in runnerManifest.Filename)
+            if (this.runnersPath is not null)
             {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Create(item.Key)))
-                    runnersProcessPath = item.Value;
-            }
+                var runnerManifestPath = new FileInfo(Path.Combine(runnersPath.FullName, manifest.ProcessRunner, "runner.manifest.json"));
 
-            var args = runnerManifest.Args;
-            foreach (var item in runnerManifest.EnviromentVariable)
-            {
-                args = args.Replace($"{{{item.Key}}}", item.Value
-                    .Replace("{manifestpath}", manifest.CurrentFileInfo.FullName)
-                    .Replace("{runnerpath}", runnerManifestPath.Directory.FullName)
-                    );
-            }
-            clientRetriever().ContinueWith(async (t) =>
-           {
-               client = await t;
-               networkStream = client.GetStream();
-           });
+                if (!runnerManifestPath.Exists)
+                    return; //TODO Logging, we cant load this plugin without the runner :(
 
-            runnerProcess = new()
-            {
-                StartInfo = new ProcessStartInfo(runnersProcessPath, args)
+                using var str = runnerManifestPath.OpenRead();
+                var runnerManifest = System.Text.Json.JsonSerializer.Deserialize<RunnerManifest>(str);
+
+                var runnersProcessPath = runnerManifest.Filename["default"];
+                foreach (var item in runnerManifest.Filename)
                 {
-                    WorkingDirectory = manifest.CurrentFileInfo.Directory.FullName,
-                    UseShellExecute = true
-                },
-                EnableRaisingEvents = true
-            };
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Create(item.Key)))
+                        runnersProcessPath = item.Value;
+                }
+
+                var args = runnerManifest.Args;
+                foreach (var item in runnerManifest.EnviromentVariable)
+                {
+                    args = args.Replace($"{{{item.Key}}}", item.Value
+                        .Replace("{manifestpath}", manifest.CurrentFileInfo.FullName)
+                        .Replace("{runnerpath}", runnerManifestPath.Directory.FullName)
+                        );
+                }
+
+                runnerProcess = new()
+                {
+                    StartInfo = new ProcessStartInfo(runnersProcessPath, args)
+                    {
+                        WorkingDirectory = manifest.CurrentFileInfo.Directory.FullName,
+                        UseShellExecute = true
+                    },
+                    EnableRaisingEvents = true
+                };
+            }
+
             compositeDisposable = new CompositeDisposable();
+
+            clientRetriever().ContinueWith(async (t) =>
+            {
+                client = await t;
+                networkStream = client.GetStream();
+            });
         }
 
-        public override IObservable<Package> Send(IObservable<Package> packages) => packages.Do(x =>
+        public override IObservable<Package> Send(IObservable<Package> packages)
         {
-            Span<byte> buffer = stackalloc byte[x.Length];
-            networkStream.Write(x.AsSpan(buffer));
-        });
+            return PluginConnection.
+                CreateSendPipe(() => networkStream, packages, (_) => networkStream is not null && client is not null && client.Connected)
+                .RetryDelayed(TimeSpan.FromSeconds(1));
+        }
+        //return packages.Do(x =>
+        //    {
+        //        Span<byte> buffer = stackalloc byte[x.Length];
+        //        if (client is not null && client.Connected)
+        //            networkStream.Write(x.AsSpan(buffer));
+        //        else
+        //            logger.Warn("Client disconnected");
+        //    });
+        //}
 
-        public override IObservable<Package> Receiv()
+        public override IObservable<Package> Receive()
         {
-            return PluginConnection.CreateReceiverPipe(() => networkStream, (_) => client is not null && client.Connected).RetryDelayed(TimeSpan.FromSeconds(1));
+            return PluginConnection
+                .CreateReceiverPipe(() => networkStream, (_) => networkStream is not null && client is not null && client.Connected)
+                .RetryDelayed(TimeSpan.FromSeconds(1));
         }
 
         internal override void ReceiveMessages(Func<string, IObservable<Message>> subscribeAsReceiver)
@@ -152,7 +187,7 @@ namespace BotMaster.PluginSystem.PluginCreator
 
         internal override void SendMessages(Func<IObservable<Message>, IDisposable> subscribeAsSender)
         {
-            var receivedMessages = MessageConvert.ToMessage(Receiv());
+            var receivedMessages = MessageConvert.ToMessage(Receive());
             compositeDisposable.Add(subscribeAsSender(receivedMessages));
         }
 

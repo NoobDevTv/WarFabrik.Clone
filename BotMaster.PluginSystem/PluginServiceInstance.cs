@@ -52,7 +52,7 @@ namespace BotMaster.PluginSystem
 
         internal override void SendMessages(Func<IObservable<Message>, IDisposable> subscribeAsSender)
         {
-            var receivedMessages = MessageConvert.ToMessage(Receiv());
+            var receivedMessages = MessageConvert.ToMessage(Receive());
             var subscription = subscribeAsSender(receivedMessages);
             compositeDisposable.Add(subscription);
         }

@@ -84,7 +84,7 @@ namespace BotMaster.PluginHost
                     .Where(t => t.IsAssignableTo(typeof(Plugin)))
                     .Select(t => t.GetActivationDelegate<Plugin>()())
                     .Do(p => p.Register(typecontainer))
-                    .Select(plugin => plugin.Start(logger, pluginInstance.Receiv()))
+                    .Select(plugin => plugin.Start(logger, pluginInstance.Receive()))
                     .Merge();
 
             logger.Debug("Subscribe process");

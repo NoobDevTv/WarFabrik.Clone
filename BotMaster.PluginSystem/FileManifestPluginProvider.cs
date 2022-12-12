@@ -7,28 +7,35 @@ using System.Text.Json;
 
 namespace BotMaster.PluginSystem
 {
-    public static class PluginProvider
+    public class FileManifestPluginProvider : IPluginProvider
     {
-        public static IObservable<PluginInstance> Watch(ILogger logger, ITypeContainer typeContainer, DirectoryInfo directory, DirectoryInfo runnersPath)
-            => GetPluginManifests(directory, logger)
-                   .Select(manifest =>
-                    {
-                        var pluginCreator = typeContainer.Get<IPluginInstanceCreator>();
+        public IObservable<PluginInstance> GetPluginInstances(ILogger logger, ITypeContainer typeContainer)
+        {
+            var botmasterConfig = typeContainer.Get<BotmasterConfig>();
+            var pluginInfo = new DirectoryInfo(botmasterConfig.PluginsPath);
+            var runnersPath = new DirectoryInfo(botmasterConfig.RunnersPath);
 
-                        var instance 
-                            = pluginCreator
-                            .CreateServer(
-                                manifest,
-                                runnersPath
-                            );
+            if (!pluginInfo.Exists)
+                pluginInfo.Create();
+            if (!runnersPath.Exists)
+                runnersPath.Create();
 
-                        return instance;
-                    });
+            return GetPluginManifests(pluginInfo, logger)
+                .Select(manifest =>
+                {
+                    var pluginCreator = typeContainer.Get<IPluginInstanceCreator>();
 
-        private static IObservable<PluginManifest> GetPluginManifests(DirectoryInfo directory, ILogger logger)
+                    var instance = pluginCreator.CreateServer(manifest, runnersPath);
+
+                    return instance;
+                });
+            ;
+        }
+
+        private static IObservable<PluginManifest> GetPluginManifests(DirectoryInfo pluginInfo, ILogger logger)
             => Observable
                 .Merge(
-                    directory
+                    pluginInfo
                         .GetFiles("plugin.manifest.json", SearchOption.AllDirectories)
                         .ToObservable(),
                     Observable.Using
@@ -37,7 +44,7 @@ namespace BotMaster.PluginSystem
                                 var watcher = new FileSystemWatcher
                                 {
                                     IncludeSubdirectories = true,
-                                    Path = directory.FullName,
+                                    Path = pluginInfo.FullName,
                                 };
                                 watcher.Filters.Add("plugin.manifest.json");
                                 watcher.EnableRaisingEvents = true;

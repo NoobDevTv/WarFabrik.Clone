@@ -7,6 +7,7 @@
   "ProcessRunner": "BotMaster.DockerRunner",
   "TcpData": {
     "Port": 5762,
+    "HandshakePort": 6789,
     "Hostname": "Botmaster"
   },
   "DockerData": {
@@ -14,7 +15,8 @@
     "ContainerName": "BotMaster_Twitch_NoobDevTV",
     "Bindings": [
       "C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net7.0\\additionalfiles:/app/additionalfiles",
-      "C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net7.0\\plugins\\BotMaster.Twitch\\logs:/app/logs"
+      "C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net7.0\\plugins\\BotMaster.Twitch\\logs:/app/logs",
+      "C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster.Twitch\\plugin.manifest.json:/app/plugins/BotMaster.Twitch/plugin.manifest.json"
     ],
     "PublishedPorts": [],
     "Networks": []
