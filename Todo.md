@@ -1,27 +1,26 @@
 ﻿Priorisierung before GoLive:
 
-- reinstantiate connection when plugin docker reboot
-- Telegram crashes after 3 messages :(
+- ✓ reinstantiate connection when plugin docker reboot
+- ✓ Telegram crashes after 3 messages :(
 - Twitch duplicates messages when multiple plugins are running (Twitch Messages ping pong their messages)
 
-
-(TCP) Plugin Handshake required (ID, Name, Manifest etc. pp.)
-StartPluginInstance in PluginService Public machen
-PluginCreator should be able to create instances and register them with PluginService
-
+ ✓ (TCP) Plugin Handshake required (ID, Name, Manifest etc. pp.)
+ ✓ StartPluginInstance in PluginService Public machen
+ ✓ PluginCreator should be able to create instances and register them PluginService
+ 
 TODOS:
 	- Plugins Store Install / As docker container?
 		- ✓ Standalone Database Plugin 
 		- ✓ TCP Plugin Creator 
 		- ✓ Manifests Location, Information, etc. pp.
-		- reinstantiate connection when plugin docker reboot
-		- Telegram crashes after 3 messages :(
+		- ✓ reinstantiate connection when plugin docker reboot
+		- ✓ Telegram crashes after 3 messages :(
 		- Twitch duplicates messages when multiple plugins are running (Twitch Messages ping pong their messages)
 		- ✓ twitch not working after other plugins are reinstanciated
 		- botmaster should reboot plugin when error inside plugin //
 			- docker inspect c2c769c4b9ef --format='{{.State.ExitCode}}' 
 			- We need to correctly pass exception into dotnetRunner and throw them there, so we have the right exit code
-		- existing container detection
+		- ✓ existing container detection
 
 	- Bots / Restream Bot is not allowed to execute commands
 

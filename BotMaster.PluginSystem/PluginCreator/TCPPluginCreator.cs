@@ -1,4 +1,5 @@
 ﻿using BotMaster.Core.Extensibility;
+using BotMaster.Core.NLog;
 using BotMaster.PluginSystem.Messages;
 
 using NLog;
@@ -10,6 +11,7 @@ using System.Net.Sockets;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Xml.Linq;
 
 namespace BotMaster.PluginSystem.PluginCreator
@@ -39,8 +41,12 @@ namespace BotMaster.PluginSystem.PluginCreator
             ilogger.Debug($"Connected to handshake server");
             var str = b.GetStream();
 
-            System.Text.Json.JsonSerializer.Serialize(str, manifest);
-            str.Flush();
+            var strManifest = System.Text.Json.JsonSerializer.Serialize(manifest);
+            
+            str.Write(BitConverter.GetBytes(strManifest.Length));
+            str.Write(Encoding.UTF8.GetBytes(strManifest));
+
+
             ilogger.Debug($"Written handshake");
             Thread.Sleep(5000);
 
@@ -89,7 +95,7 @@ namespace BotMaster.PluginSystem.PluginCreator
         private readonly Func<Task<TcpClient>>? clientRetriever = null;
         private TcpClient client;
         private NetworkStream networkStream;
-        private readonly Logger logger;
+        private readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         public TCPPluginInstance(PluginManifest manifest, TcpClient client) : base(manifest)
         {
@@ -98,7 +104,6 @@ namespace BotMaster.PluginSystem.PluginCreator
             runnersPath = null;
             this.client = client;
             networkStream = client.GetStream();
-            logger = LogManager.GetCurrentClassLogger();
         }
 
         public TCPPluginInstance(
@@ -158,25 +163,22 @@ namespace BotMaster.PluginSystem.PluginCreator
 
         public override IObservable<Package> Send(IObservable<Package> packages)
         {
+            logger.Debug($"Creating send pipe for {manifest.Id}");
             return PluginConnection.
                 CreateSendPipe(() => networkStream, packages, (_) => networkStream is not null && client is not null && client.Connected)
-                .RetryDelayed(TimeSpan.FromSeconds(1));
+                .Log(logger, "SendPipe", subscriptionMessage: () => "Created send pipe again", subscription: LogLevel.Info, onError: LogLevel.Error, onErrorMessage: (e) => e.ToString())
+                .RetryDelayed(TimeSpan.FromSeconds(1))
+                ;
         }
-        //return packages.Do(x =>
-        //    {
-        //        Span<byte> buffer = stackalloc byte[x.Length];
-        //        if (client is not null && client.Connected)
-        //            networkStream.Write(x.AsSpan(buffer));
-        //        else
-        //            logger.Warn("Client disconnected");
-        //    });
-        //}
 
         public override IObservable<Package> Receive()
         {
+            logger.Debug($"Creating receive pipe for {manifest.Id}");
             return PluginConnection
                 .CreateReceiverPipe(() => networkStream, (_) => networkStream is not null && client is not null && client.Connected)
-                .RetryDelayed(TimeSpan.FromSeconds(1));
+                .Log(logger, "ReceivePipe", subscriptionMessage : () => "Created Receive pipe again", subscription: LogLevel.Info, onError: LogLevel.Error, onErrorMessage: (e)=>e.ToString())
+                .RetryDelayed(TimeSpan.FromSeconds(1))
+                ;
         }
 
         internal override void ReceiveMessages(Func<string, IObservable<Message>> subscribeAsReceiver)

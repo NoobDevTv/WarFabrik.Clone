@@ -46,6 +46,7 @@ namespace BotMaster.PluginSystem
             => Observable
                 .Create<Package>((observer, token) => Task.Run(async () =>
                 {
+                    logger.Info(nameof(CreateReceiverPipe) + " started creation process");
                     var clientStream = getClientStream();
                     if (clientStream is NamedPipeServerStream serverStream)
                         await serverStream.WaitForConnectionAsync(token);

@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Text;
 using System.Text.Json;
 
 namespace BotMaster.PluginSystem
@@ -46,7 +47,18 @@ namespace BotMaster.PluginSystem
             listener.BeginAcceptTcpClient(BeginAcceptClient, null);
 
             var ns = client.GetStream();
-            var manifest = System.Text.Json.JsonSerializer.Deserialize<PluginManifest>(ns);
+            Span<byte> lengthBytes = stackalloc byte[4];
+            ns.ReadExactly(lengthBytes);
+            var length = BitConverter.ToInt32(lengthBytes);
+            if (length > ushort.MaxValue)
+            {
+                return;
+            }
+            Span<byte> bytes = stackalloc byte[length];
+            ns.ReadExactly(bytes);
+
+
+            var manifest = System.Text.Json.JsonSerializer.Deserialize<PluginManifest>(Encoding.UTF8.GetString(bytes));
             var instance = pluginCreator.CreateServer(manifest, null);
             instanceSubject.OnNext(instance);
         }

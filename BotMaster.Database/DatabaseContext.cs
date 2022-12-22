@@ -110,9 +110,9 @@ namespace BotMaster.Database
         /// <param name="databaseFacade">The <see cref="DatabaseFacade" /> for the context.</param>
         public void Migrate()
         {
-            using var transRights = Database.BeginTransaction();
+            //using var transRights = Database.BeginTransaction();
             Database.Migrate();
-            transRights.Commit();
+            //transRights.Commit();
 
         }
     }

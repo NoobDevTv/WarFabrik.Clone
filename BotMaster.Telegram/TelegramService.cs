@@ -59,7 +59,6 @@ namespace BotMaster.Telegram
                         .ToPackage(
                             Create(MessageConvert.ToMessage(receivedPackages), botInstance)
                             .OnError(logger, nameof(Create))
-                            .Retry()
                         )
             );
         }
@@ -79,6 +78,11 @@ namespace BotMaster.Telegram
         {
             logger = LogManager.GetCurrentClassLogger();
             var client = botContext.Client;
+
+            notifications = notifications
+                    .Log(logger, nameof(TelegramService) + " Incomming", onNext: LogLevel.Debug)
+                    .Publish()
+                    .RefCount();
 
             CreateIncommingCommandCallbacks(botContext);
 
@@ -273,6 +277,7 @@ namespace BotMaster.Telegram
             {"connect", "Connect two accounts of different plattforms" },
             {"subscribe", "Subscribe to a group of your liking" },
             {"unsubscribe", "Unsubscribe from a previous subscribed group" },
+            {"crash", "Crashes the bot for test cases" },
         };
         private static void CreateIncommingCommandCallbacks(TelegramContext botContext)
         {
@@ -286,6 +291,7 @@ namespace BotMaster.Telegram
             botContext.AddCommand(x => SimpleCommands.Connect(botContext, x), "connect");
             botContext.AddCommand(x => SimpleCommands.Subscribe(botContext, x), "subscribe");
             botContext.AddCommand(x => SimpleCommands.Unsubscribe(botContext, x), "unsubscribe");
+            botContext.AddCommand(x => throw new Exception("Test"), "crash");
 
             botContext.Client.SetMyCommandsAsync(botContext.CommandoCentral.Commands.Select(x => new BotCommand() { Command = x.Command, Description = commandDescriptions.ContainsKey(x.Command) ? commandDescriptions[x.Command] : "_" })).GetAwaiter().GetResult();
         }

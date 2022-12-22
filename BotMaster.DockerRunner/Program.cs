@@ -42,7 +42,10 @@ namespace BotMaster.DockerRunner
                 }
             });
             var own = all.FirstOrDefault();
-            ownNetwork = own.NetworkSettings.Networks.First().Key;
+            if (own is not null)
+                ownNetwork = own.NetworkSettings.Networks.First().Key;
+            else
+                ownNetwork = "botmaster";
 
             if (args.Length == 0)
                 args = new[] { "-l", "plugins/BotMaster.Twitch/plugin.manifest.json" };
@@ -92,8 +95,8 @@ namespace BotMaster.DockerRunner
                         if (containsBindings)
                             bindings = bindingsJson.EnumerateArray().Select(x => x.GetString()).ToList();
 
-                        var success = await CreateContainer(client, imageName, containerName, bindings);
-          
+                        var success = await CreateContainer(client, imageName, containerName, bindings, logger);
+
 
                         //TODO Later
                         //var containtsNetworks = dockerData.TryGetProperty("Networks", out var networks);
@@ -111,24 +114,38 @@ namespace BotMaster.DockerRunner
             }
         }
 
-        private static async Task<bool> CreateContainer(DockerClient client, string imageName, string? containerName, List<string>? bindings)
+        private static async Task<bool> CreateContainer(DockerClient client, string imageName, string? containerName, List<string>? bindings, ILogger logger)
         {
+            logger.Debug("Start trying to create container");
             var prog = new Progress<JSONMessage>();
-            await client.Images.CreateImageAsync(new() { FromImage = imageName }, new AuthConfig(), prog);
+            var existings = (await client.Containers.ListContainersAsync(new ContainersListParameters(){All = true}));
+            var existing= existings.FirstOrDefault(x => x.Names.Contains($"/{containerName}"));
 
-            var cont = await client.Containers.CreateContainerAsync(new()
+            if (existing is not null)
+            {
+                logger.Debug($"Deleting existing container {existing.Names.First()}");
+
+                await client.Containers.RemoveContainerAsync(existing.ID, new() { Force = true });
+            }
+
+            logger.Debug($"Creating image {imageName}");
+            await client.Images.CreateImageAsync(new() { FromImage = imageName }, new AuthConfig(), prog);
+            
+            logger.Debug($"Creating container {imageName}");
+
+            var container = await client.Containers.CreateContainerAsync(new()
             {
                 Image = imageName,
                 NetworkingConfig = new()
                 {
                     EndpointsConfig = new Dictionary<string, EndpointSettings>
-                    {
-                        { ownNetwork, new EndpointSettings()
-                            {
-                                NetworkID = ownNetwork
+                        {
+                            { ownNetwork, new EndpointSettings()
+                                {
+                                    NetworkID = ownNetwork
+                                }
                             }
                         }
-                    }
                 },
                 HostConfig = new HostConfig
                 {
@@ -136,7 +153,10 @@ namespace BotMaster.DockerRunner
                 },
                 Name = containerName
             });
-            return await client.Containers.StartContainerAsync(cont.ID, new());
+
+            logger.Debug($"Start container {container.ID}");
+
+            return await client.Containers.StartContainerAsync(container.ID, new());
         }
 
         static async Task DockerPlayground()

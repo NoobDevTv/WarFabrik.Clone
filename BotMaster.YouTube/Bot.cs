@@ -52,6 +52,10 @@ namespace BotMaster.YouTube
                             var client = context.Client;
                             CreateCommands(context, client);
 
+                            notifications = notifications
+                                    .Publish()
+                                    .RefCount();
+
                             var subscriptions = SubscribeExternMessages(notifications, context, client);
 
                             var refreshSubscription = CreateTokenRefresh(context).Subscribe();

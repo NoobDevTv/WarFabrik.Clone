@@ -41,19 +41,20 @@ namespace BotMaster.Twitch
 
         private static IObservable<Message> Create(IObservable<Message> notifications, ILogger logger)
         {
+            logger.Debug("Start creation of service");
             var tokenFileInfo = new FileInfo(Path.Combine(".", "additionalfiles", "Token.json"));
 
             if (!tokenFileInfo.Directory.Exists)
                 tokenFileInfo.Directory.Create();
 
             var tokenFile = JsonConvert.DeserializeObject<TokenFile>(File.ReadAllText(tokenFileInfo.FullName));
+            logger.Debug("Read token file");
 
             return GetAccessToken(new FileInfo(Path.Combine(".", "additionalfiles", "access.json")), tokenFile, logger)
                 .Select(accessToken => Bot.Create(tokenFile, accessToken, "NoobDevTv", notifications))
                 .Trace(logger, x => "BotCreate|New Bot created")
                 .Concat()
-                .OnError(logger, nameof(Create))
-                .Retry();
+                .OnError(logger, nameof(Create));
         }
 
         public override IEnumerable<IMessageContractInfo> ConsumeContracts()
