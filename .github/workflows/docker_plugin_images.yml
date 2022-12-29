@@ -19,13 +19,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - dockerfile: BotMaster.YouTube\Dockerfile
+          - dockerfile: BotMaster.YouTube/Dockerfile
             image: botmaster_youtube
-          - dockerfile: BotMaster.Twitch\Dockerfile
+          - dockerfile: BotMaster.Twitch/Dockerfile
             image: botmaster_twitch
-          - dockerfile: BotMaster.Telegram\Dockerfile
+          - dockerfile: BotMaster.Telegram/Dockerfile
             image: botmaster_telegram
-          - dockerfile: BotMaster.Betterplace\Dockerfile
+          - dockerfile: BotMaster.Betterplace/Dockerfile
             image: botmaster_betterplace
             
     permissions:
