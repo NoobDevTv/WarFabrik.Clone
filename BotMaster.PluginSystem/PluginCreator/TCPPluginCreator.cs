@@ -69,7 +69,10 @@ namespace BotMaster.PluginSystem.PluginCreator
                 listener.Start();
                 listeners.Add(port, listener);
             }
-            return new TCPPluginInstance(runnersPath, manifest, () => GetClient(port));
+
+            Func<Task<TcpClient>>? receiver = runnersPath is null ? () => GetClient(port): null;
+
+            return new TCPPluginInstance(runnersPath, manifest, receiver);
         }
 
         private async Task<TcpClient> GetClient(ushort port)
@@ -87,7 +90,7 @@ namespace BotMaster.PluginSystem.PluginCreator
 
     }
 
-    public class TCPPluginInstance : PluginInstance
+    public class TCPPluginInstance : PluginInstance, IDisposable
     {
         private readonly Process runnerProcess;
         private readonly CompositeDisposable compositeDisposable;
@@ -96,6 +99,10 @@ namespace BotMaster.PluginSystem.PluginCreator
         private TcpClient client;
         private NetworkStream networkStream;
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
+
+        private static volatile int nextId = 0;
+
+        private readonly int instanceId = nextId++;
 
         public TCPPluginInstance(PluginManifest manifest, TcpClient client) : base(manifest)
         {
@@ -154,10 +161,12 @@ namespace BotMaster.PluginSystem.PluginCreator
 
             compositeDisposable = new CompositeDisposable();
 
-            clientRetriever().ContinueWith(async (t) =>
+            clientRetriever?.Invoke().ContinueWith(async (t) =>
             {
                 client = await t;
                 networkStream = client.GetStream();
+                compositeDisposable.Add(client);
+                compositeDisposable.Add(networkStream);
             });
         }
 
@@ -174,9 +183,10 @@ namespace BotMaster.PluginSystem.PluginCreator
         public override IObservable<Package> Receive()
         {
             logger.Debug($"Creating receive pipe for {manifest.Id}");
+
             return PluginConnection
                 .CreateReceiverPipe(() => networkStream, (_) => networkStream is not null && client is not null && client.Connected)
-                .Log(logger, "ReceivePipe", subscriptionMessage : () => "Created Receive pipe again", subscription: LogLevel.Info, onError: LogLevel.Error, onErrorMessage: (e)=>e.ToString())
+                .Log(logger, "ReceivePipe", subscriptionMessage: () => "Created Receive pipe again", subscription: LogLevel.Info, onError: LogLevel.Error, onErrorMessage: (e) => $"Error happend in Instance Id {instanceId}:" + e.ToString())
                 .RetryDelayed(TimeSpan.FromSeconds(1))
                 ;
         }
@@ -184,13 +194,13 @@ namespace BotMaster.PluginSystem.PluginCreator
         internal override void ReceiveMessages(Func<string, IObservable<Message>> subscribeAsReceiver)
         {
             var sendPackages = Send(MessageConvert.ToPackage(subscribeAsReceiver(Id)));
-            compositeDisposable.Add(sendPackages.Subscribe());
+            compositeDisposable?.Add(sendPackages.Subscribe());
         }
 
         internal override void SendMessages(Func<IObservable<Message>, IDisposable> subscribeAsSender)
         {
             var receivedMessages = MessageConvert.ToMessage(Receive());
-            compositeDisposable.Add(subscribeAsSender(receivedMessages));
+            compositeDisposable?.Add(subscribeAsSender(receivedMessages));
         }
 
         public override void Start()
@@ -206,6 +216,12 @@ namespace BotMaster.PluginSystem.PluginCreator
             else
                 return new TCPPluginInstance(runnersPath, manifest, clientRetriever);
 
+        }
+
+        public void Dispose()
+        {
+            client?.Close();
+            compositeDisposable?.Dispose();
         }
     }
 }

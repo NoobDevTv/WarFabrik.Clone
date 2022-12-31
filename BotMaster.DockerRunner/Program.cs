@@ -16,6 +16,7 @@ using Docker.DotNet.Models;
 using Plugin = BotMaster.PluginSystem.Plugin;
 using System.Text.Json;
 using System.Net;
+using Microsoft.Extensions.Configuration;
 
 namespace BotMaster.DockerRunner
 {
@@ -25,27 +26,6 @@ namespace BotMaster.DockerRunner
 
         static async Task Main(string[] args)
         {
-            //await DockerPlayground();
-            var client = new DockerClientConfiguration()
-                .CreateClient();
-            var ownContainerId = Dns.GetHostName();
-
-            var all = await client.Containers.ListContainersAsync(new ContainersListParameters()
-            {
-                Filters = new Dictionary<string, IDictionary<string, bool>>
-                {
-                    { "id", new Dictionary<string, bool>
-                        {
-                            { ownContainerId, true }
-                        }
-                    }
-                }
-            });
-            var own = all.FirstOrDefault();
-            if (own is not null)
-                ownNetwork = own.NetworkSettings.Networks.First().Key;
-            else
-                ownNetwork = "botmaster";
 
             if (args.Length == 0)
                 args = new[] { "-l", "plugins/BotMaster.Twitch/plugin.manifest.json" };
@@ -54,15 +34,55 @@ namespace BotMaster.DockerRunner
 
             using var logManager = Disposable.Create(LogManager.Shutdown);
 
+            var logger = LogManager
+               .Setup()
+               .LoadConfigurationFromSection(config)
+               .GetCurrentClassLogger();
+
+            var dockerSettings = config.GetSection("Docker").Get<DockerSettings>();
+
+            //await DockerPlayground();
+            var client = new DockerClientConfiguration()
+                .CreateClient();
+
+
+            if (string.IsNullOrWhiteSpace(dockerSettings.Network))
+            {
+                var ownContainerId = Dns.GetHostName();
+
+                logger.Info($"Container Id is: {ownContainerId}");
+
+                var all = await client.Containers.ListContainersAsync(new ContainersListParameters()
+                {
+                    Filters = new Dictionary<string, IDictionary<string, bool>>
+                {
+                    { "id", new Dictionary<string, bool>
+                        {
+                            { ownContainerId, true }
+                        }
+                    }
+                }
+                });
+                var own = all.FirstOrDefault();
+
+                if (own is not null)
+                    ownNetwork = own.NetworkSettings.Networks.First().Key;
+                else
+                    ownNetwork = dockerSettings.DefaultNetwork;
+
+                logger.Info($"Found own network: {own is not null}, Use Network: {ownNetwork}");
+            }
+            else
+            {
+                ownNetwork = dockerSettings.Network;
+            }
+
+
             var info = new FileInfo(Path.Combine(".", "logs", $"pluginhost-{DateTime.Now:ddMMyyyy-HHmmss_fff}.log"));
 
             if (!info.Directory!.Exists)
                 info.Directory.Create();
 
-            var logger = LogManager
-                .Setup()
-                .LoadConfigurationFromSection(config)
-                .GetCurrentClassLogger();
 
             var plugins = new List<Plugin>();
             logger.Debug("Gotten the following args: " + string.Join(" | ", args));
@@ -118,8 +138,8 @@ namespace BotMaster.DockerRunner
         {
             logger.Debug("Start trying to create container");
             var prog = new Progress<JSONMessage>();
-            var existings = (await client.Containers.ListContainersAsync(new ContainersListParameters(){All = true}));
-            var existing= existings.FirstOrDefault(x => x.Names.Contains($"/{containerName}"));
+            var existings = (await client.Containers.ListContainersAsync(new ContainersListParameters() { All = true }));
+            var existing = existings.FirstOrDefault(x => x.Names.Contains($"/{containerName}"));
 
             if (existing is not null)
             {
@@ -130,7 +150,7 @@ namespace BotMaster.DockerRunner
 
             logger.Debug($"Creating image {imageName}");
             await client.Images.CreateImageAsync(new() { FromImage = imageName }, new AuthConfig(), prog);
-            
+
             logger.Debug($"Creating container {imageName}");
 
             var container = await client.Containers.CreateContainerAsync(new()
