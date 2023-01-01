@@ -22,8 +22,6 @@ namespace BotMaster.DockerRunner
 {
     class Program
     {
-        private static string ownNetwork;
-
         static async Task Main(string[] args)
         {
 
@@ -44,9 +42,9 @@ namespace BotMaster.DockerRunner
             //await DockerPlayground();
             var client = new DockerClientConfiguration()
                 .CreateClient();
+            string[] networks = Array.Empty<string>();
 
-
-            if (string.IsNullOrWhiteSpace(dockerSettings.Network))
+            if (dockerSettings.Networks.Length == 0)
             {
                 var ownContainerId = Dns.GetHostName();
 
@@ -66,15 +64,15 @@ namespace BotMaster.DockerRunner
                 var own = all.FirstOrDefault();
 
                 if (own is not null)
-                    ownNetwork = own.NetworkSettings.Networks.First().Key;
+                    networks = own.NetworkSettings.Networks.Select(x => x.Key).ToArray();
                 else
-                    ownNetwork = dockerSettings.DefaultNetwork;
+                    networks = dockerSettings.DefaultNetworks;
 
-                logger.Info($"Found own network: {own is not null}, Use Network: {ownNetwork}");
+                logger.Info($"Found own network: {own is not null}, Use Networks: {string.Join(',', networks)}");
             }
             else
             {
-                ownNetwork = dockerSettings.Network;
+                networks = dockerSettings.Networks;
             }
 
 
@@ -115,7 +113,7 @@ namespace BotMaster.DockerRunner
                         if (containsBindings)
                             bindings = bindingsJson.EnumerateArray().Select(x => x.GetString()).ToList();
 
-                        var success = await CreateContainer(client, imageName, containerName, bindings, logger);
+                        var success = await CreateContainer(client, imageName, containerName, bindings, networks, logger);
 
 
                         //TODO Later
@@ -134,7 +132,7 @@ namespace BotMaster.DockerRunner
             }
         }
 
-        private static async Task<bool> CreateContainer(DockerClient client, string imageName, string? containerName, List<string>? bindings, ILogger logger)
+        private static async Task<bool> CreateContainer(DockerClient client, string imageName, string? containerName, List<string>? bindings, string[] networks, ILogger logger)
         {
             logger.Debug("Start trying to create container");
             var prog = new Progress<JSONMessage>();
@@ -153,65 +151,39 @@ namespace BotMaster.DockerRunner
 
             logger.Debug($"Creating container {imageName}");
 
+            var endpointConfigs = new Dictionary<string, EndpointSettings>();
+            var firstNetwork = networks.First();
+
+            endpointConfigs[firstNetwork] = new EndpointSettings()
+            {
+                NetworkID = firstNetwork
+            };
+
+
             var container = await client.Containers.CreateContainerAsync(new()
             {
                 Image = imageName,
                 NetworkingConfig = new()
                 {
-                    EndpointsConfig = new Dictionary<string, EndpointSettings>
-                        {
-                            { ownNetwork, new EndpointSettings()
-                                {
-                                    NetworkID = ownNetwork
-                                }
-                            }
-                        }
+                    EndpointsConfig = endpointConfigs
                 },
                 HostConfig = new HostConfig
                 {
-                    Binds = bindings?.ToArray(),//  new[] { "G:\\:/opt" },
+                    Binds = bindings?.ToArray(),
                 },
                 Name = containerName
             });
 
+
+            foreach (var item in networks.Skip(1))
+            {
+                logger.Debug($"Connect container {container.ID} to network {item}");
+                await client.Networks.ConnectNetworkAsync(item, new() { EndpointConfig = new() { NetworkID = item }, Container = container.ID });
+            }
+
             logger.Debug($"Start container {container.ID}");
 
             return await client.Containers.StartContainerAsync(container.ID, new());
-        }
-
-        static async Task DockerPlayground()
-        {
-            DockerClient client = new DockerClientConfiguration()
-                .CreateClient();
-
-
-            var prog = new Progress<JSONMessage>();
-            await client.Images.CreateImageAsync(new() { FromImage = "ghcr.io/noobdevtv/warfabrik.clone:develop" }, new AuthConfig(), prog);
-
-            var cont = await client.Containers.CreateContainerAsync(new()
-            {
-                Image = "ghcr.io/noobdevtv/warfabrik.clone:develop",
-                NetworkingConfig = new()
-                {
-                    EndpointsConfig = new Dictionary<string, EndpointSettings>
-                    {
-                        { ownNetwork, new EndpointSettings()
-                            {
-                                NetworkID = ownNetwork
-                            }
-                        }
-                    }
-                },
-                HostConfig = new HostConfig
-                {
-                    Binds = new[] { "G:\\:/opt" },
-                    PortBindings = new Dictionary<string, IList<PortBinding>> { { "988/tcp", new[] { new PortBinding { HostPort = "999" } } } },
-                },
-                ExposedPorts = new Dictionary<string, EmptyStruct>() { { "999/tcp", new() } },
-                Name = "Test"
-            });
-            var success = await client.Containers.StartContainerAsync(cont.ID, new() { });
-
         }
 
         private static void Prog_ProgressChanged(object sender, JSONMessage e)

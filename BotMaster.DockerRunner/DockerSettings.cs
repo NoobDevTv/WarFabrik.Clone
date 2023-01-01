@@ -8,6 +8,6 @@ namespace BotMaster.DockerRunner;
 
 internal class DockerSettings
 {
-    public string Network { get; set; } = "";
-    public string DefaultNetwork { get; set; } = "";
+    public string[] Networks { get; set; } = Array.Empty<string>();
+    public string[] DefaultNetworks { get; set; } = Array.Empty<string>();
 }
