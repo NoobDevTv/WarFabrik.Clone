@@ -42,38 +42,6 @@ namespace BotMaster.DockerRunner
             //await DockerPlayground();
             var client = new DockerClientConfiguration()
                 .CreateClient();
-            string[] networks = Array.Empty<string>();
-
-            if (dockerSettings.Networks.Length == 0)
-            {
-                var ownContainerId = Dns.GetHostName();
-
-                logger.Info($"Container Id is: {ownContainerId}");
-
-                var all = await client.Containers.ListContainersAsync(new ContainersListParameters()
-                {
-                    Filters = new Dictionary<string, IDictionary<string, bool>>
-                {
-                    { "id", new Dictionary<string, bool>
-                        {
-                            { ownContainerId, true }
-                        }
-                    }
-                }
-                });
-                var own = all.FirstOrDefault();
-
-                if (own is not null)
-                    networks = own.NetworkSettings.Networks.Select(x => x.Key).ToArray();
-                else
-                    networks = dockerSettings.DefaultNetworks;
-
-                logger.Info($"Found own network: {own is not null}, Use Networks: {string.Join(',', networks)}");
-            }
-            else
-            {
-                networks = dockerSettings.Networks;
-            }
 
 
             var info = new FileInfo(Path.Combine(".", "logs", $"pluginhost-{DateTime.Now:ddMMyyyy-HHmmss_fff}.log"));
@@ -113,12 +81,16 @@ namespace BotMaster.DockerRunner
                         if (containsBindings)
                             bindings = bindingsJson.EnumerateArray().Select(x => x.GetString()).ToList();
 
-                        var success = await CreateContainer(client, imageName, containerName, bindings, networks, logger);
+                        var containsPorts = dockerData.TryGetProperty("PublishedPorts", out var publishedPorts); //List<string>
 
+                        List<string>? ports = null;
+                        if (containsPorts)
+                            ports = publishedPorts.EnumerateArray().Select(x => x.GetString()).ToList();
 
-                        //TODO Later
-                        //var containtsNetworks = dockerData.TryGetProperty("Networks", out var networks);
-                        //var containtsPublishedPorts = dockerData.TryGetProperty("PublishedPorts", out var publishedPorts);
+                        var networks = await GetNetworks(dockerSettings, logger, client, dockerData);
+
+                        var success = await CreateContainer(client, imageName, containerName, bindings, networks, ports, logger);
+
 
                     }
                 }
@@ -132,7 +104,65 @@ namespace BotMaster.DockerRunner
             }
         }
 
-        private static async Task<bool> CreateContainer(DockerClient client, string imageName, string? containerName, List<string>? bindings, string[] networks, ILogger logger)
+        private static async Task<string[]> GetNetworks(DockerSettings dockerSettings, ILogger logger, DockerClient client, JsonElement dockerData)
+        {
+            List<string> networks = new();
+
+
+            var containsNetworks = dockerData.TryGetProperty("Networks", out var manifestNetworks); //List<string>
+
+            if (containsNetworks)
+            {
+                networks = manifestNetworks.EnumerateArray().Select(x => x.GetString()).ToList();
+            }
+
+            if (!containsNetworks && dockerData.TryGetProperty("FallbackNetworks", out var fallbackNetworks))
+            {
+                networks = fallbackNetworks.EnumerateArray().Select(x => x.GetString()).ToList();
+            }
+
+            if (dockerSettings.Networks.Count == 0 && networks.Count == 0)
+            {
+                var ownContainerId = Dns.GetHostName();
+                logger.Info($"Container Id is: {ownContainerId}");
+
+                var all = await client.Containers.ListContainersAsync(new ContainersListParameters()
+                {
+                    Filters = new Dictionary<string, IDictionary<string, bool>>
+                {
+                    { "id", new Dictionary<string, bool>
+                        {
+                            { ownContainerId, true }
+                        }
+                    }
+                }
+                });
+                var own = all.FirstOrDefault();
+
+                if (own is not null)
+                    networks = own.NetworkSettings.Networks.Select(x => x.Key).ToList();
+                else
+                    networks = dockerSettings.DefaultNetworks;
+
+                logger.Info($"Found own network: {own is not null}, Use Networks: {string.Join(',', networks)}");
+            }
+            else if (networks.Count == 0)
+            {
+                networks = dockerSettings.Networks;
+            }
+
+            networks.AddRange(dockerSettings.AdditionalNetworks);
+
+
+            if (dockerData.TryGetProperty("AdditionalNetworks", out var additionalNetworks))
+            {
+                networks.AddRange(additionalNetworks.EnumerateArray().Select(x => x.GetString()));
+            }
+
+            return networks.Distinct().ToArray();
+        }
+
+        private static async Task<bool> CreateContainer(DockerClient client, string imageName, string? containerName, List<string>? bindings, string[] networks, List<string>? ports, ILogger logger)
         {
             logger.Debug("Start trying to create container");
             var prog = new Progress<JSONMessage>();
@@ -171,7 +201,8 @@ namespace BotMaster.DockerRunner
                 {
                     Binds = bindings?.ToArray(),
                 },
-                Name = containerName
+                Name = containerName,
+                ExposedPorts = ports?.ToDictionary(x => x, x => new EmptyStruct())
             });
 
 
@@ -180,6 +211,7 @@ namespace BotMaster.DockerRunner
                 logger.Debug($"Connect container {container.ID} to network {item}");
                 await client.Networks.ConnectNetworkAsync(item, new() { EndpointConfig = new() { NetworkID = item }, Container = container.ID });
             }
+
 
             logger.Debug($"Start container {container.ID}");
 

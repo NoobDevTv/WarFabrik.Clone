@@ -291,8 +291,9 @@ namespace BotMaster.Telegram
             botContext.AddCommand(x => SimpleCommands.Connect(botContext, x), "connect");
             botContext.AddCommand(x => SimpleCommands.Subscribe(botContext, x), "subscribe");
             botContext.AddCommand(x => SimpleCommands.Unsubscribe(botContext, x), "unsubscribe");
+#if DEBUG
             botContext.AddCommand(x => throw new Exception("Test"), "crash");
-
+#endif
             botContext.Client.SetMyCommandsAsync(botContext.CommandoCentral.Commands.Select(x => new BotCommand() { Command = x.Command, Description = commandDescriptions.ContainsKey(x.Command) ? commandDescriptions[x.Command] : "_" })).GetAwaiter().GetResult();
         }
 
