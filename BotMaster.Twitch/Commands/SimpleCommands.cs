@@ -133,13 +133,13 @@ namespace BotMaster.Twitch.Commands
         {
             if (message.Parameter.Count > 0)
             {
-                UserConnectionService.RevokeConnection(context.UserId, message.Parameter.First());
+                UserConnectionService.RevokeConnection(message.PlattformUserId, message.Parameter.First());
 
                 context.Client.SendWhisper(message.Username, $"The connection was canceled / revoked, as it is only allowed to be finished via PN");
             }
             else
             {
-                context.Client.SendWhisper(message.Username, $"Enter your connection code into the application you want to connect to. It's valid for one hour: \"{UserConnectionService.StartConnection(context.UserId)}\"");
+                context.Client.SendWhisper(message.Username, $"Enter your connection code into the application you want to connect to. It's valid for one hour: \"{UserConnectionService.StartConnection(message.PlattformUserId)}\"");
             }
 
         }
@@ -148,14 +148,14 @@ namespace BotMaster.Twitch.Commands
         {
             if (message.Parameter.Count > 0)
             {
-                if (UserConnectionService.EndConnection(context.UserId, message.Parameter.First()))
+                if (UserConnectionService.EndConnection(message.PlattformUserId, message.Parameter.First()))
                     context.Client.SendWhisper(message.Username, $"You have connected successfully");
                 else
                     context.Client.SendWhisper(message.Username, $"You have connected unsuccessfully, did you try to connect to the same plattform or did you already link these plattforms?");
             }
             else
             {
-                context.Client.SendWhisper(message.Username, $"Enter your connection code into the application you want to connect to. It's valid for one hour: \"{UserConnectionService.StartConnection(context.UserId)}\"");
+                context.Client.SendWhisper(message.Username, $"Enter your connection code into the application you want to connect to. It's valid for one hour: \"{UserConnectionService.StartConnection(message.PlattformUserId)}\"");
             }
         }
 
