@@ -139,7 +139,7 @@ namespace BotMaster.Twitch.Commands
             }
             else
             {
-                context.Client.SendWhisper(message.Username, $"Enter your connection code into the application you want to connect to. It's valid for one hour: {UserConnectionService.StartConnection(context.UserId)}");
+                context.Client.SendWhisper(message.Username, $"Enter your connection code into the application you want to connect to. It's valid for one hour: \"{UserConnectionService.StartConnection(context.UserId)}\"");
             }
 
         }
@@ -155,7 +155,7 @@ namespace BotMaster.Twitch.Commands
             }
             else
             {
-                context.Client.SendWhisper(message.Username, $"Enter your connection code into the application you want to connect to. It's valid for one hour: {UserConnectionService.StartConnection(context.UserId)}");
+                context.Client.SendWhisper(message.Username, $"Enter your connection code into the application you want to connect to. It's valid for one hour: \"{UserConnectionService.StartConnection(context.UserId)}\"");
             }
         }
 

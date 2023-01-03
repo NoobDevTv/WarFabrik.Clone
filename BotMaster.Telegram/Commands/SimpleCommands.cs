@@ -51,7 +51,7 @@ namespace BotMaster.Telegram.Commands
             }
             else
             {
-                context.Client.SendTextMessageAsync(new ChatId(long.Parse(message.PlattformUserId)), $"Enter your connection code into the application you want to connect to with the syntax \"connect 'code'\". It's valid for one hour: {UserConnectionService.StartConnection(message.PlattformUserId)}");
+                context.Client.SendTextMessageAsync(new ChatId(long.Parse(message.PlattformUserId)), $"Enter your connection code into the application you want to connect to with the syntax \"connect 'code'\". It's valid for one hour: \"{UserConnectionService.StartConnection(message.PlattformUserId)}\"");
             }
         }
 

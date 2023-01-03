@@ -1,32 +1,32 @@
 ﻿using BotMaster.Core.Configuration;
-using BotMaster.PluginHost;
 using BotMaster.PluginSystem;
-using BotMaster.PluginSystem.PluginCreator;
 
-using NLog;
-using NLog.Config;
-using NLog.Targets;
-using NLog.Extensions.Logging;
-
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 
-using Plugin = BotMaster.PluginSystem.Plugin;
-using System.Text.Json;
-using System.Net;
 using Microsoft.Extensions.Configuration;
+
+using NLog;
+using NLog.Extensions.Logging;
+
+using System.Net;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Text.Json;
+
+using Plugin = BotMaster.PluginSystem.Plugin;
 
 namespace BotMaster.DockerRunner
 {
-    class Program
+    internal class Program
     {
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
 
             if (args.Length == 0)
+            {
                 args = new[] { "-l", "plugins/BotMaster.Twitch/plugin.manifest.json" };
+            }
 
             var config = ConfigManager.GetConfiguration("appsettings.json", args);
 
@@ -40,22 +40,21 @@ namespace BotMaster.DockerRunner
             var dockerSettings = config.GetSection("Docker").Get<DockerSettings>();
 
             //await DockerPlayground();
-            var client = new DockerClientConfiguration()
-                .CreateClient();
-
+            var client = new DockerClientConfiguration().CreateClient();
 
             var info = new FileInfo(Path.Combine(".", "logs", $"pluginhost-{DateTime.Now:ddMMyyyy-HHmmss_fff}.log"));
 
             if (!info.Directory!.Exists)
+            {
                 info.Directory.Create();
-
+            }
 
             var plugins = new List<Plugin>();
             logger.Debug("Gotten the following args: " + string.Join(" | ", args));
 
             try
             {
-                for (int i = 0; i < args.Length; i++)
+                for (var i = 0; i < args.Length; i++)
                 {
                     if (args[i] == "-l")
                     {
@@ -68,33 +67,40 @@ namespace BotMaster.DockerRunner
                         var dockerData = pluginManifest.ExtensionData["DockerData"];
                         var containsImageName = dockerData.TryGetProperty("ImageName", out var imageNameJson); //string
                         if (!containsImageName)
+                        {
                             continue;
+                        }
+
                         var imageName = imageNameJson.GetString();
 
                         var containsContainerName = dockerData.TryGetProperty("ContainerName", out var containerNameJson); //string
                         string? containerName = null;
                         if (containsContainerName)
+                        {
                             containerName = containerNameJson.GetString();
+                        }
 
                         var containsBindings = dockerData.TryGetProperty("Bindings", out var bindingsJson); //List<string>
                         List<string>? bindings = null;
                         if (containsBindings)
+                        {
                             bindings = bindingsJson.EnumerateArray().Select(x => x.GetString()).ToList();
+                        }
 
                         var containsPorts = dockerData.TryGetProperty("PublishedPorts", out var publishedPorts); //List<string>
 
                         List<string>? ports = null;
                         if (containsPorts)
+                        {
                             ports = publishedPorts.EnumerateArray().Select(x => x.GetString()).ToList();
+                        }
 
                         var networks = await GetNetworks(dockerSettings, logger, client, dockerData);
 
                         var success = await CreateContainer(client, imageName, containerName, bindings, networks, ports, logger);
 
-
                     }
                 }
-
 
             }
             catch (Exception ex)
@@ -107,7 +113,6 @@ namespace BotMaster.DockerRunner
         private static async Task<string[]> GetNetworks(DockerSettings dockerSettings, ILogger logger, DockerClient client, JsonElement dockerData)
         {
             List<string> networks = new();
-
 
             var containsNetworks = dockerData.TryGetProperty("Networks", out var manifestNetworks); //List<string>
 
@@ -139,10 +144,7 @@ namespace BotMaster.DockerRunner
                 });
                 var own = all.FirstOrDefault();
 
-                if (own is not null)
-                    networks = own.NetworkSettings.Networks.Select(x => x.Key).ToList();
-                else
-                    networks = dockerSettings.DefaultNetworks;
+                networks = own is not null ? own.NetworkSettings.Networks.Select(x => x.Key).ToList() : dockerSettings.DefaultNetworks;
 
                 logger.Info($"Found own network: {own is not null}, Use Networks: {string.Join(',', networks)}");
             }
@@ -152,7 +154,6 @@ namespace BotMaster.DockerRunner
             }
 
             networks.AddRange(dockerSettings.AdditionalNetworks);
-
 
             if (dockerData.TryGetProperty("AdditionalNetworks", out var additionalNetworks))
             {
@@ -166,7 +167,7 @@ namespace BotMaster.DockerRunner
         {
             logger.Debug("Start trying to create container");
             var prog = new Progress<JSONMessage>();
-            var existings = (await client.Containers.ListContainersAsync(new ContainersListParameters() { All = true }));
+            var existings = await client.Containers.ListContainersAsync(new ContainersListParameters() { All = true });
             var existing = existings.FirstOrDefault(x => x.Names.Contains($"/{containerName}"));
 
             if (existing is not null)
@@ -189,7 +190,6 @@ namespace BotMaster.DockerRunner
                 NetworkID = firstNetwork
             };
 
-
             var container = await client.Containers.CreateContainerAsync(new()
             {
                 Image = imageName,
@@ -205,13 +205,11 @@ namespace BotMaster.DockerRunner
                 ExposedPorts = ports?.ToDictionary(x => x, x => new EmptyStruct())
             });
 
-
             foreach (var item in networks.Skip(1))
             {
                 logger.Debug($"Connect container {container.ID} to network {item}");
                 await client.Networks.ConnectNetworkAsync(item, new() { EndpointConfig = new() { NetworkID = item }, Container = container.ID });
             }
-
 
             logger.Debug($"Start container {container.ID}");
 
