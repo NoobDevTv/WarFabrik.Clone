@@ -228,12 +228,15 @@ namespace BotMaster.Twitch
                             var definedMessages = DefinedContract.ToMessages(commandMessages.Merge(chatMessages));
                             var pnS = DefinedContract.ToMessages(privateCommandMessages);
 
-                            return Observable.Using(
-                                () => StableCompositeDisposable.Create(
-                                    incommingDefinedMessages.Subscribe(),
-                                    incommingBetterplaceMessages.Subscribe(),
-                                    incommingLivestreamMessages.Subscribe()),
-                                (_) => Observable.Merge(LivestreamMessages, definedMessages, pnS));
+
+                            return Observable.Merge(
+                                LivestreamMessages, 
+                                definedMessages, 
+                                pnS,
+                                GetEmptyFrom(incommingDefinedMessages),
+                                GetEmptyFrom(incommingLivestreamMessages),
+                                GetEmptyFrom(incommingBetterplaceMessages));
+
                         })
                         .Merge()
                         ;
@@ -247,6 +250,7 @@ namespace BotMaster.Twitch
                 }
             );
         }
+        protected static IObservable<Message> GetEmptyFrom<T>(IObservable<T> observe) => observe.IgnoreElements().Select(_ => Message.Empty);
 
         private static async Task<TwitchContext> CreateContext(TokenFile tokenFile, AccessToken accessToken, string channelName, CancellationToken t, CommandoCentral commandoCentral)
         {

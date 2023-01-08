@@ -18,9 +18,10 @@ TODOS:
 		- Twitch duplicates messages when multiple plugins are running (Twitch Messages ping pong their messages)
 		- ✓ twitch not working after other plugins are reinstanciated
 		- botmaster should reboot plugin when error inside plugin //
-			- docker inspect c2c769c4b9ef --format='{{.State.ExitCode}}' 
-			- We need to correctly pass exception into dotnetRunner and throw them there, so we have the right exit code
+			- docker inspect c2c769c4b9ef --format='{{.State.ExitCode}}'  == 111
+			✓ We need to correctly pass exception into dotnetRunner and throw them there, so we have the right exit code
 		- ✓ existing container detection
+		- ✓ betterplace bad gateway in own container
 
 	- Bots / Restream Bot is not allowed to execute commands
 

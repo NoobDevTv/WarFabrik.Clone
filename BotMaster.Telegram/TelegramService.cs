@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 
 using NLog;
 
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
@@ -118,7 +119,6 @@ namespace BotMaster.Telegram
                     follower => follower
                         .SelectMany(message =>
                         {
-
                             var userIds = GetIdsOfGroup("follower");
                             foreach (var item in noobDevGroupUser)
                             {
@@ -191,6 +191,7 @@ namespace BotMaster.Telegram
                 .VisitMany(textMessage => textMessage
                         .SelectMany(message =>
                         {
+
                             var userIds = GetIdsOfGroup("text");
 
                             return userIds.Select(userId => (userId, message));
@@ -248,10 +249,19 @@ namespace BotMaster.Telegram
                     return LivestreamMessage.Create(new StreamLiveInformation((x.user?.Id ?? -1).ToString(), x.message.Item2.Message.From.Username, "Telegram", true));
                 });
 
-            var fromUser = DefinedMessageContract.ToMessages(commandMessages).Merge(LivestreamContract.ToMessages(liveStreamMessages));
 
-            return Observable.Using(() => StableCompositeDisposable.Create(pluginMessageWithGroups.Subscribe(), incommingCommandStream.Subscribe(), incommingLivestreamMessages.Subscribe(), incommingBetterplaceMessages.Subscribe()), _ => fromUser);
+            var fromUser = DefinedMessageContract
+                .ToMessages(commandMessages)
+                .Merge(LivestreamContract.ToMessages(liveStreamMessages))
+                ;
+
+            return Observable.Merge(fromUser, 
+                GetEmptyFrom(pluginMessageWithGroups), 
+                GetEmptyFrom(incommingLivestreamMessages), 
+                GetEmptyFrom(incommingBetterplaceMessages), 
+                GetEmptyFrom(incommingCommandStream));
         }
+
 
         private static HashSet<long> GetIdsOfGroup(string groupname)
         {

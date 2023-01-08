@@ -7,6 +7,7 @@ using System.Reactive.Threading.Tasks;
 
 namespace BotMaster.PluginSystem
 {
+
     public static class PluginConnection
     {
         private static Logger logger;
@@ -22,7 +23,7 @@ namespace BotMaster.PluginSystem
                 .Do(x =>
                 {
                     if (!checkConnectionStatus(getClientStream()))
-                        logger.Warn("Client is not connected anymore");
+                        logger.Warn("Client is not connected anymore"); //TODO Throw ex PluginConnectionException for recreation?
                 })
                 .Where(_ => checkConnectionStatus(getClientStream()))
                 .Select(p =>
@@ -61,8 +62,8 @@ namespace BotMaster.PluginSystem
                             token.ThrowIfCancellationRequested();
                             if (!checkConnectionStatus(clientStream))
                             {
-                                observer.OnError(new Exception("Client is not connected"));
-                                return;
+                                observer.OnError(new PluginConnectionException("Client is not connected"));
+                                throw new PluginConnectionException("Client is not connected");
                             }
 
                             logger.Debug("Waiting for new incomming message");

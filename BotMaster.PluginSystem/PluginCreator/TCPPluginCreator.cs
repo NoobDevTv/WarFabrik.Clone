@@ -42,7 +42,7 @@ namespace BotMaster.PluginSystem.PluginCreator
             var str = b.GetStream();
 
             var strManifest = System.Text.Json.JsonSerializer.Serialize(manifest);
-            
+
             str.Write(BitConverter.GetBytes(strManifest.Length));
             str.Write(Encoding.UTF8.GetBytes(strManifest));
 
@@ -70,7 +70,7 @@ namespace BotMaster.PluginSystem.PluginCreator
                 listeners.Add(port, listener);
             }
 
-            Func<Task<TcpClient>>? receiver = runnersPath is null ? () => GetClient(port): null;
+            Func<Task<TcpClient>>? receiver = runnersPath is null ? () => GetClient(port) : null;
 
             return new TCPPluginInstance(runnersPath, manifest, receiver);
         }
@@ -176,7 +176,7 @@ namespace BotMaster.PluginSystem.PluginCreator
             return PluginConnection.
                 CreateSendPipe(() => networkStream, packages, (_) => networkStream is not null && client is not null && client.Connected)
                 .Log(logger, "SendPipe", subscriptionMessage: () => "Created send pipe again", subscription: LogLevel.Info, onError: LogLevel.Error, onErrorMessage: (e) => e.ToString())
-                .RetryDelayed(TimeSpan.FromSeconds(1))
+                .Retry(ex => ex is PluginConnectionException, TimeSpan.FromSeconds(1))
                 ;
         }
 
@@ -187,7 +187,7 @@ namespace BotMaster.PluginSystem.PluginCreator
             return PluginConnection
                 .CreateReceiverPipe(() => networkStream, (_) => networkStream is not null && client is not null && client.Connected)
                 .Log(logger, "ReceivePipe", subscriptionMessage: () => "Created Receive pipe again", subscription: LogLevel.Info, onError: LogLevel.Error, onErrorMessage: (e) => $"Error happend in Instance Id {instanceId}:" + e.ToString())
-                .RetryDelayed(TimeSpan.FromSeconds(1))
+                .Retry(ex => ex is PluginConnectionException, TimeSpan.FromSeconds(1))
                 ;
         }
 

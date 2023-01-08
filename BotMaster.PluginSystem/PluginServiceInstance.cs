@@ -1,8 +1,8 @@
 ﻿using BotMaster.PluginSystem.Messages;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using BotMaster.Core;
 using System.Reactive.Concurrency;
+using BotMaster.Core.Extensibility;
 
 namespace BotMaster.PluginSystem
 {

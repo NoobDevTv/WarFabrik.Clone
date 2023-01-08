@@ -17,7 +17,7 @@ namespace BotMaster.DotNetRunner
     class Program
     {
 
-        static int Main(string[] args)
+        static async Task Main(string[] args)
         {
             //Thread.Sleep(30000);
             var config = ConfigManager.GetConfiguration("appsettings.json", args);
@@ -50,19 +50,15 @@ namespace BotMaster.DotNetRunner
                 }
 
                 var porcessCreator = new TCPPluginCreator();
-                using var manualReset = new ManualResetEvent(false);
-                bool error = false;
-                using var disp = PluginHoster.LoadAll(logger, porcessCreator, paths, false)
-                    .Subscribe(p => { }, ex =>
-                    {
-                        error = true;
-                        logger.Fatal(ex);
-                        manualReset.Set();
-                        throw ex;
-                    }, () => manualReset.Set());
 
-                manualReset.WaitOne();
-                return error ? 1 : 0;
+                _ = await PluginHoster.LoadAll(logger, porcessCreator, paths, false)
+                    .IgnoreElements()
+                    .Do(p => { }, ex =>
+                        {
+                            logger.Fatal(ex);
+                            Environment.Exit(111);
+                        })
+                    ;
             }
             catch (Exception ex)
             {
