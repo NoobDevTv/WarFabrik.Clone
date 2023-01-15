@@ -10,6 +10,7 @@ using NLog;
 using NLog.Extensions.Logging;
 
 using System.Net;
+using System.Net.Http.Headers;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text.Json;
@@ -97,11 +98,16 @@ namespace BotMaster.DockerRunner
 
                         var networks = await GetNetworks(dockerSettings, logger, client, dockerData);
 
-                        var success = await CreateContainer(client, imageName, containerName, bindings, networks, ports, logger);
 
+                        RestartPolicy restartPolicy = new();
+                        if (dockerData.TryGetProperty("RestartPolicy", out var restartPolicyData))
+                        {
+                            restartPolicy =  restartPolicyData.Deserialize<RestartPolicy>() ?? new();
+                        }
+
+                        var success = await CreateContainer(client, imageName, containerName, bindings, networks, ports, restartPolicy, logger);
                     }
                 }
-
             }
             catch (Exception ex)
             {
@@ -163,7 +169,7 @@ namespace BotMaster.DockerRunner
             return networks.Distinct().ToArray();
         }
 
-        private static async Task<bool> CreateContainer(DockerClient client, string imageName, string? containerName, List<string>? bindings, string[] networks, List<string>? ports, ILogger logger)
+        private static async Task<bool> CreateContainer(DockerClient client, string imageName, string? containerName, List<string>? bindings, string[] networks, List<string>? ports, RestartPolicy policy, ILogger logger)
         {
             logger.Debug("Start trying to create container");
             var prog = new Progress<JSONMessage>();
@@ -200,9 +206,11 @@ namespace BotMaster.DockerRunner
                 HostConfig = new HostConfig
                 {
                     Binds = bindings?.ToArray(),
+                    RestartPolicy = policy
                 },
                 Name = containerName,
-                ExposedPorts = ports?.ToDictionary(x => x, x => new EmptyStruct())
+                ExposedPorts = ports?.ToDictionary(x => x, x => new EmptyStruct()),
+                
             });
 
             foreach (var item in networks.Skip(1))

@@ -1,33 +1,26 @@
-﻿Priorisierung before GoLive:
-
-- ✓ reinstantiate connection when plugin docker reboot
-- ✓ Telegram crashes after 3 messages :(
-- Twitch duplicates messages when multiple plugins are running (Twitch Messages ping pong their messages)
-
- ✓ (TCP) Plugin Handshake required (ID, Name, Manifest etc. pp.)
- ✓ StartPluginInstance in PluginService Public machen
- ✓ PluginCreator should be able to create instances and register them PluginService
- 
-TODOS:
+﻿TODOS:
 	- Plugins Store Install / As docker container?
 		- ✓ Standalone Database Plugin 
 		- ✓ TCP Plugin Creator 
 		- ✓ Manifests Location, Information, etc. pp.
 		- ✓ reinstantiate connection when plugin docker reboot
 		- ✓ Telegram crashes after 3 messages :(
-		- Twitch duplicates messages when multiple plugins are running (Twitch Messages ping pong their messages)
+		- Twitch duplicates messages when multiple plugins are running (Twitch Messages ping pong their messages) //Multiple Plugins of the same type is currently not supported in a single botmaster instance (May change in the future)
 		- ✓ twitch not working after other plugins are reinstanciated
-		- botmaster should reboot plugin when error inside plugin //
-			- docker inspect c2c769c4b9ef --format='{{.State.ExitCode}}'  == 111
+		- ✓ botmaster should reboot plugin when error inside plugin 
+			- docker inspect c2c769c4b9ef --format='{{.State.ExitCode}}'  == 111 //We need an use case first, before we will implement this, because docker can do this for us via RestartPolicy
 			✓ We need to correctly pass exception into dotnetRunner and throw them there, so we have the right exit code
 		- ✓ existing container detection
 		- ✓ betterplace bad gateway in own container
+
+	- Fix YT again (Especially token generation)
 
 	- Bots / Restream Bot is not allowed to execute commands
 
 	- ASP Net Core Web Core and Extensions
 		- ✓(Maybe) Betterplace donation alert
 		- Web Hook / Call for Twitch / YT Follows
+	- Betterplace Optimizing (Webhooks)
 	
 	- Improve Logging
 
@@ -40,15 +33,27 @@ TODOS:
 
 	- Save IDs of follows / donations, so we know which are new 
 
-	- Betterplace Optimizing (Webhooks)
-
 	- Stresstest
 
-	- TeamSpeak Bot
+	- TeamSpeak / Mumble Bot
 
 	- Cleanup again
 
-	- WebUi for Config, Logging, Start & Stop, etc. pp.
+	- WebUi for Config, Logging, etc. pp. (Maybe as a sunday project)
+		- PluginInstance List
+			- Start & Stop
+			- State
+			- Create (UI for plugin.manifest.json)
+			- Update (Docker Images or something)
+			- Config of this plugin
+		- LogView in General (Per Plugin aswell)
+		- Other Logs (Not just file)
+		- Usermanagement of DB (Rights, Links, IDs, Delete, Create)
+		- Commandmanagement (Delete, Create, Update)
+		- Demo Messages for Tests
+		- Set Title on Youtube and Twitch / Twitter Notification
+		- Think about name
+
 
 	- Auto Update Docker Plugin Container and Botmaster (Self Update / Plugin Update Plugin etc.)
 
