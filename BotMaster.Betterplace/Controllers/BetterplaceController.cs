@@ -31,7 +31,6 @@ namespace BotMaster.Betterplace.Controllers
         [HttpGet("[action]")]
         public IEnumerable<Alert> Alert()
         {
-
             return OpinionsCache.Alerts.Reverse().ToList();
         }
 

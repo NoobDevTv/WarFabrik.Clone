@@ -24,6 +24,8 @@ using TwitchLib.PubSub.Events;
 
 using DefinedContract = BotMaster.MessageContract.Contract;
 using LivestreamContract = BotMaster.Livestream.MessageContract.LivestreamContract;
+using BotMaster.Core.NLog;
+using NLog;
 
 namespace BotMaster.Twitch
 {
@@ -52,6 +54,7 @@ namespace BotMaster.Twitch
                     t.ThrowIfCancellationRequested();
                     var client = context.Client;
 
+                    context.Logger.Debug("Starting to add all commands and subscriptions");
                     context.AddCommand((c) => SimpleCommands.Hype(context, c), "hype");
                     context.AddCommand((c) => SimpleCommands.Uptime(context, c), "uptime");
                     context.AddCommand((c) => SimpleCommands.Help(context, c), "?", "help");
@@ -71,6 +74,7 @@ namespace BotMaster.Twitch
                     context.AddCommand((c) => !c.Secure, (c) => SimpleCommands.PublicConnect(context, c), "connect");
 
                     context.AddCommand((c) => GetUser(c.SourcePlattform, c.PlattformUserId)?.HasRight("AddCommand") ?? false && c.SourcePlattform == SourcePlattform, (c) => SimpleCommands.Add(context, c), "add");
+                    context.AddCommand((c) => GetUser(c.SourcePlattform, c.PlattformUserId)?.HasRight("AddCommand") ?? false && c.SourcePlattform == SourcePlattform, (c) => SimpleCommands.Add(context, c, true), "addglobal");
 
                     var commands = CommandoCentral.GetCommandsFor("Twitch");
                     foreach (var item in commands)
@@ -91,10 +95,17 @@ namespace BotMaster.Twitch
                     context.pubSub.ListenToVideoPlayback(context.UserId);
 
 
+
                     var messages = Observable
                         .FromEventPattern<OnConnectedArgs>(add => client.OnConnected += add, remove => client.OnConnected -= remove)
                         .Select(e =>
                         {
+
+                            notifications = notifications
+                                    .Log(context.Logger, nameof(TwitchService) + " Incomming", onNext: LogLevel.Debug)
+                                    .Publish()
+                                    .RefCount();
+
                             var incommingDefinedMessages = DefinedContract
                                .ToDefineMessages(notifications)
                                .VisitMany(
@@ -106,7 +117,8 @@ namespace BotMaster.Twitch
                                         .Where(x => x.Source != SourcePlattform)
                                         .Do(message => client.SendMessage(context.Channel, $"[{message.Username}]: {message.Text}"))
                                         .Select(x => (DefinedMessage)x)
-                                   );
+                                )
+                               .Log(context.Logger, "incommingDefinedMessages", subscription: LogLevel.Debug);
 
                             var incommingLivestreamMessages = LivestreamContract
                                .ToDefineMessages(notifications)
@@ -120,14 +132,17 @@ namespace BotMaster.Twitch
                                     live => live
                                     .Where(x => x.SourcePlattform == SourcePlattform)
                                     .Do(message => client.SendMessage(context.Channel, $"Der Bot ist weiterhin online :)")).Select(x => (LivestreamMessage)x)
-                                   );
+                               )
+                               .Log(context.Logger, "incommingLivestreamMessages", subscription: LogLevel.Debug);
 
                             var incommingBetterplaceMessages = BetterplaceContract
                                   .ToDefineMessages(notifications)
                                   .VisitMany(
                                        donation => donation
                                            .Do(x => client.SendMessage(context.Channel, $"{x.Author} hat {x.Donated_amount_in_cents} Geld gespendet. Vielen lieben Dank dafür <3"))
-                                           .Select(x => (BetterplaceMessage)x));
+                                           .Select(x => (BetterplaceMessage)x)
+                                  )
+                                  .Log(context.Logger, "incommingBetterplaceMessages", subscription: LogLevel.Debug);
 
 
 
@@ -213,12 +228,15 @@ namespace BotMaster.Twitch
                             var definedMessages = DefinedContract.ToMessages(commandMessages.Merge(chatMessages));
                             var pnS = DefinedContract.ToMessages(privateCommandMessages);
 
-                            return Observable.Using(
-                                () => StableCompositeDisposable.Create(
-                                    incommingDefinedMessages.Subscribe(),
-                                    incommingBetterplaceMessages.Subscribe(),
-                                    incommingLivestreamMessages.Subscribe()),
-                                (_) => Observable.Merge(LivestreamMessages, definedMessages, pnS));
+
+                            return Observable.Merge(
+                                LivestreamMessages, 
+                                definedMessages, 
+                                pnS,
+                                GetEmptyFrom(incommingDefinedMessages),
+                                GetEmptyFrom(incommingLivestreamMessages),
+                                GetEmptyFrom(incommingBetterplaceMessages));
+
                         })
                         .Merge()
                         ;
@@ -232,6 +250,7 @@ namespace BotMaster.Twitch
                 }
             );
         }
+        protected static IObservable<Message> GetEmptyFrom<T>(IObservable<T> observe) => observe.IgnoreElements().Select(_ => Message.Empty);
 
         private static async Task<TwitchContext> CreateContext(TokenFile tokenFile, AccessToken accessToken, string channelName, CancellationToken t, CommandoCentral commandoCentral)
         {
@@ -251,7 +270,9 @@ namespace BotMaster.Twitch
 
             var pubSub = new TwitchPubSub();
 
-            return new TwitchContext(api, client, pubSub, userId, channelName, commandoCentral, new());
+            var ctx = new TwitchContext(api, client, pubSub, userId, channelName, commandoCentral, new());
+            ctx.Logger.Debug("Created a new twitch context");
+            return ctx;
         }
 
     }

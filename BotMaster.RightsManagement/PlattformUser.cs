@@ -1,9 +1,11 @@
 ﻿using BotMaster.Database;
 
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BotMaster.RightsManagement;
 
+[Table("PlattformUsers")]
 public class PlattformUser : IdEntity<int>
 {
     

@@ -5,7 +5,7 @@
   "Version": "1.0.0",
   "Filename": {
     "default": "\"C:/Program Files/dotnet/dotnet.exe\"",
-    "linux": "/bin/dotnet"
+    "linux": "dotnet"
   },
   "Args": "\"{runnerpath}/BotMaster.DotNetRunner.dll\" {args}",
   "EnviromentVariable": {

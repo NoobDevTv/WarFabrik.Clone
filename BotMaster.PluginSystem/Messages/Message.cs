@@ -7,6 +7,8 @@ namespace BotMaster.PluginSystem.Messages
     [Nooson]
     public partial class Message
     {
+        public static Message Empty = new Message(Guid.Empty, MessageType.None, Array.Empty<byte>());
+
         public const int HeaderSize = sizeof(MessageType) + sizeof(int) + sizeof(int);
         [NoosonIgnore]
         public static Encoding Encoding { get; } = Encoding.UTF8;

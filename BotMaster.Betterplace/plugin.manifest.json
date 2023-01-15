@@ -4,5 +4,20 @@
   "Author": "NoobDevTv",
   "Version": "1.0.0",
   "File": "BotMaster.Betterplace.dll",
-  "ProcessRunner": "BotMaster.DotNetRunner"
+  "ProcessRunner": "BotMaster.DockerRunner",
+  "TcpData": {
+    "Port": 5762,
+    "HandshakePort": 6789,
+    "Hostname": "Botmaster"
+  },
+  "DockerData": {
+    "ImageName": "botmaster_betterplace:latest",
+    "ContainerName": "BotMaster_Betterplace_NoobDevTV",
+    "Bindings": [
+      "C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net7.0\\additionalfiles:/app/additionalfiles",
+      "C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net7.0\\additionalfiles\\betterplacelogs:/app/logs"
+    ],
+    "PublishedPorts": [],
+    "Networks": []
+  }
 }

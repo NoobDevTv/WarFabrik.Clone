@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 
 using NLog;
 
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
@@ -46,9 +47,10 @@ namespace BotMaster.Telegram
         public override IObservable<Package> Start(ILogger logger, IObservable<Package> receivedPackages)
         {
             using (var ctx = new RightsDbContext())
-                ctx.Database.Migrate();
+                ctx.Migrate();
+
             using (var ctx = new UserConnectionContext())
-                ctx.Database.Migrate();
+                ctx.Migrate();
 
             return Observable
             .Using(
@@ -56,7 +58,9 @@ namespace BotMaster.Telegram
                 botInstance
                     => MessageConvert
                         .ToPackage(
-                            Create(MessageConvert.ToMessage(receivedPackages), botInstance))
+                            Create(MessageConvert.ToMessage(receivedPackages), botInstance)
+                            .OnError(logger, nameof(Create))
+                        )
             );
         }
 
@@ -75,6 +79,11 @@ namespace BotMaster.Telegram
         {
             logger = LogManager.GetCurrentClassLogger();
             var client = botContext.Client;
+
+            notifications = notifications
+                    .Log(logger, nameof(TelegramService) + " Incomming", onNext: LogLevel.Debug)
+                    .Publish()
+                    .RefCount();
 
             CreateIncommingCommandCallbacks(botContext);
 
@@ -110,7 +119,6 @@ namespace BotMaster.Telegram
                     follower => follower
                         .SelectMany(message =>
                         {
-
                             var userIds = GetIdsOfGroup("follower");
                             foreach (var item in noobDevGroupUser)
                             {
@@ -153,7 +161,8 @@ namespace BotMaster.Telegram
                         })
                         .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"Der Broadcast hat begonnen auf {toSend.message.SourcePlattform} für {toSend.message.UserName}"))
                         .Select(x => (LivestreamMessage)x.message)
-                   );
+                   )
+                  .Log(logger, "incommingLivestreamMessages", subscription: LogLevel.Debug);
 
             var incommingBetterplaceMessages = BetterplaceContract
                   .ToDefineMessages(notifications)
@@ -173,7 +182,8 @@ namespace BotMaster.Telegram
                             })
                             .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"{toSend.donation.Author} hat {toSend.donation.Donated_amount_in_cents} Geld gespendet. Vielen lieben Dank dafür <3"))
                             .Select(x => (BetterplaceMessage)x.donation)
-                      );
+                   )
+                  .Log(logger, "incommingBetterplaceMessages", subscription: LogLevel.Debug);
 
             //Messages from other plugins
             IObservable<DefinedMessage> pluginMessageWithGroups
@@ -181,6 +191,7 @@ namespace BotMaster.Telegram
                 .VisitMany(textMessage => textMessage
                         .SelectMany(message =>
                         {
+
                             var userIds = GetIdsOfGroup("text");
 
                             return userIds.Select(userId => (userId, message));
@@ -189,16 +200,18 @@ namespace BotMaster.Telegram
                         .Select(x => (DefinedMessage)x.message),
 
                         commandMessage => commandMessage
-                        .Select(x => (DefinedMessage)x),
+                            .Select(x => (DefinedMessage)x),
                         chatMessage => chatMessage
-                        .SelectMany(message =>
-                        {
-                            var userIds = GetIdsOfGroup("chat");
+                            .SelectMany(message =>
+                            {
+                                var userIds = GetIdsOfGroup("chat");
 
-                            return userIds.Select(userId => (userId, message));
-                        })
-                        .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"[{toSend.message.Username} ({toSend.message.Source})]: {toSend.message.Text}"))
-                        .Select(x => (DefinedMessage)x.message));
+                                return userIds.Select(userId => (userId, message));
+                            })
+                            .Do(toSend => client.SendTextMessageAsync(new ChatId(toSend.userId), $"[{toSend.message.Username} ({toSend.message.Source})]: {toSend.message.Text}"))
+                            .Select(x => (DefinedMessage)x.message)
+                )
+                .Log(logger, "pluginMessageWithGroups", subscription: LogLevel.Debug);
 
             var incommingCommandStream = botContext.CommandoCentral.CreateCommandStream(definedMessages
                 .Match<CommandMessage>(n => n));
@@ -236,10 +249,19 @@ namespace BotMaster.Telegram
                     return LivestreamMessage.Create(new StreamLiveInformation((x.user?.Id ?? -1).ToString(), x.message.Item2.Message.From.Username, "Telegram", true));
                 });
 
-            var fromUser = DefinedMessageContract.ToMessages(commandMessages).Merge(LivestreamContract.ToMessages(liveStreamMessages));
 
-            return Observable.Using(() => StableCompositeDisposable.Create(pluginMessageWithGroups.Subscribe(), incommingCommandStream.Subscribe(), incommingLivestreamMessages.Subscribe(), incommingBetterplaceMessages.Subscribe()), _ => fromUser);
+            var fromUser = DefinedMessageContract
+                .ToMessages(commandMessages)
+                .Merge(LivestreamContract.ToMessages(liveStreamMessages))
+                ;
+
+            return Observable.Merge(fromUser, 
+                GetEmptyFrom(pluginMessageWithGroups), 
+                GetEmptyFrom(incommingLivestreamMessages), 
+                GetEmptyFrom(incommingBetterplaceMessages), 
+                GetEmptyFrom(incommingCommandStream));
         }
+
 
         private static HashSet<long> GetIdsOfGroup(string groupname)
         {
@@ -265,6 +287,7 @@ namespace BotMaster.Telegram
             {"connect", "Connect two accounts of different plattforms" },
             {"subscribe", "Subscribe to a group of your liking" },
             {"unsubscribe", "Unsubscribe from a previous subscribed group" },
+            {"crash", "Crashes the bot for test cases" },
         };
         private static void CreateIncommingCommandCallbacks(TelegramContext botContext)
         {
@@ -278,7 +301,9 @@ namespace BotMaster.Telegram
             botContext.AddCommand(x => SimpleCommands.Connect(botContext, x), "connect");
             botContext.AddCommand(x => SimpleCommands.Subscribe(botContext, x), "subscribe");
             botContext.AddCommand(x => SimpleCommands.Unsubscribe(botContext, x), "unsubscribe");
-
+#if DEBUG
+            botContext.AddCommand(x => throw new Exception("Test"), "crash");
+#endif
             botContext.Client.SetMyCommandsAsync(botContext.CommandoCentral.Commands.Select(x => new BotCommand() { Command = x.Command, Description = commandDescriptions.ContainsKey(x.Command) ? commandDescriptions[x.Command] : "_" })).GetAwaiter().GetResult();
         }
 

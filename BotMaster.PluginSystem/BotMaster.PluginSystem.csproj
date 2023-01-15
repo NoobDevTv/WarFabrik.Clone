@@ -1,9 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net7.0</TargetFramework>
 		<EnablePreviewFeatures>True</EnablePreviewFeatures>
 		<ImplicitUsings>enable</ImplicitUsings>
+		<LangVersion>preview</LangVersion>
+		<NoWarn>CS0657;CA2252</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

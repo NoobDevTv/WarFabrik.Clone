@@ -1,4 +1,5 @@
-﻿using BotMaster.Core.NLog;
+﻿using BotMaster.Core.Extensibility;
+using BotMaster.Core.NLog;
 using BotMaster.PluginSystem;
 
 using NLog;
@@ -8,31 +9,36 @@ using NonSucking.Framework.Extension.IoC;
 
 using System.Reactive.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace BotMaster.PluginHost
 {
     public static class PluginHoster
     {
-        public static IObservable<Package> LoadAll(ILogger logger, IPluginInstanceCreator creator, IReadOnlyCollection<FileInfo> paths)
+        private static ILogger iLogger;
+
+        public static IObservable<Package> LoadAll(ILogger logger, IPluginInstanceCreator creator, IReadOnlyCollection<FileInfo> paths, bool loadIntoDifferentContext = true)
         {
             logger.Info("Start plugin host");
 
             return Observable.Merge(paths.Select(info =>
             {
                 logger.Info("Load Manifest");
-                return Load(logger, creator, info);
+                return Load(logger, creator, info, loadIntoDifferentContext);
             }));
         }
 
-        public static IObservable<Package> Load(ILogger logger, IPluginInstanceCreator creator, FileInfo manifestFileInfo)
+        public static IObservable<Package> Load(ILogger logger, IPluginInstanceCreator creator, FileInfo manifestFileInfo, bool loadIntoDifferentContext)
         {
             logger.Debug("Load manifest from " + manifestFileInfo.FullName);
             var manifest = JsonSerializer.Deserialize<PluginManifest>(File.ReadAllText(manifestFileInfo.FullName), new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
+            iLogger = logger;
 
             FileInfo assemblyFileInfo;
 
@@ -42,10 +48,19 @@ namespace BotMaster.PluginHost
                 assemblyFileInfo = new(Path.Combine(manifestFileInfo.Directory.FullName, manifest.File));
 
             logger.Info($"Load {assemblyFileInfo.FullName}");
-            var pluginContext = new AssemblyLoadContext(manifest.Name);
-            var resolver = new ReaderLoadContext(manifest.Name, assemblyFileInfo.FullName);
+            AssemblyLoadContext resolver;
+            //if (loadIntoDifferentContext)
+            resolver = new ReaderLoadContext(manifest.Name, assemblyFileInfo.FullName);
+            //else
+            //    resolver = AssemblyLoadContext.Default;
+            var _resolver = new AssemblyDependencyResolver(assemblyFileInfo.FullName);
+            resolver.Resolving += (AssemblyLoadContext context, AssemblyName name) => Resolver_Resolving(context, name, _resolver);
+            //if (resolver is not ReaderLoadContext)
+            resolver.ResolvingUnmanagedDll += (Assembly ass, string name1) => Resolver_ResolvingUnmanagedDll(ass, name1, resolver, _resolver);
 
-            var pluginAssembly = resolver.LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(assemblyFileInfo.Name)));
+            var pluginAssembly = resolver.LoadFromAssemblyPath(assemblyFileInfo.FullName);
+
+            //var pluginContext = new AssemblyLoadContext(manifest.Name);
             //var pluginAssembly = pluginContext.LoadFromAssemblyPath(assemblyFileInfo.FullName);
 
             logger.Trace("Get Typecontainer");
@@ -69,7 +84,7 @@ namespace BotMaster.PluginHost
                     .Where(t => t.IsAssignableTo(typeof(Plugin)))
                     .Select(t => t.GetActivationDelegate<Plugin>()())
                     .Do(p => p.Register(typecontainer))
-                    .Select(plugin => plugin.Start(logger, pluginInstance.Receiv()))
+                    .Select(plugin => plugin.Start(logger, pluginInstance.Receive()))
                     .Merge();
 
             logger.Debug("Subscribe process");
@@ -81,44 +96,73 @@ namespace BotMaster.PluginHost
 
         }
 
-        public class ReaderLoadContext : AssemblyLoadContext
+        private static Assembly Resolver_Resolving(AssemblyLoadContext context, AssemblyName name, AssemblyDependencyResolver _resolver)
         {
-            private readonly AssemblyDependencyResolver _resolver;
-
-            public ReaderLoadContext(string name, string readerLocation) : base(name)
-            {
-                _resolver = new AssemblyDependencyResolver(readerLocation);
-            }
-
-            protected override Assembly Load(AssemblyName assemblyName)
-            {
-                var existing = Default.Assemblies.FirstOrDefault(x => x.FullName == assemblyName.FullName);
-                if (existing is not null)
-                    return existing;
-
-                string assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
-
-                if (assemblyPath != null)
-                {
-
-                    return LoadFromAssemblyPath(assemblyPath);
-                }
-
+            if (name.Name.EndsWith("resources"))
                 return null;
-            }
 
-            protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
+            var existing = context.Assemblies.FirstOrDefault(x => x.FullName == name.FullName);
+            if (existing is not null)
+                return existing;
+            string assemblyPath = _resolver.ResolveAssemblyToPath(name);
+            if (assemblyPath != null)
             {
-                string libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
-
-                if (libraryPath != null)
+                try
                 {
-                    return LoadUnmanagedDllFromPath(libraryPath);
-                }
+                    var loaded = context.LoadFromAssemblyPath(assemblyPath);
+                    if (loaded is not null)
+                        return loaded;
 
-                return IntPtr.Zero;
+                }
+                catch (Exception)
+                {
+                    var bytes = File.ReadAllBytes(assemblyPath);
+                    try
+                    {
+                        using var ms = new MemoryStream(bytes);
+                        context.LoadFromStream(ms);
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
             }
+            assemblyPath = new FileInfo($"{name.Name}.dll").FullName;
+
+            return context.LoadFromAssemblyPath(assemblyPath);
         }
+
+        private static IntPtr Resolver_ResolvingUnmanagedDll(Assembly ass, string name, AssemblyLoadContext resolver, AssemblyDependencyResolver _resolver)
+        {
+            string libraryPath = _resolver.ResolveUnmanagedDllToPath(name);
+
+            if (libraryPath is null)
+            {
+                iLogger.Debug($"Trying to resolve from: {Directory.GetCurrentDirectory()} with name {name}");
+                var identifier = RuntimeInformation.RuntimeIdentifier;
+                identifier = Regex.Replace(identifier, @"(\w{3})[0-9]{1,2}(.+)", "$1$2");
+                iLogger.Debug($"Trying to resolve from: {Directory.GetCurrentDirectory()} with {identifier}");
+                if (!identifier.Contains("win"))
+                    identifier = "linux-x64";
+                var files = Directory.GetFiles(".", $"*{name}*", SearchOption.AllDirectories);
+                iLogger.Debug($"Trying to resolve from: {Directory.GetCurrentDirectory()} found {files.Length}");
+
+                libraryPath = files.FirstOrDefault(x => x.Contains(identifier, StringComparison.OrdinalIgnoreCase));
+                if (libraryPath is not null)
+                    libraryPath = Path.GetFullPath(libraryPath);
+            }
+
+            if (libraryPath is not null)
+            {
+                return (IntPtr)typeof(AssemblyLoadContext)
+                    .GetMethod("LoadUnmanagedDllFromPath", BindingFlags.NonPublic | BindingFlags.Instance)
+                    .Invoke(resolver, new object[] { libraryPath });
+                //return resolver.LoadUnmanagedDllFromPath(libraryPath);
+            }
+
+            return IntPtr.Zero;
+        }
+
 
         private record PluginContext(ITypeContainer TypeContainer, PluginInstance PluginInstance) : IDisposable
         {
@@ -132,7 +176,7 @@ namespace BotMaster.PluginHost
                     {
                         TypeContainer.Dispose();
 
-                        if(PluginInstance is IDisposable disposableInstance)
+                        if (PluginInstance is IDisposable disposableInstance)
                             disposableInstance.Dispose();
                     }
 

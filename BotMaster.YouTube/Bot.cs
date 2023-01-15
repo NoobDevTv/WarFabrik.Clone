@@ -24,6 +24,7 @@ using System.Reactive.Linq;
 
 using DefinedContract = BotMaster.MessageContract.Contract;
 using LivestreamContract = BotMaster.Livestream.MessageContract.LivestreamContract;
+using BotMaster.PluginSystem;
 
 namespace BotMaster.YouTube
 {
@@ -52,9 +53,13 @@ namespace BotMaster.YouTube
                             var client = context.Client;
                             CreateCommands(context, client);
 
+                            notifications = notifications
+                                    .Publish()
+                                    .RefCount();
+
                             var subscriptions = SubscribeExternMessages(notifications, context, client);
 
-                            var refreshSubscription = CreateTokenRefresh(context).Subscribe();
+                            var refreshSubscription = CreateTokenRefresh(context);
 
                             var follower = YoutubeServiceInformation
                                 .GetFollowerUpdates(context.Api, context.MetaData, TimeSpan.FromSeconds(300), Scheduler.Default)
@@ -72,8 +77,8 @@ namespace BotMaster.YouTube
                             var LivestreamMessages = LivestreamContract.ToMessages(follower.Merge(liveStreamInformations)).Merge(messages);
 
                             return Observable.Using(
-                                            () => StableCompositeDisposable.Create(subscriptions, refreshSubscription),
-                                            (_) => LivestreamMessages);
+                                            () => refreshSubscription.Subscribe(),
+                                            (_) => LivestreamMessages.Merge(subscriptions));
                         });
         }
 
@@ -149,7 +154,7 @@ namespace BotMaster.YouTube
                     .Concat();
         }
 
-        private static IDisposable SubscribeExternMessages(IObservable<Message> notifications, YoutubeContext context, YoutubeClient client)
+        private static IObservable<Message> SubscribeExternMessages(IObservable<Message> notifications, YoutubeContext context, YoutubeClient client)
         {
             var incommingDefinedMessages = DefinedContract
                .ToDefineMessages(notifications)
@@ -182,11 +187,13 @@ namespace BotMaster.YouTube
                            .Select(x => (BetterplaceMessage)x)
                       );
 
-            return StableCompositeDisposable.Create(
-                                         incommingDefinedMessages.Subscribe(),
-                                         incommingBetterplaceMessages.Subscribe(),
-                                         incommingLivestreamMessages.Subscribe());
+            return Observable.Merge(
+                GetEmptyFrom(incommingDefinedMessages),
+                GetEmptyFrom(incommingBetterplaceMessages),
+                GetEmptyFrom(incommingLivestreamMessages));
         }
+        protected static IObservable<Message> GetEmptyFrom<T>(IObservable<T> observe) => observe.IgnoreElements().Select(_ => Message.Empty);
+
 
         private static void CreateCommands(YoutubeContext context, YoutubeClient client)
         {
@@ -211,6 +218,7 @@ namespace BotMaster.YouTube
             context.AddCommand((c) => !c.Secure, (c) => SimpleCommands.PublicConnect(context, c), "connect");
 
             context.AddCommand((c) => GetUser(c.SourcePlattform, c.PlattformUserId)?.HasRight("AddCommand") ?? false && c.SourcePlattform == SourcePlattform, (c) => SimpleCommands.Add(context, c), "add");
+            context.AddCommand((c) => GetUser(c.SourcePlattform, c.PlattformUserId)?.HasRight("AddCommand") ?? false && c.SourcePlattform == SourcePlattform, (c) => SimpleCommands.Add(context, c, true), "addglobal");
 
             var commands = CommandoCentral.GetCommandsFor("Twitch");
             foreach (var item in commands)

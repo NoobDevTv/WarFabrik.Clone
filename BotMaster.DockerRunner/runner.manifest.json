@@ -1,0 +1,15 @@
+{
+  "Id": "dockerrunner",
+  "Name": "DockerRunner",
+  "Author": "NoobDevTv",
+  "Version": "1.0.0",
+  "Filename": {
+    "default": "\"C:/Program Files/dotnet/dotnet.exe\"",
+    "linux": "dotnet"
+  },
+  "Args": "\"{runnerpath}/BotMaster.DockerRunner.dll\" {args}",
+  "EnviromentVariable": {
+    "args": "-l \"{manifestpath}\"",
+    "runnerpath": "{runnerpath}"
+  }
+}

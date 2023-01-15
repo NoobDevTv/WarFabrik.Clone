@@ -24,7 +24,7 @@ namespace BotMaster.PluginSystem
         }
 
         public abstract IObservable<Package> Send(IObservable<Package> packages);
-        public abstract IObservable<Package> Receiv();
+        public abstract IObservable<Package> Receive();
 
         internal virtual void SendMessages(Func<IObservable<Message>, IDisposable> subscribeAsSender) { }
 
@@ -80,7 +80,7 @@ namespace BotMaster.PluginSystem
         public override IObservable<Package> Send(IObservable<Package> packages)
             => Observable.Using(() => packages.Subscribe(package => sendPackages.OnNext(package)), _ => sendPipe);
 
-        public override IObservable<Package> Receiv()
+        public override IObservable<Package> Receive()
             => receivPipe;
 
         public virtual void Dispose()

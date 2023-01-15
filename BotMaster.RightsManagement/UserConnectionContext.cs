@@ -1,6 +1,4 @@
-﻿using BotMaster.Database;
-
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 using System;
 using System.Collections.Generic;
@@ -9,19 +7,21 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace BotMaster.RightsManagement;
-public class UserConnectionContext : DatabaseContext
+
+public class UserConnectionContext  : BaseDatabaseContext
 {
     public DbSet<UserConnection> UserConnections => Set<UserConnection>();
     public DbSet<PlattformUser> PlattformUsers => Set<PlattformUser>();
     public DbSet<User> Users => Set<User>();
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    public UserConnectionContext()
     {
-        //var info = new FileInfo(Path.Combine("..", "..", "additionalfiles", "Rights.db"));
-        var info = new FileInfo(Path.Combine("additionalfiles", "Rights.db"));
-        _ = optionsBuilder.UseSqlite($"Data Source={info.FullName}");
-        base.OnConfiguring(optionsBuilder);
     }
+
+    public UserConnectionContext(DbContextOptions options) : base(options)
+    {
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>().ToTable(x => x.ExcludeFromMigrations());

@@ -1,6 +1,10 @@
 ﻿
+using BotMaster.PluginSystem.Messages;
+
 using NLog;
 using NonSucking.Framework.Extension.IoC;
+
+using System.Reactive.Linq;
 
 namespace BotMaster.PluginSystem
 {
@@ -19,5 +23,8 @@ namespace BotMaster.PluginSystem
 
         //ToDo: Notifications instead packages
         public abstract IObservable<Package> Start(ILogger logger, IObservable<Package> receivedPackages);
+
+
+        protected static IObservable<Message> GetEmptyFrom<T>(IObservable<T> observe) => observe.IgnoreElements().Select(_ => Message.Empty);
     }
 }

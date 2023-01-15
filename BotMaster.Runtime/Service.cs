@@ -5,6 +5,7 @@ using NLog;
 using NonSucking.Framework.Extension.IoC;
 
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 
 namespace BotMaster.Runtime
 {
@@ -16,15 +17,20 @@ namespace BotMaster.Runtime
         private readonly IDisposable disposable;
         private readonly ILogger logger;
 
-        public Service(ITypeContainer typeContainer, ILogger logger, DirectoryInfo pluginFolder, DirectoryInfo runnersPath)
+        public Service(ITypeContainer typeContainer, ILogger logger)
         {
             messageHub = new MessageHub();
 
-            var plugins =
-                PluginProvider
-                    .Watch(logger, typeContainer, pluginFolder, runnersPath);
+            var filePluginProvider = new FileManifestPluginProvider();
+            var tcpPluginProvider = new TCPPluginProvider();
 
-            pluginService = new PluginService(messageHub, plugins);
+            var filePlugins =
+                filePluginProvider
+                    .GetPluginInstances(logger, typeContainer);
+
+            var tcpPlugins = tcpPluginProvider.GetPluginInstances(logger, typeContainer);
+
+            pluginService = new PluginService(messageHub, Observable.Merge(filePlugins, tcpPlugins));
             disposable = StableCompositeDisposable.Create(pluginService, messageHub);
             this.logger = logger;
         }

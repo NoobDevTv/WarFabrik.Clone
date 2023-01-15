@@ -1,43 +1,39 @@
-﻿using BotMaster.PluginHost;
+﻿using BotMaster.Core.Configuration;
+using BotMaster.PluginHost;
 using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.PluginCreator;
 
 using NLog;
 using NLog.Config;
 using NLog.Targets;
+using NLog.Extensions.Logging;
 
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Diagnostics;
 
 namespace BotMaster.DotNetRunner
 {
     class Program
     {
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-
+            //Thread.Sleep(30000);
+            var config = ConfigManager.GetConfiguration("appsettings.json", args);
 
             using var logManager = Disposable.Create(LogManager.Shutdown);
-            var config = new LoggingConfiguration();
 
             var info = new FileInfo(Path.Combine(".", "logs", $"pluginhost-{DateTime.Now:ddMMyyyy-HHmmss_fff}.log"));
 
             if (!info.Directory.Exists)
                 info.Directory.Create();
 
-            using var consoleTarget = new ColoredConsoleTarget("pluginhost.logconsole");
-            using var fileTarget = new FileTarget("pluginhost.logfile") { FileName = info.FullName };
+            var logger = LogManager
+                .Setup()
+                .LoadConfigurationFromSection(config)
+                .GetCurrentClassLogger();
 
-#if DEBUG
-            config.AddRule(LogLevel.Debug, LogLevel.Fatal, consoleTarget);
-            config.AddRule(LogLevel.Trace, LogLevel.Fatal, fileTarget);
-#else
-            config.AddRule(LogLevel.Info, LogLevel.Fatal, consoleTarget);
-            config.AddRule(LogLevel.Info, LogLevel.Fatal, fileTarget);
-#endif
-            LogManager.Configuration = config;
-            var logger = LogManager.GetCurrentClassLogger();
             var plugins = new List<Plugin>();
             logger.Debug("Gotten the following args: " + string.Join(" | ", args));
 
@@ -53,13 +49,16 @@ namespace BotMaster.DotNetRunner
                     }
                 }
 
-                var porcessCreator = new IPCPluginCreator();
-                using var manualReset = new ManualResetEvent(false);
+                var porcessCreator = new TCPPluginCreator();
 
-                using var disp = PluginHoster.LoadAll(logger, porcessCreator, paths)
-                    .Subscribe(p => { }, ex => throw ex, () => manualReset.Set());
-
-                manualReset.WaitOne();
+                _ = await PluginHoster.LoadAll(logger, porcessCreator, paths, false)
+                    .IgnoreElements()
+                    .Do(p => { }, ex =>
+                        {
+                            logger.Fatal(ex);
+                            Environment.Exit(111);
+                        })
+                    ;
             }
             catch (Exception ex)
             {

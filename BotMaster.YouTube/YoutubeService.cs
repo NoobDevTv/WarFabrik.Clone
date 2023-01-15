@@ -29,9 +29,9 @@ namespace BotMaster.YouTube
         public override IObservable<Package> Start(ILogger logger, IObservable<Package> receivedPackages)
         {
             using (var ctx = new RightsDbContext())
-                ctx.Database.Migrate();
+                ctx.Migrate();
             using (var ctx = new UserConnectionContext())
-                ctx.Database.Migrate();
+                ctx.Migrate();
 
             this.logger = logger;
 

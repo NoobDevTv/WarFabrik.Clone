@@ -1,7 +1,10 @@
 ﻿using BotMaster.Database;
 
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace BotMaster.RightsManagement;
 
+[Table("Users")]
 public class User : IdEntity<int>
 {
     public string DisplayName { get; set; }

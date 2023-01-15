@@ -9,9 +9,9 @@ using NLog;
 
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using BotMaster.Core;
 
 using static Google.Apis.YouTube.v3.SearchResource.ListRequest;
+using BotMaster.Core.Extensibility;
 
 namespace BotMaster.YouTube
 {

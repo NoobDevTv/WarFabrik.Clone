@@ -25,15 +25,15 @@ public sealed class BetterplaceService : Plugin
     {
         HashSet<int> DonationIds = new();
         var Opinions
-    = BetterplaceClient
-    .GetOpinionsPage(File.ReadAllText("additionalfiles/BetterplaceEventId.txt"), TimeSpan.FromSeconds(20))
-    .Retry()
-    .SelectMany(p => p.Data)
-    .Where(x => !DonationIds.Contains(x.Id))
-    .Where(o => o.Created_at > DateTime.Now.Subtract(TimeSpan.FromMinutes(4)))
-    .Do(x => DonationIds.Add(x.Id))
-    .Publish()
-    .RefCount();
+            = BetterplaceClient
+            .GetOpinionsPage(File.ReadAllText("additionalfiles/BetterplaceEventId.txt"), TimeSpan.FromSeconds(20))
+            .Retry()
+            .SelectMany(p => p.Data)
+            .Where(x => !DonationIds.Contains(x.Id))
+            .Where(o => o.Created_at > DateTime.Now.Subtract(TimeSpan.FromMinutes(4)))
+            .Do(x => DonationIds.Add(x.Id))
+            .Publish()
+            .RefCount();
 
         var queue = new Queue<Alert>();
         var currentSubscription = Opinions

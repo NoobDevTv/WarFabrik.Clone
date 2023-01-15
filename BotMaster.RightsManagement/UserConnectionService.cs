@@ -8,7 +8,7 @@ namespace BotMaster.RightsManagement;
 public static class UserConnectionService
 {
     public static Random random = new Random();
-    public const string AllowedConnectionChars = "abcdefghijklmnopqrstvwxyzABCDEFGHIJKLMNOPQRSTVWXYZ0123456789\"§$%&/()=?{[]}\\#+*";
+    public const string AllowedConnectionChars = "abcdefghijklmnopqrstvwxyzABCDEFGHIJKLMNOPQRSTVWXYZ0123456789§$%&/()=?{[]}\\#+*";
     public const int ConnectionStringLength = 10;
 
     public static string StartConnection(string userId)
@@ -22,7 +22,7 @@ public static class UserConnectionService
         using var db = new UserConnectionContext();
         var plattfromUser = db.PlattformUsers.FirstOrDefault(x => x.PlattformUserId == userId);
         if (plattfromUser is null)
-            return "";
+            return "No Code generated, user for this plattform doesn't exist";
         db.UserConnections.Add(new UserConnection() { PlattformUser = plattfromUser, ValidUntil = DateTime.UtcNow.AddHours(1), ConnectionCode = connectionCode });
         db.SaveChanges();
         return connectionCode;
@@ -30,6 +30,7 @@ public static class UserConnectionService
 
     public static void RevokeConnection(string userId, string connectionCode)
     {
+        connectionCode = connectionCode.Trim().Trim('"');
         using var db = new UserConnectionContext();
         var connect = db.UserConnections.FirstOrDefault(x => x.ConnectionCode == connectionCode && x.ValidUntil > DateTime.UtcNow);
         var plattformUser = db.PlattformUsers.FirstOrDefault(x => x.PlattformUserId == userId);
@@ -42,6 +43,8 @@ public static class UserConnectionService
 
     public static bool EndConnection(string userId, string connectionCode)
     {
+        connectionCode = connectionCode.Trim().Trim('"');
+
         using var db = new UserConnectionContext();
         var connect = db.UserConnections.FirstOrDefault(x => x.ConnectionCode == connectionCode && x.ValidUntil > DateTime.UtcNow && x.Connected == false);
         var plattformUser = db.PlattformUsers.FirstOrDefault(x => x.PlattformUserId == userId);

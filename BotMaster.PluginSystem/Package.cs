@@ -1,4 +1,6 @@
-﻿namespace BotMaster.PluginSystem
+﻿using System;
+
+namespace BotMaster.PluginSystem
 {
     public readonly struct Package
     {
@@ -32,9 +34,14 @@
             return Length;
         }
 
-        public ReadOnlySpan<byte> AsSpan()
-            => content.AsSpan();
-
+        public ReadOnlySpan<byte> AsSpan(Span<byte> buffer)
+        {
+            ContractId.TryWriteBytes(buffer);
+            BitConverter.TryWriteBytes(buffer[(sizeof(int) * 4)..], Content.Count);
+            content.CopyTo(buffer[HeaderSize..]);
+            return buffer;
+        }
+            
         public byte[] AsArray()
             => content;
     }
