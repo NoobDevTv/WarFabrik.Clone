@@ -60,6 +60,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.DockerRunner", "B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotMaster.Betterplace", "BotMaster.Betterplace\BotMaster.Betterplace.csproj", "{5FCFBA0C-629E-4C23-863F-0FD3413FAE32}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotMaster.Web.AdministrationUi", "BotMaster.Web.AdministrationUi\BotMaster.Web.AdministrationUi.csproj", "{A6F370F5-D939-4590-AF30-3241A02294F2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -154,6 +156,10 @@ Global
 		{5FCFBA0C-629E-4C23-863F-0FD3413FAE32}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5FCFBA0C-629E-4C23-863F-0FD3413FAE32}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5FCFBA0C-629E-4C23-863F-0FD3413FAE32}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6F370F5-D939-4590-AF30-3241A02294F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6F370F5-D939-4590-AF30-3241A02294F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6F370F5-D939-4590-AF30-3241A02294F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6F370F5-D939-4590-AF30-3241A02294F2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -180,6 +186,7 @@ Global
 		{CCAFAAD8-5821-4254-B6D6-76442D7ED0EF} = {6C01A4DF-E93B-4B0F-B256-664247F55F31}
 		{762F5F80-C214-41BA-BA39-CADDEF567FA1} = {79FE7D4D-740B-489E-ADC9-FBB1623110D0}
 		{5FCFBA0C-629E-4C23-863F-0FD3413FAE32} = {872B999A-C9A5-4D57-A5E2-EF48D6718373}
+		{A6F370F5-D939-4590-AF30-3241A02294F2} = {872B999A-C9A5-4D57-A5E2-EF48D6718373}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8A92FB12-1FB4-4186-AD4C-40C63CAD735C}

@@ -5,7 +5,6 @@
 		<!--<IncludePackageReferencesDuringMarkupCompilation>true</IncludePackageReferencesDuringMarkupCompilation>
 		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
 		<CompilerGeneratedFilesOutputPath>GeneratedFiles</CompilerGeneratedFilesOutputPath>-->
-		<EnablePreviewFeatures>True</EnablePreviewFeatures>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<LangVersion>preview</LangVersion>
 		<NoWarn>CS0657;CA2252</NoWarn>

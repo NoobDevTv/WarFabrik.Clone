@@ -11,6 +11,7 @@ using NLog.Targets;
 using NonSucking.Framework.Extension.IoC;
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -21,14 +22,11 @@ namespace BotMaster
 {
     internal partial class Program
     {
-
-
         internal static async Task Main(string[] args)
         {
             var config = ConfigManager.GetConfiguration("appsettings.json", args);
 
             var botmasterConfig = config.GetSettings<BotmasterConfig>();
-
 
             using var iDisposablemanagerDispose = Disposable.Create(LogManager.Shutdown);
 
@@ -36,7 +34,6 @@ namespace BotMaster
                 .Setup()
                 .LoadConfigurationFromSection(config)
                 .GetCurrentClassLogger();
-
 
             logger.Info("BotMaster started");
 

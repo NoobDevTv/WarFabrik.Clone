@@ -1,8 +1,6 @@
 ﻿using BotMaster.Database;
 using BotMaster.Database.Migrations;
 
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations;
 
 using System;
 using System.Collections.Generic;
@@ -20,15 +18,15 @@ public partial class InitialMigration : IAutoMigrationTypeProvider
     public const string Id = $"2022_11_06-20_39_01-{nameof(CommandosDbContext)}-InitialMigration";
     public IReadOnlyList<Type> GetEntityTypes()
     {
-        return new[]
+        return new Type[]
         {
-            typeof(PersistentCommand)
+            typeof(PersistentCommandClass)
 
         };
     }
 
     [Table("PersistentCommands")]
-    public class PersistentCommand : IdEntity<int>
+    public class PersistentCommandClass : IdEntity<int>
     {
         public string? Target { get; set; }
         public string Command { get; set; }

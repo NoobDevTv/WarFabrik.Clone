@@ -85,7 +85,8 @@ namespace BotMaster.Database
                                         .Assemblies
                                         .Where(x => x.FullName.Contains(nameof(BotMaster)))
                                         .SelectMany(x => x.GetTypes())
-                                        .Where(type => !type.IsAbstract && !type.IsInterface && typeof(Entity).IsAssignableFrom(type)))
+                                        .Where(type => !type.IsAbstract && !type.IsInterface && typeof(Entity).IsAssignableFrom(type))
+                                        .Where(x=> x.Namespace is not null && !x.Namespace.Contains("Migration")))
             {
                 if (modelBuilder.Model.FindEntityType(type) is null)
                     _ = modelBuilder.Model.AddEntityType(type);

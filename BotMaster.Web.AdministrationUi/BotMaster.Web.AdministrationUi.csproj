@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>67eee04f-7a6c-4d6d-9e10-6333568904a5</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\10_DatabaseAdapter\BotMaster.Database.MySql\BotMaster.Database.MySql.csproj" />
+    <ProjectReference Include="..\BotMaster.Commandos\BotMaster.Commandos.csproj" />
+    <ProjectReference Include="..\BotMaster.Database\BotMaster.Database.csproj" />
+    <ProjectReference Include="..\BotMaster.RightsManagement\BotMaster.RightsManagement.csproj" />
+  </ItemGroup>
+
+</Project>

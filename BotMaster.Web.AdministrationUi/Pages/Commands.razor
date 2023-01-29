@@ -1,0 +1,50 @@
+﻿@page "/commands"
+@using BotMaster.Commandos;
+@using BotMaster.Web.AdministrationUi.Data
+@inject CommandoService CommandoService
+
+<PageTitle>Commands</PageTitle>
+
+<h1>Commands</h1>
+
+@if (commands is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Command</th>
+                <th>Text</th>
+                <th>Target</th>
+                <th>IsGlobal</th>
+                <th>IsSecure</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var forecast in commands)
+            {
+                <tr>
+                    <td>@forecast.Id</td>
+                    <td>@forecast.Command</td>
+                    <td>@forecast.Text</td>
+                    <td>@forecast.Target</td>
+                    <td>@forecast.Global</td>
+                    <td>@forecast.Secure</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private PersistentCommand[]? commands;
+
+    protected override async Task OnInitializedAsync()
+    {
+        commands = CommandoService.GetCommands();
+    }
+}

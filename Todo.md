@@ -40,22 +40,34 @@
 	- Cleanup again
 
 	- WebUi for Config, Logging, etc. pp. (Maybe as a sunday project)
-		- PluginInstance List
-			- Start & Stop
-			- State
-			- Create (UI for plugin.manifest.json)
-			- Update (Docker Images or something)
-			- Config of this plugin
-		- LogView in General (Per Plugin aswell)
-		- Other Logs (Not just file)
-		- Usermanagement of DB (Rights, Links, IDs, Delete, Create)
-		- Commandmanagement (Delete, Create, Update)
-		- Demo Messages for Tests
-		- Set Title on Youtube and Twitch / Twitter Notification
-		- Think about name
-
-
+		- DB:
+			- Usermanagement of DB (Rights, Links, IDs, Delete, Create)
+			- Commandmanagement (Delete, Create, Update)
+		- Integration into Botmaster
+			- Systemmessagecontract
+				- Pluginmanagement Messages
+		- Pluginmanagement:
+			- PluginInstance List
+				- Start & Stop
+				- State
+				- Create (UI for plugin.manifest.json)
+				- Update (Docker Images or something)
+				- Config of this plugin
+			- Set Title on Youtube and Twitch / Twitter Notification
+		- Testing:
+			- LogView in General (Per Plugin aswell)
+			- Demo Messages for Tests
+			- Other Logs (Not just file)
+		- Other:
+			- Think about name
+			- Authentication
+		
 	- Auto Update Docker Plugin Container and Botmaster (Self Update / Plugin Update Plugin etc.)
+
+	- !dice Command
+
+	Blazor				=> Kopf
+	Blazor WebAssembly	=> Zahl
 
 
 Done:
