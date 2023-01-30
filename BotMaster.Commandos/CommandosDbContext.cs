@@ -31,7 +31,7 @@ public class CommandosDbContext : DatabaseContext
         }
 #endif
         //var info = new FileInfo(config.ConnectionString);
-        //_ = optionsBuilder.UseSqlite($"Data Source={info.FullName}");
+        //_ = optionsBuilder.UseSqlite($"Data Source={info.FullName}");asd
         base.OnConfiguring(optionsBuilder);
     }
 
