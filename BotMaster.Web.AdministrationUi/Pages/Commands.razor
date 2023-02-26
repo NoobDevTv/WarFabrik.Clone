@@ -1,50 +1,96 @@
 ﻿@page "/commands"
 @using BotMaster.Commandos;
 @using BotMaster.Web.AdministrationUi.Data
-@inject CommandoService CommandoService
+@inject EntityService<CommandosDbContext, PersistentCommand> CommandoService
 
 <PageTitle>Commands</PageTitle>
 
 <h1>Commands</h1>
 
-@if (commands is null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Command</th>
-                <th>Text</th>
-                <th>Target</th>
-                <th>IsGlobal</th>
-                <th>IsSecure</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var forecast in commands)
-            {
-                <tr>
-                    <td>@forecast.Id</td>
-                    <td>@forecast.Command</td>
-                    <td>@forecast.Text</td>
-                    <td>@forecast.Target</td>
-                    <td>@forecast.Global</td>
-                    <td>@forecast.Secure</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<DataTable TEntity="PersistentCommand" TDBContext="CommandosDbContext" AddButtonText="Add new Command">
+    <Columns>
+        <RadzenDataGridColumn TItem="PersistentCommand" Property="Id" Title="Id" Width="66px" />
+
+        <RadzenDataGridColumn TItem="PersistentCommand" Property="Command" Title="Command">
+            <EditTemplate Context="command">
+                <RadzenTextBox @bind-Value="@command.Command" Style="width:100%; display: block" Name="Command" />
+                <RadzenRequiredValidator Text="Command is required" Component="Command" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="PersistentCommand" Property="Text" Title="Text">
+            <EditTemplate Context="command">
+                <RadzenTextBox @bind-Value="@command.Text" Style="width:100%; display: block" Name="Text" />
+                <RadzenRequiredValidator Text="Text is required" Component="Text" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="PersistentCommand" Property="Target" Title="Target" Width="120px">
+            <EditTemplate Context="command">
+                <RadzenDropDown @bind-Value="@command.Target" Data="@targets" TValue="string" TextProperty="Display" ValueProperty="Value" Style="width:100%; display: block;" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="PersistentCommand" Property="Plattforms" Title="Plattforms">
+            <Template Context="command">
+                @if (command.Plattforms.Count >= maximumOfCards)
+                {
+                    <span>@command.Plattforms.Count Items selected</span>
+                }
+                else
+                {
+
+                    <div class="rz-dropdown-chips">
+                        <div class="rz-dropdown-chips-wrapper">
+                            @foreach (var item in command.Plattforms)
+                            {
+                                <div class="rz-chip nd-chip">
+                                    <span class="rz-chip-text">
+                                        @item
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+            </Template>
+            <EditTemplate Context="command">
+                <RadzenDropDown Multiple="true" Chips="true" MaxSelectedLabels="@maximumOfCards" AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Data=@plattforms @bind-Value=@command.Plattforms
+                                TextProperty="Display" ValueProperty="Value" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+
+
+        <RadzenDataGridColumn TItem="PersistentCommand" Property="Global" Title="Global" Width="96px">
+            <EditTemplate Context="command">
+                <RadzenCheckBox @bind-Value="@command.Global" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="PersistentCommand" Property="Secure" Title="Secure" Width="96px">
+            <EditTemplate Context="command">
+                <RadzenCheckBox @bind-Value="@command.Secure" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+
+    </Columns>
+</DataTable>
 
 @code {
-    private PersistentCommand[]? commands;
 
-    protected override async Task OnInitializedAsync()
-    {
-        commands = CommandoService.GetCommands();
-    }
+    private int maximumOfCards = 10;
+
+    DisplayValueDropdown<string?>[] targets = new DisplayValueDropdown<string?>[]
+   {
+        new("*", ""),
+        new("twitch", "twitch"),
+        new("youtube", "youtube"),
+        new("telegram", "telegram")
+               };
+    DisplayValueDropdown<string>[] plattforms = new DisplayValueDropdown<string>[]
+{
+        new("twitch", "twitch"),
+        new("youtube", "youtube"),
+        new("telegram", "telegram")
+                };
+
 }

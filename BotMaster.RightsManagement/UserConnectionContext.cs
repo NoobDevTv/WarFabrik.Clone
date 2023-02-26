@@ -34,5 +34,6 @@ public class UserConnectionContext  : BaseDatabaseContext
         modelBuilder.Entity("RightUser").ToTable(x => x.ExcludeFromMigrations());
         modelBuilder.Entity<Group>().ToTable(x => x.ExcludeFromMigrations());
         modelBuilder.Entity<Right>().ToTable(x => x.ExcludeFromMigrations());
+        base.OnModelCreating(modelBuilder);
     }
 }

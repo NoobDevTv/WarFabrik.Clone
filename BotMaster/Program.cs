@@ -10,6 +10,7 @@ using NLog.Targets;
 
 using NonSucking.Framework.Extension.IoC;
 
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -44,8 +45,8 @@ namespace BotMaster
             if (botmasterConfig.PluginCreator == nameof(ProcessPluginCreator))
             {
                 var creatorLogger = LogManager.GetLogger("InProcessPlugin");
-                typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator(creatorLogger, 
-                    (l,pic,fi)=>PluginHost.PluginHoster.Load(l,pic,fi,true)));
+                typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator(creatorLogger,
+                    (l, pic, fi) => PluginHost.PluginHoster.Load(l, pic, fi, true)));
             }
             else if (botmasterConfig.PluginCreator == nameof(NamedPipePluginCreator))
                 typeContainer.Register<IPluginInstanceCreator>(new NamedPipePluginCreator());

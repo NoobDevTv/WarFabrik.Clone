@@ -1,0 +1,186 @@
+﻿@page "/user"
+@using BotMaster.RightsManagement;
+@inject EntityService<RightsDbContext, User> UserService
+@inject EntityService<RightsDbContext, PlattformUser> PlattformUserService
+@inject EntityService<RightsDbContext, Right> RightService
+@inject EntityService<RightsDbContext, BotMaster.RightsManagement.Group> GroupService
+
+<PageTitle>User</PageTitle>
+
+<h1>User</h1>
+
+<DataTable TEntity="User" TDBContext="RightsDbContext" Load="LoadUsers" AddButtonText="Add new User">
+    <Columns>
+        <RadzenDataGridColumn TItem="User" Property="Id" Title="Id" Width="66px" />
+        <RadzenDataGridColumn TItem="User" Property="DisplayName" Title="DisplayName" Width="132px">
+            <EditTemplate Context="command">
+                <RadzenTextBox @bind-Value="@command.DisplayName" Style="width:100%; display: block" Name="DisplayName" />
+                <RadzenRequiredValidator Text="DisplayName is required" Component="DisplayName" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="User" Property="PlatformIdentities" Title="Platform Identities">
+            <Template Context="command">
+                @if (command.PlatformIdentities is null)
+                    command.PlatformIdentities = new List<PlattformUser>();
+
+                @if (command.PlatformIdentities.Count >= maximumOfCards)
+                {
+                    <span>@command.PlatformIdentities.Count Items selected</span>
+                }
+                else
+                {
+
+                    <div class="rz-dropdown-chips">
+                        <div class="rz-dropdown-chips-wrapper">
+                            @foreach (var item in command.PlatformIdentities)
+                            {
+                                <div class="rz-chip nd-chip">
+                                    <span class="rz-chip-text">
+                                        @item.Platform:@item.Name
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+
+            </Template>
+            <EditTemplate Context="command">
+                <RadzenDropDown Multiple="true" Chips="true" MaxSelectedLabels="@maximumOfCards" AllowClear="true" AllowFiltering="true"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Data=@plattfromUsers @bind-Value=@command.PlatformIdentities
+                                TextProperty="Display" ValueProperty="Value" />
+            </EditTemplate>
+
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="User" Property="Groups" Title="Groups">
+            <Template Context="command">
+                @if (command.Groups is null)
+                    command.Groups = new List<BotMaster.RightsManagement.Group>();
+
+                @if (command.Groups.Count >= maximumOfCards)
+                {
+                    <span>@command.Groups.Count Items selected</span>
+                }
+                else
+                {
+
+                    <div class="rz-dropdown-chips">
+                        <div class="rz-dropdown-chips-wrapper">
+                            @foreach (var item in command.Groups)
+                            {
+                                <div class="rz-chip nd-chip">
+                                    <span class="rz-chip-text">
+                                        @item.Name
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+            </Template>
+            <EditTemplate Context="command">
+                <RadzenDropDown Multiple="true" Chips="true" MaxSelectedLabels="@maximumOfCards" AllowClear="true" AllowFiltering="true"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Data=@groups @bind-Value=@command.Groups
+                                TextProperty="Display" ValueProperty="Value" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="User" Property="Rights" Title="Rights">
+            <Template Context="command">
+                @if (command.Rights is null)
+                    command.Rights = new List<Right>();
+
+                @if (command.Rights.Count >= maximumOfCards)
+                {
+                    <span>@command.Rights.Count Items selected</span>
+                }
+                else
+                {
+
+                    <div class="rz-dropdown-chips">
+                        <div class="rz-dropdown-chips-wrapper">
+                            @foreach (var item in command.Rights)
+                            {
+                                <div class="rz-chip nd-chip">
+                                    <span class="rz-chip-text">
+                                        @item.Name
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+            </Template>
+            <EditTemplate Context="command">
+                <RadzenDropDown Multiple="true"  Chips="true"  MaxSelectedLabels="@maximumOfCards" AllowClear="true" AllowFiltering="true"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Data=@rights @bind-Value=@command.Rights
+                                TextProperty="Display" ValueProperty="Value" />
+            </EditTemplate>
+
+        </RadzenDataGridColumn>
+    </Columns>
+</DataTable>
+
+<br />
+
+<h1>Plattform User</h1>
+
+<DataTable TEntity="PlattformUser" TDBContext="RightsDbContext" Load="LoadPlattformUsers" AddButtonText="Add new User">
+    <Columns>
+        <RadzenDataGridColumn TItem="PlattformUser" Property="Id" Title="Id" Width="66px" />
+        <RadzenDataGridColumn TItem="PlattformUser" Property="Name" Title="Name" Width="132px">
+            <EditTemplate Context="command">
+                <RadzenTextBox @bind-Value="@command.Name" Style="width:100%; display: block" Name="DisplayName" />
+                <RadzenRequiredValidator Text="Name is required" Component="DisplayName" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="PlattformUser" Property="Platform" Title="Platform" Width="132px">
+            <EditTemplate Context="command">
+                <RadzenTextBox @bind-Value="@command.Platform" Style="width:100%; display: block" Name="DisplayName" />
+                <RadzenRequiredValidator Text="Platform is required" Component="DisplayName" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+
+
+        <RadzenDataGridColumn TItem="PlattformUser" Property="PlattformUserId" Title="PlattformUserId" Width="132px">
+            <EditTemplate Context="command">
+                <RadzenTextBox @bind-Value="@command.PlattformUserId" Style="width:100%; display: block" Name="DisplayName" />
+                <RadzenRequiredValidator Text="Platform is required" Component="DisplayName" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+
+    </Columns>
+</DataTable>
+
+
+@code {
+    private int maximumOfCards = 10;
+    DisplayValueDropdown<PlattformUser>[] plattfromUsers;
+    DisplayValueDropdown<BotMaster.RightsManagement.Group>[] groups;
+    DisplayValueDropdown<Right>[] rights;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        plattfromUsers = PlattformUserService.Get().Select(x => new DisplayValueDropdown<PlattformUser>($"{x.Platform}:{x.Name}", x)).ToArray();
+        groups = GroupService.Get().Select(x => new DisplayValueDropdown<BotMaster.RightsManagement.Group>(x.Name, x)).ToArray();
+        rights = RightService.Get().Select(x => new DisplayValueDropdown<Right>(x.Name, x)).ToArray();
+        //"PlattformUsers", "Groups", "Users"
+    }
+
+    private List<User> LoadUsers()
+    {
+        var users = UserService.Get(nameof(User.PlatformIdentities), nameof(User.Groups), nameof(User.Rights));
+        return users;
+    }
+
+    private List<PlattformUser> LoadPlattformUsers()
+    {
+        var users = PlattformUserService.Get(nameof(PlattformUser.User), nameof(PlattformUser.Groups), nameof(PlattformUser.Rights));
+        return users;
+    }
+}

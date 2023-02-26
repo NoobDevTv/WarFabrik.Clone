@@ -1,7 +1,11 @@
+using BotMaster.Commandos;
+using BotMaster.RightsManagement;
 using BotMaster.Web.AdministrationUi.Data;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+
+using Radzen;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +13,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
-builder.Services.AddSingleton<CommandoService>();
+builder.Services.AddSingleton<EntityService<CommandosDbContext, PersistentCommand>>();
+builder.Services.AddSingleton<EntityService<RightsDbContext, User>>();
+builder.Services.AddSingleton<EntityService<RightsDbContext, PlattformUser>>();
+builder.Services.AddSingleton<EntityService<RightsDbContext, Right>>();
+builder.Services.AddSingleton<EntityService<RightsDbContext, BotMaster.RightsManagement.Group>>();
+
+builder.Services.AddScoped<DialogService>();
+builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<TooltipService>();
+builder.Services.AddScoped<ContextMenuService>();
 
 var app = builder.Build();
 

@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 namespace BotMaster.Commandos.Migrations;
 
 
+#nullable enable
 public partial class InitialMigration : IAutoMigrationTypeProvider
 {
     public const string Id = $"2022_11_06-20_39_01-{nameof(CommandosDbContext)}-InitialMigration";

@@ -21,8 +21,9 @@ namespace BotMaster.Database
         {
             var dependencies = Database.GetService<ModelDependencies>();
             var setBuilder = Database.GetService<IConventionSetBuilder>();
+            var serviceProvider = Database.GetService<IServiceProvider>();
             var modelConfigurationBuilder =
-                new ModelConfigurationBuilder(setBuilder.CreateConventionSet());
+                new ModelConfigurationBuilder(setBuilder.CreateConventionSet(), serviceProvider);
 
             return modelConfigurationBuilder.CreateModelBuilder(dependencies);
         }
@@ -45,6 +46,8 @@ namespace BotMaster.Database
 
     public abstract class DatabaseContext : DbContext, IAutoMigrationContext
     {
+        public bool EnableUseLazyLoading { get; set; } = true;
+
         protected DatabaseContext()
         {
         }
@@ -73,10 +76,11 @@ namespace BotMaster.Database
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseLazyLoadingProxies();
+            optionsBuilder.UseLazyLoadingProxies(EnableUseLazyLoading);
             base.OnConfiguring(optionsBuilder);
         }
 
+        static Type[] onModelCreatingMethodTypes = new[] { typeof(ModelBuilder) };
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
@@ -86,10 +90,16 @@ namespace BotMaster.Database
                                         .Where(x => x.FullName.Contains(nameof(BotMaster)))
                                         .SelectMany(x => x.GetTypes())
                                         .Where(type => !type.IsAbstract && !type.IsInterface && typeof(Entity).IsAssignableFrom(type))
-                                        .Where(x=> x.Namespace is not null && !x.Namespace.Contains("Migration")))
+                                        .Where(x => x.Namespace is not null && !x.Namespace.Contains("Migration")))
             {
                 if (modelBuilder.Model.FindEntityType(type) is null)
+                {
                     _ = modelBuilder.Model.AddEntityType(type);
+
+                }
+                var method = type.GetMethod(nameof(OnModelCreating), System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public, onModelCreatingMethodTypes);
+                if (method is not null)
+                    method.Invoke(null, new[] { modelBuilder });
             }
 
             base.OnModelCreating(modelBuilder);

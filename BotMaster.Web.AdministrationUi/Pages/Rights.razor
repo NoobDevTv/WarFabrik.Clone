@@ -1,0 +1,50 @@
+﻿@page "/rights"
+@using BotMaster.Commandos;
+@using BotMaster.Web.AdministrationUi.Data
+@using BotMaster.RightsManagement;
+
+@inject EntityService<RightsDbContext, Right> RightService
+@inject EntityService<RightsDbContext, BotMaster.RightsManagement.Group>  GroupService
+
+<PageTitle>Rights</PageTitle>
+
+<h1>Rights</h1>
+
+<DataTable TEntity="Right" TDBContext="RightsDbContext" AddButtonText="Add new Right">
+    <Columns>
+        <RadzenDataGridColumn TItem="Right" Property="Id" Title="Id" Width="66px" />
+
+        <RadzenDataGridColumn TItem="Right" Property="Name" Title="Right Name">
+            <EditTemplate Context="command">
+                <RadzenTextBox @bind-Value="@command.Name" Style="width:100%; display: block" Name="RightName" />
+                <RadzenRequiredValidator Text="Name is required" Component="RightName" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+    </Columns>
+</DataTable>
+
+<br />
+<h1>Groups</h1>
+
+<DataTable TEntity="BotMaster.RightsManagement.Group" TDBContext="RightsDbContext" AddButtonText="Add new Right">
+    <Columns>
+        <RadzenDataGridColumn TItem="BotMaster.RightsManagement.Group" Property="Id" Title="Id" Width="66px" />
+
+        <RadzenDataGridColumn TItem="BotMaster.RightsManagement.Group" Property="Name" Title="Group Name">
+            <EditTemplate Context="command">
+                <RadzenTextBox @bind-Value="@command.Name" Style="width:100%; display: block" Name="RightName" />
+                <RadzenRequiredValidator Text="Name is required" Component="RightName" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="BotMaster.RightsManagement.Group" Property="IsDefault" Title="Is Default">
+            <EditTemplate Context="command">
+                <RadzenCheckBox @bind-Value="@command.IsDefault" Name="IsDefault" />
+
+            </EditTemplate>
+        </RadzenDataGridColumn>
+    </Columns>
+</DataTable>
+@code {
+
+
+}

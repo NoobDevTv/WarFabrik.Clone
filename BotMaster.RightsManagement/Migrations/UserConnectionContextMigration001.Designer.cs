@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 namespace BotMaster.RightsManagement.Migrations;
 
 
+#nullable enable
 public partial class UserConnectionContextMigration001 : IAutoMigrationTypeProvider
 {
     public const string Id = $"2022_10_23-20_39_01-{nameof(UserConnectionContext)}-InitialMigration";

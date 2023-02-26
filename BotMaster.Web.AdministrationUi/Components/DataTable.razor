@@ -1,0 +1,109 @@
+﻿@typeparam TEntity where TEntity : BotMaster.Database.IdEntity<int>, ICloneableGeneric<TEntity>, new()
+@typeparam TDBContext where TDBContext : BotMaster.Database.DatabaseContext, new()
+
+@inject EntityService<TDBContext, TEntity> DbService
+
+
+<RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Class="mt-2 mb-4" Text="@AddButtonText" Click="@InsertRow" Disabled=@(commandToInsert != null || commandToUpdate != null) />
+<RadzenDataGrid TItem="TEntity" @ref="commandsGrid" AllowAlternatingRows="false" AllowFiltering="true" AllowPaging="true" PageSize="100" AllowSorting="true" EditMode="DataGridEditMode.Single"
+                Data="@commands" Sort="@Reset" Page="@Reset" Filter="@Reset">
+    <Columns>
+        @Columns
+        <RadzenDataGridColumn TItem="TEntity" Context="command" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="154px">
+            <Template Context="command">
+                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(command))" @onclick:stopPropagation="true">
+                </RadzenButton>
+                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" Class="my-1 ms-1" Click="@(args => DeleteRow(command))" @onclick:stopPropagation="true">
+                </RadzenButton>
+            </Template>
+            <EditTemplate Context="command">
+                <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(command))">
+                </RadzenButton>
+                <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Class="my-1 ms-1" Click="@((args) => CancelEdit(command))">
+                </RadzenButton>
+                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" Class="my-1 ms-1" Click="@(args => DeleteRow(command))">
+                </RadzenButton>
+            </EditTemplate>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    [Parameter]
+    public RenderFragment Columns { get; set; }
+    [Parameter]
+    public Func<List<TEntity>>? Load { get; set; }
+    [Parameter]
+    public string AddButtonText { get; set; } = "Add new";
+
+    RadzenDataGrid<TEntity> commandsGrid;
+    IList<TEntity> commands;
+    TEntity commandToInsert;
+    TEntity commandToUpdate;
+    TEntity? editCommand = null;
+
+    void Reset()
+    {
+        editCommand = null;
+    }
+
+    void LoadCommands()
+    {
+        if (Load is null)
+            commands = DbService.Get();
+        else
+            commands = Load();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        LoadCommands();
+    }
+
+    async Task EditRow(TEntity command)
+    {
+        editCommand = command.Clone();
+        await commandsGrid.EditRow(command);
+    }
+
+
+    async Task SaveRow(TEntity command)
+    {
+        await DbService.AddOrUpdateCommand(command);
+        await commandsGrid.UpdateRow(command);
+        //LoadCommands();
+    }
+
+    void CancelEdit(TEntity command)
+    {
+        editCommand = null;
+        LoadCommands();
+        //LoadCommands();
+    }
+
+    async Task DeleteRow(TEntity command)
+    {
+
+        if (commands.Contains(command))
+        {
+            DbService.DeleteCommand(command);
+
+            await commandsGrid.Reload();
+        }
+        else
+        {
+            commandsGrid.CancelEditRow(command);
+            await commandsGrid.Reload();
+        }
+        LoadCommands();
+    }
+
+
+    async Task InsertRow()
+    {
+        editCommand = new TEntity();
+        await commandsGrid.InsertRow(editCommand);
+    }
+}

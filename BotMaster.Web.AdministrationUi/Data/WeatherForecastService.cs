@@ -7,10 +7,7 @@ namespace BotMaster.Web.AdministrationUi.Data;
 
 public class WeatherForecastService
 {
-    private static readonly string[] Summaries = new[]
-    {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
+
 
     public WeatherForecast[] GetForecastAsync(DateOnly startDate)
     {

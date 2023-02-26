@@ -1,7 +1,6 @@
 ﻿using BotMaster.Commandos;
 using BotMaster.MessageContract;
 using BotMaster.RightsManagement;
-using BotMaster.Telegram.Database;
 
 namespace BotMaster.Twitch.Commands
 {

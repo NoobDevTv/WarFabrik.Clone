@@ -12,4 +12,5 @@
 		<ProjectReference Include="..\BotMaster.Database\BotMaster.Database.csproj" />
 	</ItemGroup>
 
+
 </Project>

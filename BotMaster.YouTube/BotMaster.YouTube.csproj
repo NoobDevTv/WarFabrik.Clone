@@ -20,11 +20,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Google.Apis.YouTube.v3" Version="1.57.0.2756" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-		<PackageReference Include="NLog" Version="5.0.2" />
-		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.8" />
+		<PackageReference Include="Google.Apis.YouTube.v3" Version="1.60.0.2945" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+		<PackageReference Include="NLog" Version="5.1.2" />
+		<PackageReference Include="System.Drawing.Common" Version="7.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.3" />
 	</ItemGroup>
 
 	<ItemGroup>

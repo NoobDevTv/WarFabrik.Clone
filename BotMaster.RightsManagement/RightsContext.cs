@@ -1,9 +1,8 @@
-﻿using BotMaster.Database;
-using BotMaster.RightsManagement;
+﻿
 
 using Microsoft.EntityFrameworkCore;
 
-namespace BotMaster.Telegram.Database;
+namespace BotMaster.RightsManagement;
 public class RightsDbContext : BaseDatabaseContext
 {
     //public DbSet<TelegramUser> TelegramUsers => Set<TelegramUser>();

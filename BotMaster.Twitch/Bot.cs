@@ -4,7 +4,6 @@ using BotMaster.Commandos;
 using BotMaster.MessageContract;
 using BotMaster.PluginSystem.Messages;
 using BotMaster.RightsManagement;
-using BotMaster.Telegram.Database;
 using BotMaster.Twitch.Commands;
 using BotMaster.Livestream.MessageContract;
 

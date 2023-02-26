@@ -40,7 +40,7 @@ public class CommandosDbContext : DatabaseContext
         modelBuilder.Entity<PersistentCommand>()
             .Property(x => x.Plattforms)
             .HasConversion(x => string.Join(',', x),
-            x => x.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList(), 
+            x => x.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList(),
             new ValueComparer<List<string>>(
             (c1, c2) => c1.SequenceEqual(c2),
             c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),

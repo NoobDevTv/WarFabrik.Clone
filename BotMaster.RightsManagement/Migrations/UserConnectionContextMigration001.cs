@@ -1,5 +1,4 @@
 ﻿using BotMaster.Database.Migrations;
-using BotMaster.Telegram.Database;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
