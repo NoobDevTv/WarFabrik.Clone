@@ -20,7 +20,7 @@
                 <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(command))">
                 </RadzenButton>
                 <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Class="my-1 ms-1" Click="@((args) => CancelEdit(command))">
-                </RadzenButton>
+                    </RadzenButton>
                 <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" Class="my-1 ms-1" Click="@(args => DeleteRow(command))">
                 </RadzenButton>
             </EditTemplate>
@@ -36,15 +36,16 @@
     [Parameter]
     public string AddButtonText { get; set; } = "Add new";
 
+    public TEntity? EditCommand { get; private set; }
+
     RadzenDataGrid<TEntity> commandsGrid;
     IList<TEntity> commands;
     TEntity commandToInsert;
     TEntity commandToUpdate;
-    TEntity? editCommand = null;
 
     void Reset()
     {
-        editCommand = null;
+        EditCommand = null;
     }
 
     void LoadCommands()
@@ -64,7 +65,7 @@
 
     async Task EditRow(TEntity command)
     {
-        editCommand = command.Clone();
+        EditCommand = command.Clone();
         await commandsGrid.EditRow(command);
     }
 
@@ -78,7 +79,7 @@
 
     void CancelEdit(TEntity command)
     {
-        editCommand = null;
+        EditCommand = null;
         LoadCommands();
         //LoadCommands();
     }
@@ -103,7 +104,7 @@
 
     async Task InsertRow()
     {
-        editCommand = new TEntity();
-        await commandsGrid.InsertRow(editCommand);
+        EditCommand = new TEntity();
+        await commandsGrid.InsertRow(EditCommand);
     }
 }

@@ -21,9 +21,9 @@ public class User : IdEntity<int>, ICloneableGeneric<User>
         return new User()
         {
             DisplayName = DisplayName,
-            PlatformIdentities = PlatformIdentities,
-            Groups = Groups,
-            Rights = Rights,
+            PlatformIdentities = PlatformIdentities?.ToList(),
+            Groups = Groups?.ToList(),
+            Rights = Rights?.ToList(),
             Id = Id
         };
     }

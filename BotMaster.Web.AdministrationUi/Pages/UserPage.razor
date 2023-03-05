@@ -9,7 +9,7 @@
 
 <h1>User</h1>
 
-<DataTable TEntity="User" TDBContext="RightsDbContext" Load="LoadUsers" AddButtonText="Add new User">
+<DataTable TEntity="User" TDBContext="RightsDbContext"  @ref="refTable" Load="LoadUsers" AddButtonText="Add new User">
     <Columns>
         <RadzenDataGridColumn TItem="User" Property="Id" Title="Id" Width="66px" />
         <RadzenDataGridColumn TItem="User" Property="DisplayName" Title="DisplayName" Width="132px">
@@ -19,7 +19,8 @@
             </EditTemplate>
         </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn TItem="User" Property="PlatformIdentities" Title="Platform Identities">
+        <RadzenDataGridColumn TItem="User" Context="OrigUser" Property="PlatformIdentities" Title="Platform Identities">
+            
             <Template Context="command">
                 @if (command.PlatformIdentities is null)
                     command.PlatformIdentities = new List<PlattformUser>();
@@ -47,9 +48,10 @@
 
 
             </Template>
-            <EditTemplate Context="command">
+            <EditTemplate Context="command" >
                 <RadzenDropDown Multiple="true" Chips="true" MaxSelectedLabels="@maximumOfCards" AllowClear="true" AllowFiltering="true"
                                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Data=@plattfromUsers @bind-Value=@command.PlatformIdentities
+                                Change="(e) => { if (e is IEnumerable<PlattformUser> enumerable) AddOrRemove(command, refTable.EditCommand.PlatformIdentities, command.PlatformIdentities, enumerable); }"
                                 TextProperty="Display" ValueProperty="Value" />
             </EditTemplate>
 
@@ -84,6 +86,7 @@
             <EditTemplate Context="command">
                 <RadzenDropDown Multiple="true" Chips="true" MaxSelectedLabels="@maximumOfCards" AllowClear="true" AllowFiltering="true"
                                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Data=@groups @bind-Value=@command.Groups
+                                Change="(e) => { if (e is IEnumerable<BotMaster.RightsManagement.Group> enumerable) AddOrRemove(command, refTable.EditCommand.Groups, command.Groups, enumerable); }"
                                 TextProperty="Display" ValueProperty="Value" />
             </EditTemplate>
         </RadzenDataGridColumn>
@@ -115,8 +118,9 @@
 
             </Template>
             <EditTemplate Context="command">
-                <RadzenDropDown Multiple="true"  Chips="true"  MaxSelectedLabels="@maximumOfCards" AllowClear="true" AllowFiltering="true"
+                <RadzenDropDown Multiple="true" Chips="true" MaxSelectedLabels="@maximumOfCards" AllowClear="true" AllowFiltering="true"
                                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Data=@rights @bind-Value=@command.Rights
+                                Change="(e) => { if (e is IEnumerable<Right> enumerable) AddOrRemove(command, refTable.EditCommand.Rights, command.Rights, enumerable); }"
                                 TextProperty="Display" ValueProperty="Value" />
             </EditTemplate>
 
@@ -162,6 +166,7 @@
     DisplayValueDropdown<PlattformUser>[] plattfromUsers;
     DisplayValueDropdown<BotMaster.RightsManagement.Group>[] groups;
     DisplayValueDropdown<Right>[] rights;
+    DataTable<User, RightsDbContext> refTable;
 
     protected override async Task OnInitializedAsync()
     {
@@ -169,7 +174,6 @@
         plattfromUsers = PlattformUserService.Get().Select(x => new DisplayValueDropdown<PlattformUser>($"{x.Platform}:{x.Name}", x)).ToArray();
         groups = GroupService.Get().Select(x => new DisplayValueDropdown<BotMaster.RightsManagement.Group>(x.Name, x)).ToArray();
         rights = RightService.Get().Select(x => new DisplayValueDropdown<Right>(x.Name, x)).ToArray();
-        //"PlattformUsers", "Groups", "Users"
     }
 
     private List<User> LoadUsers()
@@ -183,4 +187,27 @@
         var users = PlattformUserService.Get(nameof(PlattformUser.User), nameof(PlattformUser.Groups), nameof(PlattformUser.Rights));
         return users;
     }
+
+    private async Task AddOrRemove<T>(User user, ICollection<T> listToCompare, ICollection<T> origValue, IEnumerable<T> selectedEntries) where T : Entity
+    {
+        origValue.Clear();
+        foreach (var item in listToCompare)
+        {
+            origValue.Add(item);
+        }
+        foreach (var existing in listToCompare)
+        {
+            if (!selectedEntries.Any(x => x.Equals(existing)))
+            {
+                await UserService.RemoveForeignKey(user, existing, (_, p) => origValue.Remove(p));
+            }
+        }
+        foreach (var shouldExist in selectedEntries)
+        {
+            if (!listToCompare.Any(x => x.Equals(shouldExist)))
+            {
+                await UserService.AddForeignKey(user, shouldExist, (_, p) => origValue.Add(p));
+            }
+        }
+    } 
 }
