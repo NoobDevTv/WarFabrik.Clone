@@ -11,14 +11,14 @@ public class Group : IdEntity<int>, ICloneableGeneric<Group>
     public string Name { get; set; }
 
     [InverseProperty(nameof(User.Groups))]
-    public virtual ICollection<User> Users { get; set; } = new List<User>();
+    public virtual List<User> Users { get; set; } = new List<User>();
     [InverseProperty(nameof(PlattformUser.Groups))]
-    public virtual ICollection<PlattformUser> PlattformUsers { get; set; } = new List<PlattformUser>();
+    public virtual List<PlattformUser> PlattformUsers { get; set; } = new List<PlattformUser>();
     [InverseProperty(nameof(Right.Groups))]
-    public virtual ICollection<Right> Rights { get; set; } = new List<Right>();
+    public virtual List<Right> Rights { get; set; } = new List<Right>();
 
     public Group Clone()
     {
-        return new Group {Id = Id, IsDefault = IsDefault, Name = Name, Users = Users, PlattformUsers = PlattformUsers, Rights = Rights };
+        return new Group {Id = Id, IsDefault = IsDefault, Name = Name, Users = Users.ToList(), PlattformUsers = PlattformUsers.ToList(), Rights = Rights.ToList() };
     }
 }

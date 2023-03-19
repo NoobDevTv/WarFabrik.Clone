@@ -1,11 +1,12 @@
-﻿using BotMaster.PluginSystem.Messages;
+﻿using BotMaster.PluginSystem;
+using BotMaster.PluginSystem.Messages;
 using System.Reactive.Linq;
 
 namespace BotMaster.Betterplace.MessageContract
 {
-    public static class BetterplaceContract
+    public class BetterplaceContract : IContract<BetterplaceMessage>
     {
-        public static readonly Guid UID = new("524FED8B-38C6-4241-B5A0-84752A6964AD");
+        internal static readonly Guid UID = new("524FED8B-38C6-4241-B5A0-84752A6964AD");
         //public static int Id { get; private set; } = -1;
 
         public static bool CanConvert(Message message)

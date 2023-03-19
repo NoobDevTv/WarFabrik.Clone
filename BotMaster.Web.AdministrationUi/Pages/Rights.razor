@@ -26,7 +26,7 @@
 <br />
 <h1>Groups</h1>
 
-<DataTable TEntity="BotMaster.RightsManagement.Group" TDBContext="RightsDbContext" AddButtonText="Add new Right">
+<DataTable TEntity="BotMaster.RightsManagement.Group" @ref="groupTable"  TDBContext="RightsDbContext" AddButtonText="Add new Group" ToInclude="new []{nameof(PlattformUser.Rights)}">
     <Columns>
         <RadzenDataGridColumn TItem="BotMaster.RightsManagement.Group" Property="Id" Title="Id" Width="66px" />
 
@@ -39,12 +39,58 @@
         <RadzenDataGridColumn TItem="BotMaster.RightsManagement.Group" Property="IsDefault" Title="Is Default">
             <EditTemplate Context="command">
                 <RadzenCheckBox @bind-Value="@command.IsDefault" Name="IsDefault" />
-
             </EditTemplate>
         </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="BotMaster.RightsManagement.Group" Property="Rights" Title="Rights">
+            <Template Context="command">
+                @if (command.Rights is null)
+                    command.Rights = new List<Right>();
+
+                @if (command.Rights.Count >= maximumOfCards)
+                {
+                    <span>@command.Rights.Count Items selected</span>
+                }
+                else
+                {
+
+                    <div class="rz-dropdown-chips">
+                        <div class="rz-dropdown-chips-wrapper">
+                            @foreach (var item in command.Rights)
+                            {
+                                <div class="rz-chip nd-chip">
+                                    <span class="rz-chip-text">
+                                        @item.Name
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+            </Template>
+            <EditTemplate Context="command">
+                <RadzenDropDown Multiple="true" Chips="true" MaxSelectedLabels="@maximumOfCards" AllowClear="true" AllowFiltering="true"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Data=@rights @bind-Value=@command.Rights
+                                Change="(e) => { if (e is IEnumerable<Right> enumerable) GroupService.AddOrRemove(command, groupTable.EditCommand.Rights, command.Rights, enumerable); }"
+                                TextProperty="Display" ValueProperty="Value" />
+            </EditTemplate>
+
+        </RadzenDataGridColumn>
+
     </Columns>
 </DataTable>
 @code {
+    private int maximumOfCards = 10;
+    DisplayValueDropdown<Right>[] rights;
+    DataTable<BotMaster.RightsManagement.Group, RightsDbContext> groupTable;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        rights = RightService.Get().Select(x => new DisplayValueDropdown<Right>(x.Name, x)).ToArray();
+    }
 
 
 }

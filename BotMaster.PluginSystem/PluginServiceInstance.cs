@@ -34,7 +34,7 @@ namespace BotMaster.PluginSystem
         {
             base.Start();
             var subscription
-                = loadPlugin(manifest.CurrentFileInfo)
+                = loadPlugin(Manifest.CurrentFileInfo)
                     .Retry(
                         x => Interlocked.Increment(ref retries) <= 12, 
                         () => TimeSpan.FromSeconds((retries + 1) * 10), 

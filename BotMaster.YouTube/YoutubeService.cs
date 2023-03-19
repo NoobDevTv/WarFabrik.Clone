@@ -1,7 +1,6 @@
 ﻿using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.Messages;
 using BotMaster.RightsManagement;
-using BotMaster.Telegram.Database;
 
 using Microsoft.EntityFrameworkCore;
 

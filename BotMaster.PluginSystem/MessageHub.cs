@@ -16,7 +16,7 @@ namespace BotMaster.PluginSystem
         public IDisposable SubscribeAsSender(IObservable<Message> messages)
             => messages.Subscribe(internalSubject);
 
-        public IObservable<Message> SubscribeAsReceiver(string targetId)
+        public IObservable<Message> GetFiltered(string targetId)
             => internalSubject.Where(message => string.IsNullOrEmpty(message.TargetId) || message.TargetId == targetId);
 
         public void Dispose()

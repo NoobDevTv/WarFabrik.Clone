@@ -6,16 +6,13 @@ using NonSucking.Framework.Serialization;
 namespace BotMaster.Livestream.MessageContract
 {
     [Nooson]
-    public readonly partial struct FollowInformation : IEquatable<FollowInformation>
+    public partial struct FollowInformation : IEquatable<FollowInformation>
     {
         [NoosonInclude, NoosonOrder(0)]
         public const int TypeId = 0;
 
         public string UserName { get; }
-
         public string UserId { get; }
-        [NoosonCustom(SerializeImplementationType = typeof(DateTimeSerializer), SerializeMethodName = nameof(DateTimeSerializer.DateTimeToBinary)
-            , DeserializeImplementationType = typeof(DateTimeSerializer), DeserializeMethodName = nameof(DateTimeSerializer.DateTimeFromBinary))]
         public DateTime Since { get; }
         public string SourcePlattform { get; }
 

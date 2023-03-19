@@ -107,7 +107,7 @@ namespace BotMaster.PluginSystem.PluginCreator
         public TCPPluginInstance(PluginManifest manifest, TcpClient client) : base(manifest)
         {
             runnerProcess = null;
-            compositeDisposable = null;
+            compositeDisposable = new();
             runnersPath = null;
             this.client = client;
             networkStream = client.GetStream();
@@ -172,7 +172,7 @@ namespace BotMaster.PluginSystem.PluginCreator
 
         public override IObservable<Package> Send(IObservable<Package> packages)
         {
-            logger.Debug($"Creating send pipe for {manifest.Id}");
+            logger.Debug($"Creating send pipe for {Manifest.Id}");
             return PluginConnection.
                 CreateSendPipe(() => networkStream, packages, (_) => networkStream is not null && client is not null && client.Connected)
                 .Log(logger, "SendPipe", subscriptionMessage: () => "Created send pipe again", subscription: LogLevel.Info, onError: LogLevel.Error, onErrorMessage: (e) => e.ToString())
@@ -182,7 +182,7 @@ namespace BotMaster.PluginSystem.PluginCreator
 
         public override IObservable<Package> Receive()
         {
-            logger.Debug($"Creating receive pipe for {manifest.Id}");
+            logger.Debug($"Creating receive pipe for {Manifest.Id}");
 
             return PluginConnection
                 .CreateReceiverPipe(() => networkStream, (_) => networkStream is not null && client is not null && client.Connected)
@@ -194,13 +194,13 @@ namespace BotMaster.PluginSystem.PluginCreator
         internal override void ReceiveMessages(Func<string, IObservable<Message>> subscribeAsReceiver)
         {
             var sendPackages = Send(MessageConvert.ToPackage(subscribeAsReceiver(Id)));
-            compositeDisposable?.Add(sendPackages.Subscribe());
+            compositeDisposable.Add(sendPackages.Subscribe());
         }
 
         internal override void SendMessages(Func<IObservable<Message>, IDisposable> subscribeAsSender)
         {
             var receivedMessages = MessageConvert.ToMessage(Receive());
-            compositeDisposable?.Add(subscribeAsSender(receivedMessages));
+            compositeDisposable.Add(subscribeAsSender(receivedMessages));
         }
 
         public override void Start()
@@ -212,9 +212,9 @@ namespace BotMaster.PluginSystem.PluginCreator
         internal override PluginInstance Copy()
         {
             if (clientRetriever is null)
-                return new TCPPluginInstance(manifest, client);
+                return new TCPPluginInstance(Manifest, client);
             else
-                return new TCPPluginInstance(runnersPath, manifest, clientRetriever);
+                return new TCPPluginInstance(runnersPath, Manifest, clientRetriever);
 
         }
 

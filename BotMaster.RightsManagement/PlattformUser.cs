@@ -25,6 +25,6 @@ public class PlattformUser : IdEntity<int>, ICloneableGeneric<PlattformUser>
 
     public PlattformUser Clone()
     {
-        return new PlattformUser { Id = Id, Platform = Platform, Name = Name, PlattformUserId = PlattformUserId, User = User, Rights = Rights, Groups = Groups };
+        return new PlattformUser { Id = Id, Platform = Platform, Name = Name, PlattformUserId = PlattformUserId, User = User, Rights = Rights.ToList(), Groups = Groups.ToList() };
     }
 }

@@ -2,20 +2,23 @@
 
 	<PropertyGroup>
 		<TargetFramework>net7.0</TargetFramework>
-		<EnablePreviewFeatures>True</EnablePreviewFeatures>
+		
 		<ImplicitUsings>enable</ImplicitUsings>
-		<LangVersion>preview</LangVersion>
+		<!--<IncludePackageReferencesDuringMarkupCompilation>true</IncludePackageReferencesDuringMarkupCompilation>
+		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+		<CompilerGeneratedFilesOutputPath>GeneratedFiles</CompilerGeneratedFilesOutputPath>-->
 		<NoWarn>CS0657;CA2252</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="dotVariant" Version="0.5.3" />
-		<PackageReference Include="NonSucking.Framework.Extension" Version="0.1.0.74-alpha" />
+		<PackageReference Include="NonSucking.Framework.Extension" Version="0.1.0.98-alpha" />
 		<PackageReference Include="System.Reactive" Version="5.0.0" />
-		<PackageReference Include="NonSucking.Framework.Serialization" Version="0.1.0.68-alpha" />
+		<PackageReference Include="NonSucking.Framework.Serialization" Version="0.1.0.98-alpha" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<!--<ProjectReference Include="..\..\NonSucking.Framework.Extension\NonSucking.Framework.Serialization\NonSucking.Framework.Serialization.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />-->
 		<ProjectReference Include="..\BotMaster.Core\BotMaster.Core.csproj" />
 	</ItemGroup>
 

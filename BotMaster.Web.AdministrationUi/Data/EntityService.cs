@@ -61,29 +61,22 @@ public class EntityService<T, TEntity>
     {
         using var ctx = new T();
         ctx.EnableUseLazyLoading = true;
-        //var tracking = ctx.Update(entity);
-        //ctx.ChangeTracker.TrackGraph(entity, (a) =>
-        //{
-        //    if (a.Entry.IsKeySet)
-        //    {
-        //        IQueryable<TEntity> set = ctx.Set<TEntity>();
-        //        var entityExisting = set.SingleOrDefault(x => x.Id == entity.Id);
-        //        var attachedEntry = ctx.Entry(entityExisting);
-        //        attachedEntry.CurrentValues.SetValues(entity);
-        //        a.Entry.State = attachedEntry.State;
-        //    }
-        //    else
-        //    {
-        //        a.Entry.State = EntityState.Added;
-        //    }
-        //});
-        var t = ctx.Entry<TEntity>(entity);
+
+        var t = ctx.Entry(entity);
         if (t.State == EntityState.Detached)
         {
             IQueryable<TEntity> set = ctx.Set<TEntity>();
             var entityExisting = set.SingleOrDefault(x => x.Id == entity.Id);
-            var attachedEntry = ctx.Entry(entityExisting);
-            attachedEntry.CurrentValues.SetValues(entity);
+            if (entityExisting != default)
+            {
+                var attachedEntry = ctx.Entry(entityExisting);
+                attachedEntry.CurrentValues.SetValues(entity);
+            }
+            else
+            {
+                var  c = ctx.Attach(entity);
+                c.State = EntityState.Added;
+            }
         }
         var res = ctx.SaveChanges();
     }
@@ -93,5 +86,29 @@ public class EntityService<T, TEntity>
         using var ctx = new T();
         var tracking = ctx.Remove(entity);
         var res = await ctx.SaveChangesAsync();
+    }
+
+    public async Task AddOrRemove<TForeignKey>(TEntity entity, ICollection<TForeignKey> listToCompare, ICollection<TForeignKey> origValue, IEnumerable<TForeignKey> selectedEntries)
+        where TForeignKey : Entity
+    {
+        origValue.Clear();
+        foreach (var item in listToCompare)
+        {
+            origValue.Add(item);
+        }
+        foreach (var existing in listToCompare)
+        {
+            if (!selectedEntries.Any(x => x.Equals(existing)))
+            {
+                await RemoveForeignKey(entity, existing, (_, p) => origValue.Remove(p));
+            }
+        }
+        foreach (var shouldExist in selectedEntries)
+        {
+            if (!listToCompare.Any(x => x.Equals(shouldExist)))
+            {
+                await AddForeignKey(entity, shouldExist, (_, p) => origValue.Add(p));
+            }
+        }
     }
 }

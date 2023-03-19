@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+
+	<ItemGroup>
+		<PackageReference Include="NonSucking.Framework.Extension" Version="0.1.0.98-alpha" />
+		<PackageReference Include="dotVariant" Version="0.5.3" />
+		<PackageReference Include="NonSucking.Framework.Serialization" Version="0.1.0.98-alpha" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\BotMaster.PluginSystem\BotMaster.PluginSystem.csproj" />
+	</ItemGroup>
+</Project>

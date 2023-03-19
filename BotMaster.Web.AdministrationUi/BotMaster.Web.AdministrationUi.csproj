@@ -24,5 +24,10 @@
 		<None Update="**\*.razor.css" DependentUpon="%(Filename)" />
 
 	</ItemGroup>
+	<ItemGroup>
+	  <None Update="Pages\Platform.razor.css">
+	    <DependentUpon>Platform.razor</DependentUpon>
+	  </None>
+	</ItemGroup>
 
 </Project>

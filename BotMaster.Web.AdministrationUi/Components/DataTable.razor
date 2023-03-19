@@ -5,7 +5,7 @@
 
 
 <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Class="mt-2 mb-4" Text="@AddButtonText" Click="@InsertRow" Disabled=@(commandToInsert != null || commandToUpdate != null) />
-<RadzenDataGrid TItem="TEntity" @ref="commandsGrid" AllowAlternatingRows="false" AllowFiltering="true" AllowPaging="true" PageSize="100" AllowSorting="true" EditMode="DataGridEditMode.Single"
+<RadzenDataGrid TItem="TEntity" @ref="commandsGrid" AllowAlternatingRows="false" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" EditMode="DataGridEditMode.Single"
                 Data="@commands" Sort="@Reset" Page="@Reset" Filter="@Reset">
     <Columns>
         @Columns
@@ -20,7 +20,7 @@
                 <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(command))">
                 </RadzenButton>
                 <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Class="my-1 ms-1" Click="@((args) => CancelEdit(command))">
-                    </RadzenButton>
+                </RadzenButton>
                 <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" Class="my-1 ms-1" Click="@(args => DeleteRow(command))">
                 </RadzenButton>
             </EditTemplate>
@@ -35,6 +35,8 @@
     public Func<List<TEntity>>? Load { get; set; }
     [Parameter]
     public string AddButtonText { get; set; } = "Add new";
+    [Parameter]
+    public string[] ToInclude { get; set; } = Array.Empty<string>();
 
     public TEntity? EditCommand { get; private set; }
 
@@ -51,7 +53,7 @@
     void LoadCommands()
     {
         if (Load is null)
-            commands = DbService.Get();
+            commands = DbService.Get(ToInclude);
         else
             commands = Load();
     }
@@ -77,11 +79,11 @@
         //LoadCommands();
     }
 
-    void CancelEdit(TEntity command)
+    async Task CancelEdit(TEntity command)
     {
+        await commandsGrid.UpdateRow(command);
         EditCommand = null;
         LoadCommands();
-        //LoadCommands();
     }
 
     async Task DeleteRow(TEntity command)

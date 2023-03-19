@@ -166,6 +166,6 @@ namespace BotMaster.PluginSystem.PluginCreator
         }
 
 
-        internal override PluginInstance Copy() => new IPCPluginInstance(runnersPath, manifest, createPipe, createSender, createReceiver);
+        internal override PluginInstance Copy() => new IPCPluginInstance(runnersPath, Manifest, createPipe, createSender, createReceiver);
     }
 }

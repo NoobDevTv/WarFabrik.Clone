@@ -12,12 +12,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddSingleton<EntityService<CommandosDbContext, PersistentCommand>>();
 builder.Services.AddSingleton<EntityService<RightsDbContext, User>>();
 builder.Services.AddSingleton<EntityService<RightsDbContext, PlattformUser>>();
 builder.Services.AddSingleton<EntityService<RightsDbContext, Right>>();
 builder.Services.AddSingleton<EntityService<RightsDbContext, BotMaster.RightsManagement.Group>>();
+builder.Services.AddSingleton<EntityService<UserConnectionContext, UserConnection>>();
 
 builder.Services.AddScoped<DialogService>();
 builder.Services.AddScoped<NotificationService>();

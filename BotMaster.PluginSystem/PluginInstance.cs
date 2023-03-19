@@ -8,15 +8,15 @@ namespace BotMaster.PluginSystem
 {
     public abstract class PluginInstance
     {
-        public string Id => manifest.Id;
-        protected readonly PluginManifest manifest;
+        public string Id => Manifest.Id;
+        public PluginManifest Manifest { get; }
 
         internal event EventHandler<Exception> OnError;
 
         public PluginInstance(
             PluginManifest manifest)
         {
-            this.manifest = manifest;
+            this.Manifest = manifest;
         }
 
         public virtual void Start()
@@ -35,7 +35,7 @@ namespace BotMaster.PluginSystem
             OnError?.Invoke(this, ex);
         }
 
-        internal abstract PluginInstance Copy(); 
+        internal abstract PluginInstance Copy();
 
     }
 
@@ -88,6 +88,6 @@ namespace BotMaster.PluginSystem
             disposables.Dispose();
         }
 
-        internal override PluginInstance Copy() => new PluginInstance<TClient>(manifest, createPipe, createSender, createReceiver);
+        internal override PluginInstance Copy() => new PluginInstance<TClient>(Manifest, createPipe, createSender, createReceiver);
     }
 }

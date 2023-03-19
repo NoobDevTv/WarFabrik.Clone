@@ -1,0 +1,106 @@
+﻿@page "/platform"
+@using BotMaster.RightsManagement;
+@inject EntityService<RightsDbContext, PlattformUser> PlattformUserService
+@inject EntityService<UserConnectionContext, UserConnection> UserConnectionService
+
+<PageTitle>Platform</PageTitle>
+
+<h1>Plattform User</h1>
+
+<DataTable TEntity="PlattformUser" TDBContext="RightsDbContext" ToInclude="new []{nameof(PlattformUser.User), nameof(PlattformUser.Groups), nameof(PlattformUser.Rights)}" AddButtonText="Add new User">
+    <Columns>
+        <RadzenDataGridColumn TItem="PlattformUser" Property="Id" Title="Id" Width="66px" />
+        <RadzenDataGridColumn TItem="PlattformUser" Property="Name" Title="Name" Width="132px">
+            <EditTemplate Context="command">
+                <RadzenTextBox @bind-Value="@command.Name" Style="width:100%; display: block" Name="DisplayName" />
+                <RadzenRequiredValidator Text="Name is required" Component="DisplayName" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="PlattformUser" Property="Platform" Title="Platform" Width="132px">
+            <EditTemplate Context="command">
+                <RadzenTextBox @bind-Value="@command.Platform" Style="width:100%; display: block" Name="DisplayName" />
+                <RadzenRequiredValidator Text="Platform is required" Component="DisplayName" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+
+
+        <RadzenDataGridColumn TItem="PlattformUser" Property="PlattformUserId" Title="PlattformUserId" Width="132px">
+            <EditTemplate Context="command">
+                <RadzenTextBox @bind-Value="@command.PlattformUserId" Style="width:100%; display: block" Name="DisplayName" />
+                <RadzenRequiredValidator Text="Platform is required" Component="DisplayName" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+
+    </Columns>
+</DataTable>
+
+<br />
+<h1>Plattform User Connection</h1>
+
+<DataTable TEntity="UserConnection" TDBContext="UserConnectionContext"  ToInclude="new []{nameof(UserConnection.PlattformUser)}" AddButtonText="Add User Connection">
+    <Columns>
+        <RadzenDataGridColumn TItem="UserConnection" Property="Id" Title="Id" Width="66px" />
+        <RadzenDataGridColumn TItem="UserConnection" Property="ConnectionCode" Title="Connection Code" Width="132px">
+            <EditTemplate Context="command">
+                <RadzenTextBox @bind-Value="@command.ConnectionCode" />
+                <RadzenRequiredValidator Text="ConnectionCode is required" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="UserConnection" Property="ValidUntil" Title="Valid Until" Width="132px">
+            <EditTemplate Context="command">
+                <RadzenDatePicker @bind-Value="@command.ValidUntil" />
+                <RadzenRequiredValidator Text="Valid Until is required" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="UserConnection" Property="Connected" Title="Connected" Width="132px">
+            <EditTemplate Context="command">
+                <RadzenCheckBox @bind-Value="@command.Connected" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+
+
+        <RadzenDataGridColumn TItem="UserConnection" Context="OrigUser" Property="PlattformUser" Title="Platform Identities">
+
+            <Template Context="command">
+                @if (command.PlattformUser is null)
+                    return;
+
+                <div class="rz-dropdown-chips">
+                    <div class="rz-dropdown-chips-wrapper">
+                        <div class="rz-chip nd-chip">
+                            <span class="rz-chip-text">
+                                @(command.PlattformUser.Platform):@(command.PlattformUser.Name)
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+            </Template>
+            <EditTemplate Context="command">
+                <RadzenDropDown Multiple="false" Chips="true" MaxSelectedLabels="@maximumOfCards" AllowClear="true" AllowFiltering="true"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Data=@plattfromUsers @bind-Value=@command.PlattformUser
+                                Change="(e) => {  command.PlattformUserId = (e as PlattformUser)?.Id ?? 0; }"
+                                TextProperty="Display" ValueProperty="Value" />
+            </EditTemplate>
+
+        </RadzenDataGridColumn>
+    </Columns>
+</DataTable>
+
+@code {
+    private int maximumOfCards = 10;
+    DisplayValueDropdown<PlattformUser>[] plattfromUsers;
+    DataTable<User, RightsDbContext> refTable;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        plattfromUsers = PlattformUserService.Get().Select(x => new DisplayValueDropdown<PlattformUser>($"{x.Platform}:{x.Name}", x)).ToArray();
+    }
+
+
+
+}

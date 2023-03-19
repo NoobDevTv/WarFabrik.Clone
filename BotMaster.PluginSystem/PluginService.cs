@@ -1,13 +1,21 @@
-﻿using BotMaster.PluginSystem.PluginCreator;
+﻿using BotMaster.PluginSystem.Messages;
+using BotMaster.PluginSystem.PluginCreator;
+
 using NLog;
+
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System;
+using System.Collections.Concurrent;
 
 namespace BotMaster.PluginSystem
 {
     public sealed class PluginService : IDisposable
     {
+        public IReadOnlyCollection<KeyValuePair<string, PluginInstance>> Plugins => plugins;
+
         private readonly Logger logger;
-        private readonly Dictionary<string, PluginInstance> plugins;
+        private readonly ConcurrentDictionary<string, PluginInstance> plugins;
         private readonly IObservable<PluginInstance> instances;
         private readonly MessageHub messageHub;
         private IDisposable subscription;
@@ -15,7 +23,7 @@ namespace BotMaster.PluginSystem
         public PluginService(MessageHub messageHub, IObservable<PluginInstance> instances)
         {
             logger = LogManager.GetLogger(nameof(PluginService));
-            plugins = new Dictionary<string, PluginInstance>();
+            plugins = new ConcurrentDictionary<string, PluginInstance>();
             this.instances = instances;
             this.messageHub = messageHub;
         }
@@ -23,8 +31,7 @@ namespace BotMaster.PluginSystem
         public void Start()
         {
             logger.Info("Start Service");
-            subscription = instances
-                              .Subscribe(StartPluginInstance);
+            subscription = instances.Subscribe(StartPluginInstance);
         }
 
         private void StartPluginInstance(PluginInstance instance)
@@ -55,7 +62,7 @@ namespace BotMaster.PluginSystem
             else
             {
                 logger.Debug("Add instance");
-                plugins.Add(instance.Id, instance);
+                plugins.TryAdd(instance.Id, instance);
             }
 
             logger.Debug($"Start Plugin instance {instance.Id}");
@@ -63,14 +70,14 @@ namespace BotMaster.PluginSystem
 
 
             instance.Start();
-            instance.ReceiveMessages(messageHub.SubscribeAsReceiver);
+            instance.ReceiveMessages(messageHub.GetFiltered);
             instance.SendMessages(messageHub.SubscribeAsSender);
             logger.Debug($"{instance.Id} started");
         }
 
         private void InstanceOnError(object sender, Exception ex)
         {
-            if(sender is PluginInstance pi)
+            if (sender is PluginInstance pi)
             {
                 StartPluginInstance(pi.Copy());
             }
@@ -85,6 +92,7 @@ namespace BotMaster.PluginSystem
         public void Dispose()
         {
             Stop();
+            subscription?.Dispose();
         }
     }
 }

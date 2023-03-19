@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
 
-	  <EnablePreviewFeatures>True</EnablePreviewFeatures>
+	  
 	  <ImplicitUsings>enable</ImplicitUsings>
 	  <LangVersion>preview</LangVersion>
   </PropertyGroup>
@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BotMaster.BotSystem.MessageContract\BotMaster.BotSystem.MessageContract.csproj" />
     <ProjectReference Include="..\BotMaster.Core\BotMaster.Core.csproj" />
     <ProjectReference Include="..\BotMaster.PluginSystem\BotMaster.PluginSystem.csproj" />
   </ItemGroup>

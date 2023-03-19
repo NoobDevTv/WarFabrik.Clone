@@ -16,6 +16,8 @@ namespace BotMaster.PluginSystem.Messages
         public static int NextId { get => nextId++; }
         private static int nextId = 0;
 
+
+        public DateTime MyProperty { get; set; }
         private int id = -1;
 
         public int Id
@@ -45,9 +47,9 @@ namespace BotMaster.PluginSystem.Messages
         [NoosonInclude]
         private readonly byte[] data;
 
-        public Message(Guid contractUid, MessageType type, byte[] data, string targetId = null)
+        public Message(Guid contractUID, MessageType type, byte[] data, string targetId = null)
         {
-            ContractUID = contractUid;
+            ContractUID = contractUID;
             Type = type;
             TargetId = targetId;
             this.data = data;

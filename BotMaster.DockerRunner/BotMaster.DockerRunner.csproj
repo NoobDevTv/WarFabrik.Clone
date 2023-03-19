@@ -5,7 +5,7 @@
 		<TargetFramework>net7.0</TargetFramework>
 		<Nullable>enable</Nullable>
 
-		<EnablePreviewFeatures>True</EnablePreviewFeatures>
+		
 		<ImplicitUsings>enable</ImplicitUsings>
 		<LangVersion>preview</LangVersion>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
@@ -16,7 +16,7 @@
 		<PackageReference Include="Docker.DotNet" Version="3.125.12" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
 		<PackageReference Include="NLog" Version="5.1.2" />
-		<PackageReference Include="NonSucking.Framework.Extension" Version="0.1.0.74-alpha" />
+		<PackageReference Include="NonSucking.Framework.Extension" Version="0.1.0.98-alpha" />
 		<PackageReference Include="NLog.Extensions.Logging" Version="5.2.2" />
 	</ItemGroup>
 
