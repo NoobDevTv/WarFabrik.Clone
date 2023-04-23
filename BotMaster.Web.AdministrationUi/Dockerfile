@@ -5,18 +5,19 @@ WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS publish
 WORKDIR /src
-COPY ["BotMaster.Web.AdministrationUi/BotMaster.Web.AdministrationUi.csproj", "BotMaster.Web.AdministrationUi/"]
-RUN dotnet restore "BotMaster.Web.AdministrationUi/BotMaster.Web.AdministrationUi.csproj"
-COPY . .
-WORKDIR "/src/BotMaster.Web.AdministrationUi"
-RUN dotnet build "BotMaster.Web.AdministrationUi.csproj" -c Release -o /app/build
 
-FROM build AS publish
-RUN dotnet publish "BotMaster.Web.AdministrationUi.csproj" -c Release -o /app/publish /p:UseAppHost=false
+COPY . .
+
+#RUN dotnet restore "BotMaster.DotNetRunner/BotMaster.DotNetRunner.csproj"
+
+#RUN dotnet publish "BotMaster.DotNetRunner/BotMaster.DotNetRunner.csproj" -c Debug -o /app/publish /p:UseAppHost=false --no-restore
+RUN dotnet publish "BotMaster.Web.AdministrationUi/BotMaster.Web.AdministrationUi.csproj" -c Debug -o /app/publish
 
 FROM base AS final
+ENV ASPNETCORE_ENVIRONMENT=Development
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "BotMaster.Web.AdministrationUi.dll"]
+ENTRYPOINT ["dotnet", "BotMaster.Web.AdministrationUi.dll", "-l", "plugins/BotMaster.AdministrationUi/plugin.manifest.json"]
+#ENTRYPOINT ["dotnet", "BotMaster.DotNetRunner.dll", "-l", "plugins/BotMaster.AdministrationUi/plugin.manifest.json"]

@@ -6,18 +6,24 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>67eee04f-7a6c-4d6d-9e10-6333568904a5</UserSecretsId>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+		<UseRazorSourceGenerator>false</UseRazorSourceGenerator>
+		<RunAOTCompilation>true</RunAOTCompilation>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+		<PackageReference Include="NLog.Web.AspNetCore" Version="5.2.3" />
 		<PackageReference Include="Radzen.Blazor" Version="4.7.2" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\10_DatabaseAdapter\BotMaster.Database.MySql\BotMaster.Database.MySql.csproj" />
+		<ProjectReference Include="..\BotMaster.BotSystem.MessageContract\BotMaster.BotSystem.MessageContract.csproj" />
 		<ProjectReference Include="..\BotMaster.Commandos\BotMaster.Commandos.csproj" />
 		<ProjectReference Include="..\BotMaster.Database\BotMaster.Database.csproj" />
+		<ProjectReference Include="..\BotMaster.Livestream.MessageContract\BotMaster.Livestream.MessageContract.csproj" />
+		<ProjectReference Include="..\BotMaster.PluginHost\BotMaster.PluginHost.csproj" />
 		<ProjectReference Include="..\BotMaster.RightsManagement\BotMaster.RightsManagement.csproj" />
 	</ItemGroup>
 	<ItemGroup>
@@ -25,6 +31,40 @@
 
 	</ItemGroup>
 	<ItemGroup>
+	  <Compile Update="Pages\Error.cshtml.cs">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Compile>
+	</ItemGroup>
+	<ItemGroup>
+	  <Content Update="Pages\Commands.razor">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Content>
+	  <Content Update="Pages\Error.cshtml">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Content>
+	  <Content Update="Pages\Index.razor">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Content>
+	  <Content Update="Pages\Platform.razor">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Content>
+	  <Content Update="Pages\Plugins.razor">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Content>
+	  <Content Update="Pages\Rights.razor">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Content>
+	  <Content Update="Pages\UserPage.razor">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Content>
+	  <Content Update="Pages\_Host.cshtml">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+	<ItemGroup>
+	  <None Update="Pages\Plugins.razor.css">
+	    <DependentUpon>Plugins.razor</DependentUpon>
+	  </None>
 	  <None Update="Pages\Platform.razor.css">
 	    <DependentUpon>Platform.razor</DependentUpon>
 	  </None>

@@ -206,11 +206,13 @@ namespace BotMaster.DockerRunner
                 HostConfig = new HostConfig
                 {
                     Binds = bindings?.ToArray(),
-                    RestartPolicy = policy
+                    RestartPolicy = policy,
+                    PublishAllPorts = true
                 },
                 Name = containerName,
-                ExposedPorts = ports?.ToDictionary(x => x, x => new EmptyStruct()),
-                
+
+                //ExposedPorts = ports?.ToDictionary(x => x, x => new EmptyStruct()),
+
             });
 
             foreach (var item in networks.Skip(1))

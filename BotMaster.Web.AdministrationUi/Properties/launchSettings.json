@@ -19,17 +19,12 @@
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7067;http://localhost:5225"
     },
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": true,
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
     "Docker": {
       "commandName": "Docker",
+      "commandLineArgs": "-l /app/plugins/BotMaster.AdministrationUi/plugin.manifest.json",
       "launchBrowser": true,
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "DockerfileRunArguments": "-v C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net7.0\\additionalfiles:/app/additionalfiles -v C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net7.0\\additionalfiles\\webuilogs:/app/logs -v C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster.Web.AdministrationUi\\plugin.manifest.json:/app/plugins/BotMaster.AdministrationUi/plugin.manifest.json --network=botmaster",
       "publishAllPorts": true,
       "useSSL": true
     },

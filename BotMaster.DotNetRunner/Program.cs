@@ -19,8 +19,13 @@ namespace BotMaster.DotNetRunner
 
         static async Task Main(string[] args)
         {
-            //Thread.Sleep(30000);
             var config = ConfigManager.GetConfiguration("appsettings.json", args);
+            var debug = config.GetSection("Debug");
+            var wait = debug.GetSection("Wait");
+            if (!string.IsNullOrWhiteSpace(wait.Value) && int.TryParse(wait.Value, out var value))
+            {
+                Thread.Sleep(value);
+            }
 
             using var logManager = Disposable.Create(LogManager.Shutdown);
 
@@ -49,9 +54,9 @@ namespace BotMaster.DotNetRunner
                     }
                 }
 
-                var porcessCreator = new TCPPluginCreator();
+                var processCreator = new TCPPluginCreator();
 
-                _ = await PluginHoster.LoadAll(logger, porcessCreator, paths, false)
+                _ = await PluginHoster.LoadAll(logger, processCreator, paths, false)
                     .IgnoreElements()
                     .Do(p => { }, ex =>
                         {

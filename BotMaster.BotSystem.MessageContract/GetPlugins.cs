@@ -11,6 +11,8 @@ namespace BotMaster.BotSystem.MessageContract
         [NoosonInclude, NoosonOrder(0)]
         public const int TypeId = 0;
 
+        public bool[] Empty { get; set; } = Array.Empty<bool>();
+
         public GetPlugins()
         {
         }

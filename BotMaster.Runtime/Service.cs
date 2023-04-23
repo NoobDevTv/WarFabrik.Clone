@@ -8,7 +8,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System;
 using BotMaster.PluginSystem.Messages;
-using MessageContract = BotMaster.BotSystem.MessageContract.SystemContract;
 using BotMaster.BotSystem.MessageContract;
 using System.Reactive;
 
@@ -25,15 +24,17 @@ namespace BotMaster.Runtime
             var incommingMessages = messageHub.GetFiltered("System");
 
             var systemMessages
-                = MessageContract
+                = SystemContract
                     .ToDefineMessages(incommingMessages)
                     .VisitMany(
                         getList => getList.Select(GetList),
-                        list => Observable.Empty<SystemMessage>(), //never
-                        command => Observable.Empty<SystemMessage>()
-                    );
+                        lists => Observable.Empty<SystemMessage>(), //never
+                        command => command.Select(command => ExecuteCommand(command.PluginId, command.Command))
+                    )
+                    .Where(x => x is not null)
+                    .Select(x => x!);
 
-            var outgouingMessage = MessageContract.ToMessages(systemMessages);
+            var outgouingMessage = SystemContract.ToMessages(systemMessages);
 
 #pragma warning disable DF0001 // Marks undisposed anonymous objects from method invocations.
             disposable = StableCompositeDisposable.Create(messageHub.SubscribeAsSender(outgouingMessage));
@@ -41,18 +42,36 @@ namespace BotMaster.Runtime
 #pragma warning restore DF0001 // Marks undisposed anonymous objects from method invocations.
         }
 
+        private SystemMessage? ExecuteCommand(string pluginId, Command command)
+        {
+            if (pluginService.Plugins.TryGetValue(pluginId, out var instance))
+            {
+                switch (command)
+                {
+                    case Command.Start:
+                        instance.Start();
+                        break;
+                    case Command.Stop:
+                        instance.Stop();
+                        break;
+                }
+                return GetList(default);
+            }
+            return null;
+        }
+
         private SystemMessage GetList(GetPlugins obj)
         {
             var plugins = pluginService.Plugins
                 .Select(pluginPair => new PluginInfo(
                     pluginPair.Value.Id,
-                    pluginPair.Value.Manifest.Name,
-                    pluginPair.Value.Manifest.Description,
-                    pluginPair.Value.Manifest.Author,
-                    pluginPair.Value.Manifest.Version,
+                    pluginPair.Value.Manifest.Name ?? "",
+                    pluginPair.Value.Manifest.Description ??"",
+                    pluginPair.Value.Manifest.Author ?? "",
+                    pluginPair.Value.Manifest.Version ?? "",
                     true))
                 .ToList();
-            return new PluginList() 
+            return new PluginList()
             {
                 PluginInfos = plugins
             };

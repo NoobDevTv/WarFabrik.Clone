@@ -41,18 +41,19 @@ namespace BotMaster.PluginHost
             iLogger = logger;
 
             FileInfo assemblyFileInfo;
-
-            if (Path.IsPathFullyQualified(manifest.File))
+            logger.Debug("Trying to load" + manifest.File);
+            if (Path.IsPathRooted(manifest.File))
                 assemblyFileInfo = new(manifest.File);
             else
                 assemblyFileInfo = new(Path.Combine(manifestFileInfo.Directory.FullName, manifest.File));
 
+
             logger.Info($"Load {assemblyFileInfo.FullName}");
             AssemblyLoadContext resolver;
-            //if (loadIntoDifferentContext)
-            resolver = new ReaderLoadContext(manifest.Name, assemblyFileInfo.FullName);
-            //else
-            //    resolver = AssemblyLoadContext.Default;
+            if (loadIntoDifferentContext)
+                resolver = new ReaderLoadContext(manifest.Name, assemblyFileInfo.FullName);
+            else
+                resolver = AssemblyLoadContext.Default;
             var _resolver = new AssemblyDependencyResolver(assemblyFileInfo.FullName);
             resolver.Resolving += (AssemblyLoadContext context, AssemblyName name) => Resolver_Resolving(context, name, _resolver);
             //if (resolver is not ReaderLoadContext)

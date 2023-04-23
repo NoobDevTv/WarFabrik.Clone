@@ -37,6 +37,9 @@ namespace BotMaster.PluginSystem
 
         internal abstract PluginInstance Copy();
 
+        public virtual void Stop()
+        {
+        }
     }
 
     public class PluginInstance<TClient> : PluginInstance, IDisposable

@@ -12,7 +12,7 @@ namespace BotMaster.PluginSystem
 {
     public sealed class PluginService : IDisposable
     {
-        public IReadOnlyCollection<KeyValuePair<string, PluginInstance>> Plugins => plugins;
+        public IReadOnlyDictionary<string, PluginInstance> Plugins => plugins;
 
         private readonly Logger logger;
         private readonly ConcurrentDictionary<string, PluginInstance> plugins;

@@ -14,7 +14,7 @@ COPY ["BotMaster.Betterplace/BotMaster.Betterplace.csproj", "BotMaster.Betterpla
 COPY ["BotMaster.RightsManagement/BotMaster.RightsManagement.csproj", "BotMaster.RightsManagement/"]
 COPY ["BotMaster.Betterplace.MessageContract/BotMaster.Betterplace.MessageContract.csproj", "BotMaster.Betterplace.MessageContract/"]
 COPY ["BotMaster.Livestream.MessageContract/BotMaster.Livestream.MessageContract.csproj", "BotMaster.Livestream.MessageContract/"]
-COPY ["BotMaster.MessageContract/BotMaster.MessageContract.csproj", "BotMaster.MessageContract/"]publish
+COPY ["BotMaster.MessageContract/BotMaster.MessageContract.csproj", "BotMaster.MessageContract/"]
 COPY ["BotMaster.Database/BotMaster.Database.csproj", "BotMaster.Database/"]
 COPY ["10_DatabaseAdapter/BotMaster.Database.MySql/BotMaster.Database.MySql.csproj", "BotMaster.Database.MySql/"]
 

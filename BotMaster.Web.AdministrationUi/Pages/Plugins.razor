@@ -1,0 +1,64 @@
+﻿@page "/plugins"
+@implements IDisposable
+@using BotMaster.Commandos;
+@using BotMaster.Web.AdministrationUi.Data
+@using BotMaster.BotSystem.MessageContract 
+@inject SystemMessageHandler Handler
+
+<PageTitle>Plugins</PageTitle>
+
+<h1>Plugins</h1>
+
+<RadzenDataGrid TItem="PluginInfo" AllowAlternatingRows="false" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true"
+                Data="@pluginInfos" >
+    <Columns>
+        <RadzenDataGridColumn TItem="PluginInfo" Property="Id" Title="Id" Width="66px" />
+        <RadzenDataGridColumn TItem="PluginInfo" Property="Name" Title="Name" Width="66px" />
+        <RadzenDataGridColumn TItem="PluginInfo" Property="Description" Title="Description" Width="66px" />
+        <RadzenDataGridColumn TItem="PluginInfo" Property="Author" Title="Author" Width="66px" />
+        <RadzenDataGridColumn TItem="PluginInfo" Property="Version" Title="Version" Width="66px" />
+        
+        
+        <RadzenDataGridColumn TItem="PluginInfo" Property="Running" Title="Running" Width="66px">
+            <Template>
+                <RadzenCheckBox @bind-Value="@context.Running" Disabled="true" />
+            </Template>
+
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="PluginInfo" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="154px">
+
+            <EditTemplate>
+                <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Disabled="@(context.Running)" Click="@((args) => Handler.ExecuteCommand(Command.Start, context.Id))">
+                </RadzenButton>
+                <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Medium" Disabled="@(!context.Running)" Class="my-1 ms-1" Click="@((args) => Handler.ExecuteCommand(Command.Stop, context.Id))">
+                </RadzenButton>
+            </EditTemplate>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    IDisposable? subscription;
+    IReadOnlyCollection<PluginInfo> pluginInfos = Array.Empty<PluginInfo>();
+
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        subscription = Handler.PluginListInformation.Subscribe(x => PluginListReceived(x));
+        Handler.RequestPluginList();
+    }
+
+    void PluginListReceived(PluginList pluginList)
+    {
+        pluginInfos = pluginList.PluginInfos;
+        InvokeAsync(StateHasChanged);
+    }
+
+    void IDisposable.Dispose()
+    {
+        subscription?.Dispose();
+    }
+
+}
