@@ -14,16 +14,12 @@ using Google.Apis.YouTube.v3;
 using Google.Apis.YouTube.v3.Data;
 
 using Microsoft.EntityFrameworkCore;
-
-using System.Diagnostics;
 using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 
 
 using DefinedContract = BotMaster.MessageContract.Contract;
 using LivestreamContract = BotMaster.Livestream.MessageContract.LivestreamContract;
-using BotMaster.PluginSystem;
 
 namespace BotMaster.YouTube
 {

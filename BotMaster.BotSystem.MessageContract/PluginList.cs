@@ -1,7 +1,4 @@
-﻿
-using BotMaster.Core;
-
-using NonSucking.Framework.Serialization;
+﻿using NonSucking.Framework.Serialization;
 
 namespace BotMaster.BotSystem.MessageContract
 {

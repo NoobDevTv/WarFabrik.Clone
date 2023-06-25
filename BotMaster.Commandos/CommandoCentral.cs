@@ -2,8 +2,6 @@
 
 using Microsoft.EntityFrameworkCore;
 
-using NonSucking.Framework.Extension.Collections;
-
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;

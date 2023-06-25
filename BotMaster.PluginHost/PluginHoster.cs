@@ -1,6 +1,6 @@
 ﻿using BotMaster.Core.Extensibility;
-using BotMaster.Core.NLog;
 using BotMaster.PluginSystem;
+using BotMaster.PluginSystem.Connection;
 
 using NLog;
 
@@ -20,18 +20,7 @@ namespace BotMaster.PluginHost
     {
         private static ILogger iLogger;
 
-        public static IObservable<Package> LoadAll(ILogger logger, IPluginInstanceCreator creator, IReadOnlyCollection<FileInfo> paths, bool loadIntoDifferentContext = true)
-        {
-            logger.Info("Start plugin host");
-
-            return Observable.Merge(paths.Select(info =>
-            {
-                logger.Info("Load Manifest");
-                return Load(logger, creator, info, loadIntoDifferentContext);
-            }));
-        }
-
-        public static IObservable<Package> Load(ILogger logger, IPluginInstanceCreator creator, FileInfo manifestFileInfo, bool loadIntoDifferentContext)
+        public static IObservable<Package> Load(ILogger logger, ConnectionProvider provider, FileInfo manifestFileInfo, bool loadIntoDifferentContext)
         {
             logger.Debug("Load manifest from " + manifestFileInfo.FullName);
             var manifest = JsonSerializer.Deserialize<PluginManifest>(File.ReadAllText(manifestFileInfo.FullName), new JsonSerializerOptions
@@ -68,10 +57,8 @@ namespace BotMaster.PluginHost
             var typecontainer = new StandaloneTypeContainer();
 
             logger.Trace("Create plugin instance");
-            var pluginInstance = creator.CreateClient(manifest);
+            var pluginInstance = provider.Connect(manifest);
 
-            logger.Info("Start plugin");
-            pluginInstance.Start();
 
             var types = pluginAssembly
                     .GetTypes()
@@ -89,11 +76,12 @@ namespace BotMaster.PluginHost
                     .Merge();
 
             logger.Debug("Subscribe process");
-            return Observable.Using(() => new PluginContext(typecontainer, pluginInstance), (c) =>
-                                          c.PluginInstance
-                                          .Send(packages)
-                                          .Log(logger, "Plugin_" + manifest.Name, onError: LogLevel.Fatal, onErrorMessage: (ex) => ex.ToString())
-                                          );
+
+            return Observable
+                .Using(
+                    () => new PluginContext(typecontainer, pluginInstance, pluginInstance.Send(packages)), 
+                    (c) => Observable.Never<Package>()//c.PluginInstance.Receive()                                          
+                );
 
         }
 
@@ -165,7 +153,7 @@ namespace BotMaster.PluginHost
         }
 
 
-        private record PluginContext(ITypeContainer TypeContainer, PluginInstance PluginInstance) : IDisposable
+        private record PluginContext(ITypeContainer TypeContainer, PluginConnection PluginInstance, IDisposable AdditionalDisposable) : IDisposable
         {
             private bool disposedValue;
 
@@ -179,13 +167,12 @@ namespace BotMaster.PluginHost
 
                         if (PluginInstance is IDisposable disposableInstance)
                             disposableInstance.Dispose();
+                        AdditionalDisposable.Dispose();
                     }
 
                     disposedValue = true;
                 }
             }
-
-
 
             public void Dispose()
             {

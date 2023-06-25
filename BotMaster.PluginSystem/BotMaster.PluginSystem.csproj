@@ -22,4 +22,5 @@
 		<ProjectReference Include="..\BotMaster.Core\BotMaster.Core.csproj" />
 	</ItemGroup>
 
+	<!--<Target Name="RemoveSourceGeneratedFiles" BeforeTargets="BeforeBuild" />-->
 </Project>

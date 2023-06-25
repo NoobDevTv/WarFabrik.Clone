@@ -4,6 +4,9 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	  <!--<IncludePackageReferencesDuringMarkupCompilation>true</IncludePackageReferencesDuringMarkupCompilation>
+	  <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+	  <CompilerGeneratedFilesOutputPath>GeneratedFiles</CompilerGeneratedFilesOutputPath>-->
   </PropertyGroup>
 
 
@@ -16,4 +19,6 @@
 	<ItemGroup>
 		<ProjectReference Include="..\BotMaster.PluginSystem\BotMaster.PluginSystem.csproj" />
 	</ItemGroup>
+
+	<!--<Target Name="RemoveSourceGeneratedFiles" BeforeTargets="BeforeBuild" />-->
 </Project>

@@ -2,53 +2,52 @@
 
 using System.Buffers;
 using System.IO.Pipes;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 
-namespace BotMaster.PluginSystem
+namespace BotMaster.PluginSystem.Connection
 {
 
-    public static class PluginConnection
+    public static class PluginConnectionUtils
     {
         private static Logger logger;
+        private static IScheduler scheduler;
 
-        static PluginConnection()
+        static PluginConnectionUtils()
         {
             logger = LogManager.GetCurrentClassLogger();
+            scheduler = new EventLoopScheduler();
         }
 
-        public static IObservable<Package> CreateSendPipe<T>(Func<T> getClientStream, IObservable<Package> sendPipe,
+        public static IObservable<Package> CreateSendPipe<T>(T clientStream, IObservable<Package> sendPipe,
             Func<T, bool> checkConnectionStatus) where T : Stream
             => sendPipe
-                .Do(x =>
-                {
-                    if (!checkConnectionStatus(getClientStream()))
-                        logger.Warn("Client is not connected anymore"); //TODO Throw ex PluginConnectionException for recreation?
-                })
-                .Where(_ => checkConnectionStatus(getClientStream()))
+                .ObserveOn(scheduler)
+                .Where(_ => checkConnectionStatus(clientStream))
                 .Select(p =>
-                {
-                    using var buffer = MemoryPool<byte>.Shared.Rent(p.Length);
-                    var span = buffer.Memory.Span;
-                    var size = p.ToBytes(buffer.Memory.Span);
-                    logger.Debug("Send package message");
-                    var clientStream = getClientStream();
-                    return clientStream
-                        .WriteAsync(buffer.Memory[..size])
-                        .AsTask()
-                        .ToObservable()
-                        .Do(i => clientStream.Flush())
-                        .Select(i => p);
-                })
-                .Concat()
-                .IgnoreElements();
+                    {
+#pragma warning disable DF0010 // Marks undisposed local variables.
+                        var buffer = MemoryPool<byte>.Shared.Rent(p.Length);
+#pragma warning restore DF0010 // Marks undisposed local variables.
+                        var span = buffer.Memory.Span;
+                        var size = p.ToBytes(buffer.Memory.Span);
+                        logger.Debug($"Send package message with size {size} on thread {Environment.CurrentManagedThreadId}");
 
-        public static IObservable<Package> CreateReceiverPipe<T>(Func<T> getClientStream, Func<T, bool> checkConnectionStatus) where T : Stream
+                        return Observable
+                            .Using(
+                                () => buffer,
+                                buffer => Observable.FromAsync(async () => await clientStream.WriteAsync(buffer.Memory[..size]), scheduler)
+                            )
+                            .Do(i => clientStream.Flush())
+                            .Select(i => p);
+                    })
+                .Concat();
+
+        public static IObservable<Package> CreateReceiverPipe<T>(T clientStream, Func<T, bool> checkConnectionStatus) where T : Stream
             => Observable
                 .Create<Package>((observer, token) => Task.Run(async () =>
                 {
                     logger.Info(nameof(CreateReceiverPipe) + " started creation process");
-                    var clientStream = getClientStream();
                     if (clientStream is NamedPipeServerStream serverStream)
                         await serverStream.WaitForConnectionAsync(token);
 
@@ -66,11 +65,17 @@ namespace BotMaster.PluginSystem
                                 throw new PluginConnectionException("Client is not connected");
                             }
 
-                            logger.Debug("Waiting for new incomming message");
+                            logger.Debug($"Waiting for new incomming message on thread {Environment.CurrentManagedThreadId}");
 
                             await ReadHeader(clientStream, headerMemory, token);
                             var contractId = new Guid(headerBuffer[..16]);
                             var packageSize = BitConverter.ToInt32(headerBuffer, sizeof(int) * 4);
+                            if (packageSize < 1)
+                            {
+                                logger.Error($"Received a package with an invalid content size {packageSize} on thread {Environment.CurrentManagedThreadId}");
+                                continue;
+                            }
+                            logger.Debug($"Received package with size {packageSize + Package.HeaderSize}");
                             using var buffer = MemoryPool<byte>.Shared.Rent(packageSize);
                             var size = await ReadContent(clientStream, packageSize, buffer, token);
 

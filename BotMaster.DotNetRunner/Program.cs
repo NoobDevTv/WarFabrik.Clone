@@ -1,16 +1,13 @@
 ﻿using BotMaster.Core.Configuration;
 using BotMaster.PluginHost;
-using BotMaster.PluginSystem;
-using BotMaster.PluginSystem.PluginCreator;
 
 using NLog;
-using NLog.Config;
-using NLog.Targets;
 using NLog.Extensions.Logging;
 
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Diagnostics;
+using BotMaster.PluginSystem.Connection;
+using BotMaster.PluginSystem.Connection.TCP;
 
 namespace BotMaster.DotNetRunner
 {
@@ -39,24 +36,24 @@ namespace BotMaster.DotNetRunner
                 .LoadConfigurationFromSection(config)
                 .GetCurrentClassLogger();
 
-            var plugins = new List<Plugin>();
             logger.Debug("Gotten the following args: " + string.Join(" | ", args));
+
 
             try
             {
-                List<FileInfo> paths = new();
+                FileInfo fi = default;
                 for (int i = 0; i < args.Length; i++)
                 {
                     if (args[i] == "-l")
                     {
                         i++;
-                        paths.Add(new FileInfo(args[i]));
+                        fi = new FileInfo(args[i]);
                     }
                 }
-
-                var processCreator = new TCPPluginCreator();
-
-                _ = await PluginHoster.LoadAll(logger, processCreator, paths, false)
+                
+                var processCreator = new ConnectionProvider();
+                var tcp = new TCPHandshakingService(processCreator);
+                _ = await PluginHoster.Load(logger, processCreator, fi, false)
                     .IgnoreElements()
                     .Do(p => { }, ex =>
                         {

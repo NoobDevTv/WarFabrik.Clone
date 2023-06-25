@@ -1,9 +1,7 @@
 ﻿
 using BotMaster.Commandos;
 using BotMaster.MessageContract;
-using BotMaster.PluginSystem.Messages;
 using BotMaster.RightsManagement;
-using BotMaster.Telegram.Database;
 
 using Telegram.Bot;
 using Telegram.Bot.Types;

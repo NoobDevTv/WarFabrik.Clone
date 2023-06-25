@@ -1,7 +1,6 @@
 ﻿using BotMaster.Database.Migrations;
 
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
 
 namespace BotMaster.Database.MySql;
 public class MySQLConfigurator : IDatabaseConfigurator

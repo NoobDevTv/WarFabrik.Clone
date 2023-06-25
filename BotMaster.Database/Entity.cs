@@ -1,6 +1,4 @@
-﻿using NLog.Filters;
-
-namespace BotMaster.Database
+﻿namespace BotMaster.Database
 {
 
     public interface ICloneableGeneric<T>

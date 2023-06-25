@@ -1,5 +1,4 @@
-﻿using BotMaster.Core.Extensibility;
-using BotMaster.Database.Migrations;
+﻿using BotMaster.Database.Migrations;
 
 using Microsoft.EntityFrameworkCore;
 

@@ -20,5 +20,11 @@
     ],
     "PublishedPorts": [],
     "Networks": []
+  },
+  "Connection": {
+    "Type": "TCP",
+    "Port": 6789,
+    "HandshakePort": 6789,
+    "Hostname": "Botmaster"
   }
 }

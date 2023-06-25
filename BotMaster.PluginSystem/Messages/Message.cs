@@ -16,8 +16,6 @@ namespace BotMaster.PluginSystem.Messages
         public static int NextId { get => nextId++; }
         private static int nextId = 0;
 
-
-        public DateTime MyProperty { get; set; }
         private int id = -1;
 
         public int Id

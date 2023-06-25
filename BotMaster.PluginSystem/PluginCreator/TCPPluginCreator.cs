@@ -1,227 +1,219 @@
-﻿using BotMaster.Core.Extensibility;
-using BotMaster.Core.NLog;
-using BotMaster.PluginSystem.Messages;
-
-using NLog;
-
-using System.Diagnostics;
-using System.IO.Pipes;
-using System.Net;
-using System.Net.Sockets;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Xml.Linq;
-
-namespace BotMaster.PluginSystem.PluginCreator
+﻿namespace BotMaster.PluginSystem.PluginCreator
 {
-    public class TCPPluginCreator : IPluginInstanceCreator
-    {
-        private Dictionary<ushort, TcpListener> listeners = new();
-        private ILogger ilogger;
+    //public class TCPPluginCreator : IPluginInstanceCreator
+    //{
+    //    private Dictionary<ushort, TcpListener> listeners = new();
+    //    private ILogger ilogger;
 
-        public TCPPluginCreator()
-        {
-            ilogger = NLog.LogManager.GetCurrentClassLogger();
-        }
+    //    public TCPPluginCreator()
+    //    {
+    //        ilogger = NLog.LogManager.GetCurrentClassLogger();
+    //    }
 
-        public PluginInstance CreateClient(PluginManifest manifest)
-        {
-            var tcpData = manifest.ExtensionData["TcpData"];
+    //    public PluginConnection CreateClient(PluginManifest manifest)
+    //    {
+    //        var tcpData = manifest.ExtensionData["TcpData"];
 
-            var host = tcpData.GetProperty("Hostname");
-            var handshakePort = tcpData.GetProperty("HandshakePort");
-            var port = tcpData.GetProperty("Port");
-            ilogger.Debug($"Got Port {port}");
-            ilogger.Debug($"Got HandshakePort {handshakePort}");
-            ilogger.Debug($"Got Hostname {host}");
+    //        var host = tcpData.GetProperty("Hostname");
+    //        var handshakePort = tcpData.GetProperty("HandshakePort");
+    //        var port = tcpData.GetProperty("Port");
+    //        ilogger.Debug($"Got Port {port}");
+    //        ilogger.Debug($"Got HandshakePort {handshakePort}");
+    //        ilogger.Debug($"Got Hostname {host}");
 
-            TcpClient b = new(host.GetString(), handshakePort.GetInt16());
-            ilogger.Debug($"Connected to handshake server");
-            var str = b.GetStream();
+    //        TcpClient b = new(host.GetString(), handshakePort.GetInt16());
+    //        ilogger.Debug($"Connected to handshake server");
+    //        var str = b.GetStream();
 
-            var strManifest = System.Text.Json.JsonSerializer.Serialize(manifest);
+    //        var strManifest = System.Text.Json.JsonSerializer.Serialize(manifest);
 
-            str.Write(BitConverter.GetBytes(strManifest.Length));
-            str.Write(Encoding.UTF8.GetBytes(strManifest));
+    //        str.Write(BitConverter.GetBytes(strManifest.Length));
+    //        str.Write(Encoding.UTF8.GetBytes(strManifest));
 
 
-            ilogger.Debug($"Written handshake");
-            Thread.Sleep(5000);
+    //        ilogger.Debug($"Written handshake");
+    //        Thread.Sleep(5000);
 
-            TcpClient a = new(host.GetString(), port.GetInt16());
-            ilogger.Debug($"Connecting with tcp client");
-            a.SendTimeout = 1000;
-            return new TCPPluginInstance(manifest, a);
-        }
+    //        TcpClient a = new(host.GetString(), port.GetInt16());
+    //        ilogger.Debug($"Connecting with tcp client");
+    //        a.SendTimeout = 1000;
+    //        return new TCPPluginInstance(manifest, a);
+    //    }
 
-        public PluginInstance CreateServer(PluginManifest manifest, DirectoryInfo runnersPath)
-        {
-            var tcpData = manifest.ExtensionData["TcpData"];
+    //    public PluginConnection CreateServer(PluginManifest manifest, DirectoryInfo runnersPath, bool local)
+    //    {
+    //        var tcpData = manifest.ExtensionData["TcpData"];
 
-            var port = tcpData.GetProperty("Port").GetUInt16();
-            if (!listeners.ContainsKey(port))
-            {
-                var listener = new TcpListener(IPAddress.IPv6Any, port);
-                ilogger.Debug($"Listening on Port {port}");
-                listener.Server.DualMode = true;
-                listener.Start();
-                listeners.Add(port, listener);
-            }
+    //        var port = tcpData.GetProperty("Port").GetUInt16();
+    //        if (!listeners.ContainsKey(port))
+    //        {
+    //            var listener = new TcpListener(IPAddress.IPv6Any, port);
+    //            ilogger.Debug($"Listening on Port {port}");
+    //            listener.Server.DualMode = true;
+    //            listener.Start();
+    //            listeners.Add(port, listener);
+    //        }
 
-            Func<Task<TcpClient>>? receiver = runnersPath is null ? () => GetClient(port) : null;
+    //        Func<Task<TcpClient>>? receiver = !local ? () => GetClient(port) : null;
 
-            return new TCPPluginInstance(runnersPath, manifest, receiver);
-        }
+    //        return new TCPPluginInstance(runnersPath, manifest, receiver);
+    //    }
 
-        private async Task<TcpClient> GetClient(ushort port)
-        {
-            TcpClient client = null;
-            await Task.Run(() =>
-            {
-                client = listeners[port].AcceptTcpClient();
-                client.NoDelay = true;
-                client.SendTimeout = 1000;
-            });
+    //    private async Task<TcpClient> GetClient(ushort port)
+    //    {
+    //        TcpClient client = null;
+    //        await Task.Run(() =>
+    //        {
+    //            client = listeners[port].AcceptTcpClient();
+    //            client.NoDelay = true;
+    //            client.SendTimeout = 1000;
+    //        });
 
-            return client;
-        }
+    //        return client;
+    //    }
 
-    }
+    //}
 
-    public class TCPPluginInstance : PluginInstance, IDisposable
-    {
-        private readonly Process runnerProcess;
-        private readonly CompositeDisposable compositeDisposable;
-        private readonly DirectoryInfo runnersPath;
-        private readonly Func<Task<TcpClient>>? clientRetriever = null;
-        private TcpClient client;
-        private NetworkStream networkStream;
-        private readonly Logger logger = LogManager.GetCurrentClassLogger();
+    //public class TCPPluginInstance : PluginConnection, IDisposable
+    //{
+    //    public override bool IsConnected => client?.Connected ?? Manifest.ManifestInfo == ManifestInfo.Remote;
 
-        private static volatile int nextId = 0;
+    //    private readonly Process runnerProcess;
+    //    private readonly CompositeDisposable compositeDisposable;
+    //    private readonly DirectoryInfo runnersPath;
+    //    private readonly Func<Task<TcpClient>>? clientRetriever = null;
+    //    private TcpClient client;
+    //    private NetworkStream networkStream;
+    //    private readonly Logger logger = LogManager.GetCurrentClassLogger();
 
-        private readonly int instanceId = nextId++;
+    //    private static volatile int nextId = 0;
 
-        public TCPPluginInstance(PluginManifest manifest, TcpClient client) : base(manifest)
-        {
-            runnerProcess = null;
-            compositeDisposable = new();
-            runnersPath = null;
-            this.client = client;
-            networkStream = client.GetStream();
-        }
+    //    private readonly int instanceId = nextId++;
 
-        public TCPPluginInstance(
-            DirectoryInfo runnersPath,
-            PluginManifest manifest,
-            Func<Task<TcpClient>> clientRetriever)
-            : base(manifest)
-        {
-            this.clientRetriever = clientRetriever;
-            this.runnersPath = runnersPath;
+    //    public TCPPluginInstance(PluginManifest manifest, TcpClient client) : base(manifest)
+    //    {
+    //        runnerProcess = null;
+    //        compositeDisposable = new();
+    //        runnersPath = null;
+    //        this.client = client;
+    //        networkStream = client.GetStream();
+    //    }
 
-            if (this.runnersPath is not null)
-            {
-                var runnerManifestPath = new FileInfo(Path.Combine(runnersPath.FullName, manifest.ProcessRunner, "runner.manifest.json"));
+    //    public TCPPluginInstance(
+    //        DirectoryInfo runnersPath,
+    //        PluginManifest manifest,
+    //        Func<Task<TcpClient>> clientRetriever)
+    //        : base(manifest)
+    //    {
+    //        this.clientRetriever = clientRetriever;
+    //        this.runnersPath = runnersPath;
 
-                if (!runnerManifestPath.Exists)
-                    return; //TODO Logging, we cant load this plugin without the runner :(
+    //        if (this.runnersPath is not null)
+    //        {
+    //            var runnerManifestPath = new FileInfo(Path.Combine(runnersPath.FullName, manifest.ProcessRunner, "runner.manifest.json"));
 
-                using var str = runnerManifestPath.OpenRead();
-                var runnerManifest = System.Text.Json.JsonSerializer.Deserialize<RunnerManifest>(str);
+    //            if (!runnerManifestPath.Exists)
+    //                return; //TODO Logging, we cant load this plugin without the runner :(
 
-                var runnersProcessPath = runnerManifest.Filename["default"];
-                foreach (var item in runnerManifest.Filename)
-                {
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Create(item.Key)))
-                        runnersProcessPath = item.Value;
-                }
+    //            using var str = runnerManifestPath.OpenRead();
+    //            var runnerManifest = System.Text.Json.JsonSerializer.Deserialize<RunnerManifest>(str);
 
-                var args = runnerManifest.Args;
-                foreach (var item in runnerManifest.EnviromentVariable)
-                {
-                    args = args.Replace($"{{{item.Key}}}", item.Value
-                        .Replace("{manifestpath}", manifest.CurrentFileInfo.FullName)
-                        .Replace("{runnerpath}", runnerManifestPath.Directory.FullName)
-                        );
-                }
+    //            var runnersProcessPath = runnerManifest.Filename["default"];
+    //            foreach (var item in runnerManifest.Filename)
+    //            {
+    //                if (RuntimeInformation.IsOSPlatform(OSPlatform.Create(item.Key)))
+    //                    runnersProcessPath = item.Value;
+    //            }
 
-                runnerProcess = new()
-                {
-                    StartInfo = new ProcessStartInfo(runnersProcessPath, args)
-                    {
-                        WorkingDirectory = manifest.CurrentFileInfo.Directory.FullName,
-                        UseShellExecute = true
-                    },
-                    EnableRaisingEvents = true
-                };
-            }
+    //            var args = runnerManifest.Args;
+    //            foreach (var item in runnerManifest.EnviromentVariable)
+    //            {
+    //                args = args.Replace($"{{{item.Key}}}", item.Value
+    //                    .Replace("{manifestpath}", manifest.CurrentFileInfo.FullName)
+    //                    .Replace("{runnerpath}", runnerManifestPath.Directory.FullName)
+    //                    );
+    //            }
 
-            compositeDisposable = new CompositeDisposable();
+    //            runnerProcess = new()
+    //            {
+    //                StartInfo = new ProcessStartInfo(runnersProcessPath, args)
+    //                {
+    //                    WorkingDirectory = manifest.CurrentFileInfo.Directory.FullName,
+    //                    UseShellExecute = true
+    //                },
+    //                EnableRaisingEvents = true
+    //            };
+    //        }
 
-            clientRetriever?.Invoke().ContinueWith(async (t) =>
-            {
-                client = await t;
-                networkStream = client.GetStream();
-                compositeDisposable.Add(client);
-                compositeDisposable.Add(networkStream);
-            });
-        }
+    //        compositeDisposable = new CompositeDisposable();
 
-        public override IObservable<Package> Send(IObservable<Package> packages)
-        {
-            logger.Debug($"Creating send pipe for {Manifest.Id}");
-            return PluginConnection.
-                CreateSendPipe(() => networkStream, packages, (_) => networkStream is not null && client is not null && client.Connected)
-                .Log(logger, "SendPipe", subscriptionMessage: () => "Created send pipe again", subscription: LogLevel.Info, onError: LogLevel.Error, onErrorMessage: (e) => e.ToString())
-                .Retry(ex => ex is PluginConnectionException, TimeSpan.FromSeconds(1))
-                ;
-        }
+    //        clientRetriever?.Invoke().ContinueWith(async (t) =>
+    //        {
+    //            client = await t;
+    //            networkStream = client.GetStream();
+    //            compositeDisposable.Add(client);
+    //            compositeDisposable.Add(networkStream);
+    //        });
+    //    }
 
-        public override IObservable<Package> Receive()
-        {
-            logger.Debug($"Creating receive pipe for {Manifest.Id}");
+    //    public override IObservable<Package> Send(IObservable<Package> packages)
+    //    {
+    //        return PluginConnectionUtils.
+    //            CreateSendPipe(() => networkStream, packages, (_) => networkStream is not null && client is not null && client.Connected)
+    //            .Log(logger, "SendPipe", subscriptionMessage: () => "Created send pipe again", subscription: LogLevel.Info, onError: LogLevel.Error, onErrorMessage: (e) => e.ToString())
+    //            .Retry(ex => ex is PluginConnectionException, TimeSpan.FromSeconds(1))
+    //            ;
+    //    }
 
-            return PluginConnection
-                .CreateReceiverPipe(() => networkStream, (_) => networkStream is not null && client is not null && client.Connected)
-                .Log(logger, "ReceivePipe", subscriptionMessage: () => "Created Receive pipe again", subscription: LogLevel.Info, onError: LogLevel.Error, onErrorMessage: (e) => $"Error happend in Instance Id {instanceId}:" + e.ToString())
-                .Retry(ex => ex is PluginConnectionException, TimeSpan.FromSeconds(1))
-                ;
-        }
+    //    public override IObservable<Package> Receive()
+    //    {
 
-        internal override void ReceiveMessages(Func<string, IObservable<Message>> subscribeAsReceiver)
-        {
-            var sendPackages = Send(MessageConvert.ToPackage(subscribeAsReceiver(Id)));
-            compositeDisposable.Add(sendPackages.Subscribe());
-        }
+    //        return PluginConnectionUtils
+    //            .CreateReceiverPipe(() => networkStream, (_) => networkStream is not null && client is not null && client.Connected)
+    //            .Log(logger, "ReceivePipe", subscriptionMessage: () => "Created Receive pipe again", subscription: LogLevel.Info, onError: LogLevel.Error, onErrorMessage: (e) => $"Error happend in Instance Id {instanceId}:" + e.ToString())
+    //            .Retry(ex => ex is PluginConnectionException, TimeSpan.FromSeconds(1))
+    //            ;
+    //    }
 
-        internal override void SendMessages(Func<IObservable<Message>, IDisposable> subscribeAsSender)
-        {
-            var receivedMessages = MessageConvert.ToMessage(Receive());
-            compositeDisposable.Add(subscribeAsSender(receivedMessages));
-        }
+    //    internal override void ReceiveMessages(Func<string, IObservable<Message>> subscribeAsReceiver)
+    //    {
+    //        var sendPackages = Send(MessageConvert.ToPackage(subscribeAsReceiver(Id)));
+    //        compositeDisposable.Add(sendPackages.Subscribe());
+    //    }
 
-        public override void Start()
-        {
-            if (runnerProcess is not null)
-                runnerProcess.Start();
-        }
+    //    internal override void SendMessages(Func<IObservable<Message>, IDisposable> subscribeAsSender)
+    //    {
+    //        var receivedMessages = MessageConvert.ToMessage(Receive());
+    //        compositeDisposable.Add(subscribeAsSender(receivedMessages));
+    //    }
 
-        internal override PluginInstance Copy()
-        {
-            if (clientRetriever is null)
-                return new TCPPluginInstance(Manifest, client);
-            else
-                return new TCPPluginInstance(runnersPath, Manifest, clientRetriever);
+    //    public override void Start()
+    //    {
+    //        if (runnerProcess is not null)
+    //            runnerProcess.Start();
+    //    }
 
-        }
+    //    public override void Stop()
+    //    {
+    //        if (runnerProcess is null)
+    //            return;
+    //        runnerProcess.StartInfo.ArgumentList.Add("-s");
+    //        runnerProcess.Start();
+    //    }
 
-        public void Dispose()
-        {
-            client?.Close();
-            compositeDisposable?.Dispose();
-        }
-    }
+    //    internal override PluginConnection Copy()
+    //    {
+    //        if (clientRetriever is null)
+    //            return new TCPPluginInstance(Manifest, client);
+    //        else
+    //            return new TCPPluginInstance(runnersPath, Manifest, clientRetriever);
+
+    //    }
+
+    //    public void Dispose()
+    //    {
+    //        client?.Close();
+    //        compositeDisposable?.Dispose();
+    //    }
+    //}
 }

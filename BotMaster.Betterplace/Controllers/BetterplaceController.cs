@@ -2,14 +2,6 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
-using Microsoft.Extensions.Logging;
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Reactive;
 
 namespace BotMaster.Betterplace.Controllers
 {

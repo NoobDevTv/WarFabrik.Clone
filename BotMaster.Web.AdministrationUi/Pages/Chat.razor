@@ -1,0 +1,39 @@
+﻿@page "/chat"
+@implements IDisposable
+@using BotMaster.Commandos;
+@using BotMaster.Web.AdministrationUi.Data
+@using BotMaster.BotSystem.MessageContract
+@inject SystemMessageHandler Handler
+
+<PageTitle>Chat</PageTitle>
+
+<h1>Chat</h1>
+
+<RadzenTextArea Value="@chatMessages" Style="width:100%">
+
+</RadzenTextArea>
+
+@code {
+    IDisposable? subscription;
+    IReadOnlyCollection<PluginInfo> pluginInfos = Array.Empty<PluginInfo>();
+    private string chatMessages = "";
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        subscription = Handler.ChatMessages.Subscribe(x => ChatMessageReceived(x));
+        Handler.RequestPluginList();
+    }
+
+    void ChatMessageReceived(BotMaster.MessageContract.ChatMessage chatMessage)
+    {
+        chatMessages += $"[{chatMessage.Username}({chatMessage.Source})]: {chatMessage.Text}{Environment.NewLine}";
+        InvokeAsync(StateHasChanged);
+    }
+
+    void IDisposable.Dispose()
+    {
+        subscription?.Dispose();
+    }
+
+}

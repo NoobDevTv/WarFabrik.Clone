@@ -1,23 +1,14 @@
 ﻿using BotMaster.Core.Configuration;
 using BotMaster.PluginSystem;
-using BotMaster.PluginSystem.PluginCreator;
 using BotMaster.Runtime;
 
 using NLog;
-using NLog.Config;
 using NLog.Extensions.Logging;
-using NLog.Targets;
 
 using NonSucking.Framework.Extension.IoC;
 
-using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace BotMaster
 {
@@ -42,21 +33,7 @@ namespace BotMaster
             Console.CancelKeyPress += (s, e) => resetEvent.Set();
             var typeContainer = TypeContainer.Get<ITypeContainer>();
 
-            if (botmasterConfig.PluginCreator == nameof(ProcessPluginCreator))
-            {
-                var creatorLogger = LogManager.GetLogger("InProcessPlugin");
-                typeContainer.Register<IPluginInstanceCreator>(new ProcessPluginCreator(creatorLogger,
-                    (l, pic, fi) => PluginHost.PluginHoster.Load(l, pic, fi, true)));
-            }
-            else if (botmasterConfig.PluginCreator == nameof(NamedPipePluginCreator))
-                typeContainer.Register<IPluginInstanceCreator>(new NamedPipePluginCreator());
-            else if (botmasterConfig.PluginCreator == nameof(TCPPluginCreator))
-            {
-                var creator = new TCPPluginCreator();
-                typeContainer.Register<IPluginInstanceCreator>(creator);
-                typeContainer.Register(creator);
-
-            }
+           
 
             typeContainer.Register(botmasterConfig);
 

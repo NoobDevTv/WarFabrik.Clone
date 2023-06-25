@@ -1,4 +1,4 @@
-﻿namespace BotMaster.PluginSystem
+﻿namespace BotMaster.PluginSystem.Connection
 {
     public class PluginConnectionException : Exception
     {

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BotMaster.PluginSystem
+﻿namespace BotMaster.PluginSystem
 {
     public readonly struct Package
     {

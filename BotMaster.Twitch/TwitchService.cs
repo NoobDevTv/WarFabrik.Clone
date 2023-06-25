@@ -2,8 +2,6 @@
 using BotMaster.PluginSystem.Messages;
 using BotMaster.RightsManagement;
 
-using Microsoft.EntityFrameworkCore;
-
 using Newtonsoft.Json;
 using NLog;
 using System.Reactive.Linq;

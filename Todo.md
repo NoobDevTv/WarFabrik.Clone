@@ -41,10 +41,10 @@ _____
 - Cleanup again
 
 - WebUi for Config, Logging, etc. pp. (Maybe as a sunday project)
-	- DB:
+	✓ DB:
 		- ✓ Usermanagement of DB (Rights, Links, IDs, Delete, Create)
 		- ✓ Commandmanagement (Delete, Create, Update)
-	- Integration into Botmaster
+	✓ Integration into Botmaster
 		- Systemmessagecontract
 			- Pluginmanagement Messages
 				- Start, Stop, 

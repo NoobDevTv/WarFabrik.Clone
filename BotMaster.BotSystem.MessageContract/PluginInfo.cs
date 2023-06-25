@@ -4,10 +4,15 @@ namespace BotMaster.BotSystem.MessageContract
 {
     [Nooson]
     public partial record struct PluginInfo(
-        string Id,
+        Guid Id,
         string Name,
         string Description,
         string Author,
         string Version,
-        bool Running);
+        bool Running)
+    {
+        [NoosonInclude, NoosonOrder(0)]
+        public const int TypeId = 3;
+
+    }
 }

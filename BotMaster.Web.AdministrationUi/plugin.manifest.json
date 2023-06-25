@@ -10,7 +10,7 @@
     "HandshakePort": 6789,
     "Hostname": "Botmaster"
   },
-  "DockerData": { 
+  "DockerData": {
     "ImageName": "botmaster_web_administrationui:latest",
     "ContainerName": "BotMaster_WebUi_NoobDevTV",
     "Bindings": [
@@ -22,5 +22,11 @@
     ],
     "PublishedPorts": [ "81:80", "444:443" ],
     "Networks": []
+  },
+  "Connection": {
+    "Type": "TCP",
+    "Port": 6789,
+    "HandshakePort": 6789,
+    "Hostname": "Botmaster"
   }
 }

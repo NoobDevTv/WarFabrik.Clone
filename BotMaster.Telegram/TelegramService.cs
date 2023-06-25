@@ -7,16 +7,12 @@ using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.Messages;
 using BotMaster.RightsManagement;
 using BotMaster.Telegram.Commands;
-using BotMaster.Telegram.Database;
 
 using Microsoft.EntityFrameworkCore;
 
 using NLog;
 
-using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 
 using Telegram.Bot;
 using Telegram.Bot.Requests;
@@ -26,7 +22,6 @@ using Telegram.Bot.Types.Enums;
 using DefinedMessageContract = BotMaster.MessageContract.Contract;
 using MessageType = Telegram.Bot.Types.Enums.MessageType;
 using PluginMessage = BotMaster.PluginSystem.Messages.Message;
-using TelegramMessage = Telegram.Bot.Types.Message;
 
 namespace BotMaster.Telegram
 {

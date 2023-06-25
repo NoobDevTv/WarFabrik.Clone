@@ -6,10 +6,9 @@ using NonSucking.Framework.Extension.IoC;
 
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System;
-using BotMaster.PluginSystem.Messages;
 using BotMaster.BotSystem.MessageContract;
-using System.Reactive;
+using BotMaster.PluginSystem.Connection;
+using BotMaster.PluginSystem.Connection.TCP;
 
 namespace BotMaster.Runtime
 {
@@ -29,7 +28,8 @@ namespace BotMaster.Runtime
                     .VisitMany(
                         getList => getList.Select(GetList),
                         lists => Observable.Empty<SystemMessage>(), //never
-                        command => command.Select(command => ExecuteCommand(command.PluginId, command.Command))
+                        command => command.Select(command => ExecuteCommand(command.InstanceId, command.Command)),
+                        info => Observable.Empty<SystemMessage>()
                     )
                     .Where(x => x is not null)
                     .Select(x => x!);
@@ -42,7 +42,7 @@ namespace BotMaster.Runtime
 #pragma warning restore DF0001 // Marks undisposed anonymous objects from method invocations.
         }
 
-        private SystemMessage? ExecuteCommand(string pluginId, Command command)
+        private SystemMessage? ExecuteCommand(Guid pluginId, Command command)
         {
             if (pluginService.Plugins.TryGetValue(pluginId, out var instance))
             {
@@ -66,10 +66,10 @@ namespace BotMaster.Runtime
                 .Select(pluginPair => new PluginInfo(
                     pluginPair.Value.Id,
                     pluginPair.Value.Manifest.Name ?? "",
-                    pluginPair.Value.Manifest.Description ??"",
+                    pluginPair.Value.Manifest.Description ?? "",
                     pluginPair.Value.Manifest.Author ?? "",
                     pluginPair.Value.Manifest.Version ?? "",
-                    true))
+                    pluginPair.Value.Connection?.IsConnected ?? false))
                 .ToList();
             return new PluginList()
             {
@@ -102,31 +102,46 @@ namespace BotMaster.Runtime
         private readonly PluginService pluginService;
         private readonly BotSystemService botSystemService;
         private readonly MessageHub messageHub;
-
+        private readonly ConnectionProvider connectionProvider;
         private readonly IDisposable disposable;
         private readonly ILogger logger;
+        private readonly ManifestProvider manifestProvider;
 
         public Service(ITypeContainer typeContainer, ILogger logger)
         {
             messageHub = new MessageHub();
+            connectionProvider = new ConnectionProvider();
+            typeContainer.Register(connectionProvider);
+            manifestProvider = new ManifestProvider();
+            typeContainer.Register(manifestProvider);
 
-            var filePluginProvider = new FileManifestPluginProvider();
-            var tcpPluginProvider = new TCPPluginProvider();
 
-            var filePlugins =
-                filePluginProvider
-                    .GetPluginInstances(logger, typeContainer);
+            var bc =  typeContainer.Get<BotmasterConfig>();
+            var tcp = new TCPHandshakingService(bc, connectionProvider, manifestProvider);
+            typeContainer.Register(tcp);
 
-            var tcpPlugins = tcpPluginProvider.GetPluginInstances(logger, typeContainer);
+            var pluginInfo = new DirectoryInfo(bc.PluginsPath);
 
-            pluginService = new PluginService(messageHub, Observable.Merge(filePlugins, tcpPlugins));
+            if (!pluginInfo.Exists)
+                pluginInfo.Create();
+            var runnersPath = new DirectoryInfo(bc.RunnersPath);
+            if (!pluginInfo.Exists)
+                pluginInfo.Create();
+
+
+            pluginService = new PluginService(messageHub, manifestProvider.GetStream(), connectionProvider.GetStream(), runnersPath);
+
+            var fileManifestProvider = new FileManifestProvider(pluginInfo, manifestProvider);
+            typeContainer.Register(fileManifestProvider);
             botSystemService = new BotSystemService(messageHub, pluginService);
             disposable = StableCompositeDisposable.Create(pluginService, messageHub);
+
             this.logger = logger;
         }
 
         public void Start()
         {
+            connectionProvider.Start();
             pluginService.Start();
         }
 

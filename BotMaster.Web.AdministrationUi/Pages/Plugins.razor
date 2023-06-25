@@ -28,12 +28,12 @@
 
         <RadzenDataGridColumn TItem="PluginInfo" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="154px">
 
-            <EditTemplate>
+            <Template>
                 <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Disabled="@(context.Running)" Click="@((args) => Handler.ExecuteCommand(Command.Start, context.Id))">
                 </RadzenButton>
                 <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Medium" Disabled="@(!context.Running)" Class="my-1 ms-1" Click="@((args) => Handler.ExecuteCommand(Command.Stop, context.Id))">
                 </RadzenButton>
-            </EditTemplate>
+            </Template>
         </RadzenDataGridColumn>
     </Columns>
 </RadzenDataGrid>
@@ -46,13 +46,14 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
+
         subscription = Handler.PluginListInformation.Subscribe(x => PluginListReceived(x));
         Handler.RequestPluginList();
     }
 
-    void PluginListReceived(PluginList pluginList)
+    void PluginListReceived(IReadOnlyCollection<PluginInfo> pluginList)
     {
-        pluginInfos = pluginList.PluginInfos;
+        pluginInfos = pluginList;
         InvokeAsync(StateHasChanged);
     }
 

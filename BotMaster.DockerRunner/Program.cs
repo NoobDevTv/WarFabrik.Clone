@@ -10,12 +10,9 @@ using NLog;
 using NLog.Extensions.Logging;
 
 using System.Net;
-using System.Net.Http.Headers;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text.Json;
-
-using Plugin = BotMaster.PluginSystem.Plugin;
 
 namespace BotMaster.DockerRunner
 {
@@ -50,7 +47,6 @@ namespace BotMaster.DockerRunner
                 info.Directory.Create();
             }
 
-            var plugins = new List<Plugin>();
             logger.Debug("Gotten the following args: " + string.Join(" | ", args));
 
             try
@@ -102,10 +98,14 @@ namespace BotMaster.DockerRunner
                         RestartPolicy restartPolicy = new();
                         if (dockerData.TryGetProperty("RestartPolicy", out var restartPolicyData))
                         {
-                            restartPolicy =  restartPolicyData.Deserialize<RestartPolicy>() ?? new();
+                            restartPolicy = restartPolicyData.Deserialize<RestartPolicy>() ?? new();
                         }
 
                         var success = await CreateContainer(client, imageName, containerName, bindings, networks, ports, restartPolicy, logger);
+                    }
+                    if (args[i] == "-s")
+                    {
+
                     }
                 }
             }
@@ -210,6 +210,7 @@ namespace BotMaster.DockerRunner
                     PublishAllPorts = true
                 },
                 Name = containerName,
+                Env = new List<string> { $"DockerPluginInstanceId:{Guid.NewGuid()}" }
 
                 //ExposedPorts = ports?.ToDictionary(x => x, x => new EmptyStruct()),
 

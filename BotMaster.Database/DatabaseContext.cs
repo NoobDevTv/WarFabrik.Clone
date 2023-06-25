@@ -83,7 +83,6 @@ namespace BotMaster.Database
         static Type[] onModelCreatingMethodTypes = new[] { typeof(ModelBuilder) };
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-
             foreach (var type in AssemblyLoadContext
                                         .Default
                                         .Assemblies
@@ -95,8 +94,8 @@ namespace BotMaster.Database
                 if (modelBuilder.Model.FindEntityType(type) is null)
                 {
                     _ = modelBuilder.Model.AddEntityType(type);
-
                 }
+
                 var method = type.GetMethod(nameof(OnModelCreating), System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public, onModelCreatingMethodTypes);
                 if (method is not null)
                     method.Invoke(null, new[] { modelBuilder });

@@ -1,17 +1,8 @@
 ﻿using BotMaster.Betterplace.Controllers;
 using BotMaster.Betterplace.MessageContract;
 using BotMaster.Betterplace.Model;
-using BotMaster.Core;
 using BotMaster.PluginSystem;
 using BotMaster.PluginSystem.Messages;
-
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-
-using NLog;
-using NLog.Web;
 
 using System.Reactive.Linq;
 

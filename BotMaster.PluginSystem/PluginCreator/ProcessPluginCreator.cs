@@ -1,70 +1,65 @@
-﻿
-using NLog;
+﻿namespace BotMaster.PluginSystem.PluginCreator;
 
-using System.Reactive.Subjects;
+//public class ProcessPluginCreator : IPluginInstanceCreator
+//{
+//    private readonly Func<ILogger, IPluginInstanceCreator, FileInfo, IObservable<Package>> pluginLoader;
+//    private readonly ILogger logger;
+//    private readonly Dictionary<string, (Subject<Package> server, Subject<Package> client)> clients;
 
-namespace BotMaster.PluginSystem.PluginCreator;
+//    public ProcessPluginCreator(ILogger logger, Func<ILogger, IPluginInstanceCreator, FileInfo, IObservable<Package>> pluginLoader)
+//    {
+//        this.pluginLoader = pluginLoader;
+//        this.logger = logger;
+//        clients = new();
+//    }
 
-public class ProcessPluginCreator : IPluginInstanceCreator
-{
-    private readonly Func<ILogger, IPluginInstanceCreator, FileInfo, IObservable<Package>> pluginLoader;
-    private readonly ILogger logger;
-    private readonly Dictionary<string, (Subject<Package> server, Subject<Package> client)> clients;
+//    private PluginConnection Create(
+//            PluginManifest manifest,
+//            Func<string, InProcessClient> createPipe,
+//            Func<InProcessClient, IObservable<Package>, IObservable<Package>> createSender,
+//            Func<InProcessClient, IObservable<Package>> createReceiver)
+//    {
+//        return new PluginServiceInstance(manifest, LoadPlugin, createPipe, createSender, createReceiver);
+//    }
 
-    public ProcessPluginCreator(ILogger logger, Func<ILogger, IPluginInstanceCreator, FileInfo, IObservable<Package>> pluginLoader)
-    {
-        this.pluginLoader = pluginLoader;
-        this.logger = logger;
-        clients = new();
-    }
+//    public PluginConnection CreateClient(PluginManifest manifest)
+//    {
+//        return new PluginInstance<InProcessClient>(
+//                    manifest,
+//                    id => GetOrCreateClient(id, false),
+//                    InProcessClient.CreateSendStream,
+//                    InProcessClient.CreateReceiverStream
+//                );
+//    }
 
-    private PluginInstance Create(
-            PluginManifest manifest,
-            Func<string, InProcessClient> createPipe,
-            Func<InProcessClient, IObservable<Package>, IObservable<Package>> createSender,
-            Func<InProcessClient, IObservable<Package>> createReceiver)
-    {
-        return new PluginServiceInstance(manifest, LoadPlugin, createPipe, createSender, createReceiver);
-    }
+//    public PluginConnection CreateServer(PluginManifest manifest, DirectoryInfo runnersPath, bool local)
+//    {
+//        return Create(
+//            manifest,
+//            id => GetOrCreateClient(id, true),
+//            InProcessClient.CreateSendStream,
+//            InProcessClient.CreateReceiverStream
+//        );
+//    }
 
-    public PluginInstance CreateClient(PluginManifest manifest)
-    {
-        return new PluginInstance<InProcessClient>(
-                    manifest,
-                    id => GetOrCreateClient(id, false),
-                    InProcessClient.CreateSendStream,
-                    InProcessClient.CreateReceiverStream
-                );
-    }
+//    private IObservable<Package> LoadPlugin(FileInfo manifest)
+//        => pluginLoader(logger, this, manifest);
 
-    public PluginInstance CreateServer(PluginManifest manifest, DirectoryInfo runnersPath)
-    {
-        return Create(
-            manifest,
-            id => GetOrCreateClient(id, true),
-            InProcessClient.CreateSendStream,
-            InProcessClient.CreateReceiverStream
-        );
-    }
-
-    private IObservable<Package> LoadPlugin(FileInfo manifest)
-        => pluginLoader(logger, this, manifest);
-
-    private InProcessClient GetOrCreateClient(string id, bool isServer)
-    {
-        lock (clients)
-        {
-            if (!clients.TryGetValue(id, out var dataCouple))
-            {
-                dataCouple = (new(), new());
-                clients.Add(id, dataCouple);
-            }
+//    private InProcessClient GetOrCreateClient(string id, bool isServer)
+//    {
+//        lock (clients)
+//        {
+//            if (!clients.TryGetValue(id, out var dataCouple))
+//            {
+//                dataCouple = (new(), new());
+//                clients.Add(id, dataCouple);
+//            }
 
 
-            if (!isServer)
-                return new(id, dataCouple.server, dataCouple.client);
-            else
-                return new(id, dataCouple.client, dataCouple.server);
-        }
-    }
-}
+//            if (!isServer)
+//                return new(id, dataCouple.server, dataCouple.client);
+//            else
+//                return new(id, dataCouple.client, dataCouple.server);
+//        }
+//    }
+//}

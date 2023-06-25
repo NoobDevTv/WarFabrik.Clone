@@ -1,5 +1,6 @@
-﻿using NLog;
-using NonSucking.Framework.Extension.IoC;
+﻿using BotMaster.PluginSystem.Connection;
+
+using NLog;
 
 using System.Reactive;
 using System.Reactive.Linq;
@@ -7,32 +8,17 @@ using System.Text.Json;
 
 namespace BotMaster.PluginSystem
 {
-    public class FileManifestPluginProvider : IPluginProvider
+    public class FileManifestProvider : IDisposable
     {
-        public IObservable<PluginInstance> GetPluginInstances(ILogger logger, ITypeContainer typeContainer)
+        private readonly IDisposable manifestProviderDisposable;
+
+        public FileManifestProvider(DirectoryInfo pluginInfo, ManifestProvider manifestProvider)
         {
-            var botmasterConfig = typeContainer.Get<BotmasterConfig>();
-            var pluginInfo = new DirectoryInfo(botmasterConfig.PluginsPath);
-            var runnersPath = new DirectoryInfo(botmasterConfig.RunnersPath);
-
-            if (!pluginInfo.Exists)
-                pluginInfo.Create();
-            if (!runnersPath.Exists)
-                runnersPath.Create();
-
-            return GetPluginManifests(pluginInfo, logger)
-                .Select(manifest =>
-                {
-                    var pluginCreator = typeContainer.Get<IPluginInstanceCreator>();
-
-                    var instance = pluginCreator.CreateServer(manifest, runnersPath);
-
-                    return instance;
-                });
-            ;
+            var method = GetPluginManifests(pluginInfo, LogManager.GetLogger($"{nameof(BotMaster)}.{nameof(FileManifestProvider)}"));
+            manifestProviderDisposable = manifestProvider.RegisterSubProvider(method);
         }
 
-        private static IObservable<PluginManifest> GetPluginManifests(DirectoryInfo pluginInfo, ILogger logger)
+        private static IObservable<(PluginManifest, Guid)> GetPluginManifests(DirectoryInfo pluginInfo, ILogger logger)
             => Observable
                 .Merge(
                     pluginInfo
@@ -63,9 +49,11 @@ namespace BotMaster.PluginSystem
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
                     manifest.CurrentFileInfo = file;
+                    manifest.ManifestInfo = ManifestInfo.File;
                     return manifest;
                 })
-                .DistinctUntilChanged();
+                .DistinctUntilChanged()
+                .Select(x => (x, Guid.NewGuid()));
 
         private static IObservable<EventPattern<FileSystemEventArgs>> CreateChangedEvents(FileSystemWatcher watcher)
             => Observable
@@ -84,6 +72,11 @@ namespace BotMaster.PluginSystem
                     .FromEventPattern<RenamedEventHandler, FileSystemEventArgs>(
                             handler => watcher.Renamed += handler,
                             handler => watcher.Renamed -= handler);
+
+        public void Dispose()
+        {
+            manifestProviderDisposable.Dispose();
+        }
     }
 
 }

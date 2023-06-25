@@ -1,21 +1,17 @@
 using BotMaster.Commandos;
-using BotMaster.PluginSystem.PluginCreator;
 using BotMaster.PluginSystem;
 using BotMaster.RightsManagement;
 using BotMaster.Web.AdministrationUi.Data;
 
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.Extensions.Logging;
-
 using NLog;
-using NLog.Extensions.Logging;
 
 using NLog.Web;
 using System.Reactive.Disposables;
 using BotMaster.PluginHost;
 using System.Reactive.Linq;
 using BotMaster.Web.AdministrationUi;
+using BotMaster.PluginSystem.Connection;
+using BotMaster.PluginSystem.Connection.TCP;
 
 internal class Program
 {
@@ -93,25 +89,27 @@ internal class Program
 
             try
             {
-                List<FileInfo> paths = new();
+                FileInfo fi = default;
                 for (int i = 0; i < args.Length; i++)
                 {
                     if (args[i] == "-l")
                     {
                         i++;
-                        paths.Add(new FileInfo(args[i]));
+                         fi =new FileInfo(args[i]);
                     }
                 }
 
-                var processCreator = new TCPPluginCreator();
+                var processCreator = new ConnectionProvider();
+                var tcp = new TCPHandshakingService(processCreator);
 
-                _ = await PluginHoster.LoadAll(logger, processCreator, paths, false)
+                _ = await PluginHoster.Load(logger, processCreator, fi, false)
                     .IgnoreElements()
                     .Do(p => { }, ex =>
                     {
                         logger.Fatal(ex);
                         Environment.Exit(111);
-                    });
+                    })
+                    ;
             }
             catch (Exception ex)
             {

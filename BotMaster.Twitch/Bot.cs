@@ -8,10 +8,7 @@ using BotMaster.Twitch.Commands;
 using BotMaster.Livestream.MessageContract;
 
 using Microsoft.EntityFrameworkCore;
-
-using System.Diagnostics;
 using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 
 using TwitchLib.Api;
