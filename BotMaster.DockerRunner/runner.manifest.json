@@ -9,7 +9,7 @@
   },
   "Args": "\"{runnerpath}/BotMaster.DockerRunner.dll\" {args}",
   "EnviromentVariable": {
-    "args": "-l \"{manifestpath}\"",
+    "args": "-l \"{manifestpath}\" --id \"{instanceid}\"",
     "runnerpath": "{runnerpath}"
   }
 }

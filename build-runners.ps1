@@ -5,6 +5,6 @@ Get-ChildItem -Path '.' -Filter 'runner.manifest.json' -Depth 1 | ForEach-Object
     "Build runner into ../publish/runners/${dirName}"
     Set-Location $_.DirectoryName
     dotnet restore --ignore-failed-sources
-    dotnet publish -c Release -o "../publish/runners/${dirName}" --no-restore
+    dotnet publish -c Debug -o "../publish/runners/${dirName}" --no-restore
     Set-Location .. 
 }

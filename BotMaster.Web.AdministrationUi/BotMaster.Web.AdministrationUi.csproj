@@ -6,8 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>67eee04f-7a6c-4d6d-9e10-6333568904a5</UserSecretsId>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-		<UseRazorSourceGenerator>false</UseRazorSourceGenerator>
-		<RunAOTCompilation>true</RunAOTCompilation>
+		<UseRazorSourceGenerator>true</UseRazorSourceGenerator>
+		<!--<RunAOTCompilation>true</RunAOTCompilation>-->
 	</PropertyGroup>
 
 	<ItemGroup>

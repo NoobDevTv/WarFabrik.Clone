@@ -21,6 +21,7 @@ public class TCPHandshakingService : IDisposable, IHandshakingService
     private readonly BotmasterConfig botmasterConfig;
     private readonly IDisposable connectionProviderDisposable;
     private readonly IDisposable manifestProviderDisposable;
+    private TcpClient client;
 
     /// <summary>
     /// For client use only
@@ -116,7 +117,6 @@ public class TCPHandshakingService : IDisposable, IHandshakingService
         }
     }
 
-    private TcpClient client;
     public PluginConnection StartAsClient(PluginManifest manifest, Guid instanceId)
     {
 

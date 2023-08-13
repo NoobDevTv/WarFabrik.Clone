@@ -12,6 +12,7 @@ using System.Reactive.Linq;
 using BotMaster.Web.AdministrationUi;
 using BotMaster.PluginSystem.Connection;
 using BotMaster.PluginSystem.Connection.TCP;
+using System.IO.Pipes;
 
 internal class Program
 {

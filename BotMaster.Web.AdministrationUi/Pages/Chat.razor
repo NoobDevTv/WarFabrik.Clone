@@ -13,6 +13,8 @@
 
 </RadzenTextArea>
 
+
+
 @code {
     IDisposable? subscription;
     IReadOnlyCollection<PluginInfo> pluginInfos = Array.Empty<PluginInfo>();
@@ -20,6 +22,7 @@
 
     protected override void OnInitialized()
     {
+        
         base.OnInitialized();
         subscription = Handler.ChatMessages.Subscribe(x => ChatMessageReceived(x));
         Handler.RequestPluginList();

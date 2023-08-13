@@ -16,6 +16,7 @@ using System.Text.RegularExpressions;
 
 namespace BotMaster.PluginHost
 {
+
     public static class PluginHoster
     {
         private static ILogger iLogger;
@@ -43,6 +44,7 @@ namespace BotMaster.PluginHost
                 resolver = new ReaderLoadContext(manifest.Name, assemblyFileInfo.FullName);
             else
                 resolver = AssemblyLoadContext.Default;
+
             var _resolver = new AssemblyDependencyResolver(assemblyFileInfo.FullName);
             resolver.Resolving += (AssemblyLoadContext context, AssemblyName name) => Resolver_Resolving(context, name, _resolver);
             //if (resolver is not ReaderLoadContext)
@@ -79,7 +81,7 @@ namespace BotMaster.PluginHost
 
             return Observable
                 .Using(
-                    () => new PluginContext(typecontainer, pluginInstance, pluginInstance.Send(packages)), 
+                    () => new PluginContext(typecontainer, pluginInstance, pluginInstance.Send(packages)),
                     (c) => Observable.Never<Package>()//c.PluginInstance.Receive()                                          
                 );
 

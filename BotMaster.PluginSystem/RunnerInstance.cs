@@ -12,7 +12,8 @@ namespace BotMaster.PluginSystem
 
         public RunnerInstance(
             DirectoryInfo runnersPath,
-            PluginManifest manifest)
+            PluginManifest manifest,
+            Guid id)
         {
             var runnerManifestPath = new FileInfo(Path.Combine(runnersPath.FullName, manifest.ProcessRunner, "runner.manifest.json"));
 
@@ -35,6 +36,7 @@ namespace BotMaster.PluginSystem
                 args = args.Replace($"{{{item.Key}}}", item.Value
                     .Replace("{manifestpath}", manifest.CurrentFileInfo.FullName)
                     .Replace("{runnerpath}", runnerManifestPath.Directory.FullName)
+                    .Replace("{instanceid}", id.ToString())
                     );
             }
 

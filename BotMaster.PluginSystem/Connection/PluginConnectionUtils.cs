@@ -39,7 +39,8 @@ namespace BotMaster.PluginSystem.Connection
                                 buffer => Observable.FromAsync(async () => await clientStream.WriteAsync(buffer.Memory[..size]), scheduler)
                             )
                             .Do(i => clientStream.Flush())
-                            .Select(i => p);
+                            .Select(i => p)
+                            .Catch<Package, Exception>(ex => Observable.Empty<Package>());
                     })
                 .Concat();
 

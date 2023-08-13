@@ -1,9 +1,11 @@
-﻿using BotMaster.Core.NLog;
+﻿using BotMaster.Core;
+using BotMaster.Core.NLog;
 using BotMaster.PluginSystem.Messages;
 
 using NLog;
 
 using System;
+using System.Data;
 
 namespace BotMaster.PluginSystem.Connection
 {
@@ -15,19 +17,14 @@ namespace BotMaster.PluginSystem.Connection
 
         public ServerPluginInstance(PluginManifest manifest, Guid id, DirectoryInfo runnersPath) : base(manifest, id)
         {
-            Runner = new RunnerInstance(runnersPath, manifest);
+            Runner = new RunnerInstance(runnersPath, manifest, id);
         }
 
-        public override void Start()
+        public override void Execute(Command command)
         {
             Runner.Start();
         }
 
-        public override void Stop()
-        {
-            if (!Runner.TryStop())
-                Runner.Kill();
-        }
 
         public void Dispose()
         {
@@ -45,7 +42,7 @@ namespace BotMaster.PluginSystem.Connection
     public abstract class PluginInstance
     {
         public Guid Id { get; }
-        public PluginManifest Manifest { get; private set; }
+        public PluginManifest Manifest { get; set; }
 
         public PluginConnection Connection { get; set; }
 
@@ -55,10 +52,7 @@ namespace BotMaster.PluginSystem.Connection
             Id = id;
         }
 
-        public virtual void Start()
-        {
-        }
-        public virtual void Stop()
+        public virtual void Execute(Command command)
         {
         }
     }
@@ -68,7 +62,6 @@ namespace BotMaster.PluginSystem.Connection
         public Guid Id { get; } = Guid.NewGuid();
         public Guid InstanceId { get; }
         public string ManifestId { get; }
-        public bool IsConnected { get; }
         public IDisposable sendDisposable { get; private set; }
 
         private readonly IObserver<Package> sendObserver;

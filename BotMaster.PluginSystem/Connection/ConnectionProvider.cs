@@ -6,10 +6,6 @@ public class ConnectionProvider : IDisposable
     private readonly Subject<PluginConnection> internalStream;
     private readonly Dictionary<string, IHandshakingService> handshakingServices;
 
-    /*
-     Implement resolvment of Handshaking Services, mostly for client side
-     */
-
     public ConnectionProvider()
     {
         internalStream = new Subject<PluginConnection>();

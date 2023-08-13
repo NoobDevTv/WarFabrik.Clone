@@ -1,4 +1,5 @@
 ﻿using BotMaster.BotSystem.MessageContract;
+using BotMaster.Core;
 using BotMaster.Livestream.MessageContract;
 using BotMaster.MessageContract;
 using BotMaster.PluginSystem.Messages;

@@ -14,6 +14,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Docker.DotNet" Version="3.125.12" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
 		<PackageReference Include="NLog" Version="5.1.2" />
 		<PackageReference Include="NonSucking.Framework.Extension" Version="0.1.0.98-alpha" />
@@ -41,7 +42,7 @@
 		</None>
 	</ItemGroup>
 
-	<Target Name="CopyDLLs" AfterTargets="Build" Condition="'$(Configuration)'=='DEBUG'">
+	<!--<Target Name="CopyDLLs" AfterTargets="Build" Condition="'$(Configuration)'=='DEBUG'">
 		<Message Text="Executing CopyDLLs task ($(SolutionDir)BotMaster\$(OutDir)runners\$(ProjectName))" Importance="High" />
 		<Message Text="Executing CopyDLLs $(TargetDir)" Importance="High" />
 
@@ -53,5 +54,5 @@
 
 		<Message Text="Copied build files" Importance="High" />
 
-	</Target>
+	</Target>-->
 </Project>
