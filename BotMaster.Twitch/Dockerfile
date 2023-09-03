@@ -13,6 +13,7 @@ COPY ["BotMaster.PluginSystem/BotMaster.PluginSystem.csproj", "BotMaster.PluginS
 COPY ["BotMaster.Twitch/BotMaster.Twitch.csproj", "BotMaster.Twitch/"]
 COPY ["BotMaster.Betterplace.MessageContract/BotMaster.Betterplace.MessageContract.csproj", "BotMaster.Betterplace.MessageContract/"]
 COPY ["BotMaster.Livestream.MessageContract/BotMaster.Livestream.MessageContract.csproj", "BotMaster.Livestream.MessageContract/"]
+COPY ["BotMaster.BotSystem.MessageContract/BotMaster.BotSystem.MessageContract.csproj", "BotMaster.BotSystem.MessageContract/"]
 COPY ["BotMaster.MessageContract/BotMaster.MessageContract.csproj", "BotMaster.MessageContract/"]
 COPY ["BotMaster.Database/BotMaster.Database.csproj", "BotMaster.Database/"]
 COPY ["10_DatabaseAdapter/BotMaster.Database.MySql/BotMaster.Database.MySql.csproj", "BotMaster.Database.MySql/"]

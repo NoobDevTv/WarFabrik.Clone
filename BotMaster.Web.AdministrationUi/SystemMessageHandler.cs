@@ -33,6 +33,11 @@ public class SystemMessageHandler
         Messages.OnNext(new PluginCommand() { Command = command, InstanceId = instanceId });
     }
 
+    public void CommandChanged()
+    {
+        Messages.OnNext(new CommandsChanged() { });
+    }
+
     public IObservable<SystemMessage> SetMessages(IObservable<Message> receivedMessages)
     {
 
@@ -51,7 +56,7 @@ public class SystemMessageHandler
             if (existing != default)
                 data.Second.Remove(existing);
             data.Second.Add(info);
-            return (IReadOnlyCollection<PluginInfo>)data.Second;
+            return (IReadOnlyCollection<PluginInfo>)data.Second.OrderBy(x=>x.Id).ToArray();
         });
 
         PluginListInformation = infoList.Merge(pluginList);

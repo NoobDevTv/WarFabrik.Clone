@@ -50,12 +50,12 @@ _____
 				- Start, Stop, 
 	- Pluginmanagement:
 		- PluginInstance List
-			- Start & Stop
-			- State
+			- ✓ Start & Stop
+			- ✓ State
 			- Create (UI for plugin.manifest.json)
 			- Update (Docker Images or something)
 			- Config of this plugin
-		- Set Title on Youtube and Twitch / Twitter Notification
+		- Set Title on Youtube and Twitch
 	- Testing:
 		- LogView in General (Per Plugin aswell)
 		- Demo Messages for Tests
@@ -63,6 +63,8 @@ _____
 	- Other:
 		- Think about name
 		- Authentication
+		
+- Improve / Test Initial Setup (No DB Present, "fresh" Docker)
 	
 - Auto Update Docker Plugin Container and Botmaster (Self Update / Plugin Update Plugin etc.)
 

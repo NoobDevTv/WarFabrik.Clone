@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Linq;
 using System.Reactive.Subjects;
 
 namespace BotMaster.Commandos;
@@ -78,22 +79,31 @@ public class CommandoCentral
     /// <returns>The observable that should be subscribed, otherwise nothing will happen ¯\_(ツ)_/¯</returns>
     public virtual IDisposable AddCommand(Action<CommandMessage> action, params PersistentCommand[] commandNames)
     {
-        var commandStrs = _commands.Select(x => x.Command).ToList();
+        var commandStrs = _commands.Select(x => x.Command).ToArray();
         commandNames = commandNames.Where(x => !commandStrs.Contains(x.Command)).ToArray();
+        var newNames = commandNames.Select(x => x.Command).ToArray();
         if (commandNames.Length == 0)
             return Disposable.Empty;
         _commands.AddRange(commandNames);
-        return messageSubject.Where(c => commandNames.Any(x => x.Command == c.Command && x.Target == c.SourcePlattform)).Subscribe(action);
+        return Observable.Using(() => Disposable.Create(() => { _commands.RemoveAll(y => newNames.Contains(y.Command)); }),
+            _ => messageSubject
+                .Where(c => commandNames.Any(x => x.Command == c.Command && x.Target == c.SourcePlattform))
+            ).Subscribe(action);
     }
 
     public virtual IDisposable AddCommand(Func<CommandMessage, bool> guard, Action<CommandMessage> action, params PersistentCommand[] commandNames)
     {
-        var commandStrs = _commands.Select(x => x.Command).ToList();
+        var commandStrs = _commands.Select(x => x.Command).ToArray();
         commandNames = commandNames.Where(x => !commandStrs.Contains(x.Command)).ToArray();
+        var newNames = commandNames.Select(x => x.Command).ToArray();
         if (commandNames.Length == 0)
             return Disposable.Empty;
         _commands.AddRange(commandNames);
-        return messageSubject.Where(c => commandNames.Any(x => x.Command == c.Command && x.Target == c.SourcePlattform) && guard(c)).Subscribe(action);
+
+        return Observable.Using(() => Disposable.Create(() => { _commands.RemoveAll(y => newNames.Contains(y.Command)); }),
+        _ => messageSubject
+            .Where(c => commandNames.Any(x => x.Command == c.Command && x.Target == c.SourcePlattform) && guard(c))
+        ).Subscribe(action);
     }
 
 

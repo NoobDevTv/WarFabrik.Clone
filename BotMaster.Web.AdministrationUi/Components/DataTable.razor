@@ -37,6 +37,8 @@
     public string AddButtonText { get; set; } = "Add new";
     [Parameter]
     public string[] ToInclude { get; set; } = Array.Empty<string>();
+    [Parameter]
+    public Action? OnSaved { get; set; }
 
     public TEntity? EditCommand { get; private set; }
 
@@ -77,6 +79,7 @@
         await DbService.AddOrUpdateCommand(command);
         await commandsGrid.UpdateRow(command);
         //LoadCommands();
+        OnSaved?.Invoke();
     }
 
     async Task CancelEdit(TEntity command)

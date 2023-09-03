@@ -25,7 +25,8 @@ namespace BotMaster.Runtime
                         getList => getList.Select(GetList),
                         lists => Observable.Empty<SystemMessage>(), //never
                         command => command.Select(command => ExecuteCommand(command.InstanceId, command.Command)),
-                        info => Observable.Empty<SystemMessage>()
+                        info => Observable.Empty<SystemMessage>(),
+                        commandChanged => Observable.Empty<SystemMessage>()
                     )
                     .Where(x => x is not null)
                     .Select(x => x!);

@@ -7,7 +7,7 @@ namespace BotMaster.BotSystem.MessageContract
     [Variant]
     public partial class SystemMessage
     {
-        static partial void VariantOf(GetPlugins getPlugin, PluginList pluginList, PluginCommand pluginCommand, PluginInfo pluginInfo);
+        static partial void VariantOf(GetPlugins getPlugin, PluginList pluginList, PluginCommand pluginCommand, PluginInfo pluginInfo, CommandsChanged commandChanged);
 
         public string TargetId { get; init; }
 
@@ -19,7 +19,8 @@ namespace BotMaster.BotSystem.MessageContract
                 getPlugin => getPlugin.Serialize(writer),
                 pluginList => pluginList.Serialize(writer),
                 pluginCommand => pluginCommand.Serialize(writer),
-                pluginInfo => pluginInfo.Serialize(writer)
+                pluginInfo => pluginInfo.Serialize(writer),
+                commandChanged => commandChanged.Serialize(writer)
             );
             return new Message(SystemContract.UID, MessageType.Custom, memory.ToArray(), TargetId);
         }
@@ -42,6 +43,7 @@ namespace BotMaster.BotSystem.MessageContract
                 PluginList.TypeId => new(PluginList.Deserialize(binaryReader)) { TargetId = message.TargetId },
                 PluginCommand.TypeId => new(PluginCommand.Deserialize(binaryReader)) { TargetId = message.TargetId },
                 PluginInfo.TypeId => new(PluginInfo.Deserialize(binaryReader)) { TargetId = message.TargetId },
+                CommandsChanged.TypeId => new(CommandsChanged.Deserialize(binaryReader)) { TargetId = message.TargetId },
                 _ => throw new NotSupportedException($"message {id} is a unknown message type in {nameof(SystemMessage)}"),
             };
         }

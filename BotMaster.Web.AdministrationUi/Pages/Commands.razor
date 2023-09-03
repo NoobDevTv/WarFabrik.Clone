@@ -1,12 +1,13 @@
 ﻿@page "/commands"
 @using BotMaster.Commandos;
 @inject EntityService<CommandosDbContext, PersistentCommand> CommandoService
+@inject SystemMessageHandler Handler
 
 <PageTitle>Commands</PageTitle>
 
 <h1>Commands</h1>
 
-<DataTable TEntity="PersistentCommand" TDBContext="CommandosDbContext" AddButtonText="Add new Command">
+<DataTable TEntity="PersistentCommand" TDBContext="CommandosDbContext" AddButtonText="Add new Command" OnSaved="Handler.CommandChanged">
     <Columns>
         <RadzenDataGridColumn TItem="PersistentCommand" Property="Id" Title="Id" Width="66px" />
 
@@ -84,12 +85,12 @@
         new("twitch", "twitch"),
         new("youtube", "youtube"),
         new("telegram", "telegram")
-               };
+                   };
     DisplayValueDropdown<string>[] plattforms = new DisplayValueDropdown<string>[]
 {
         new("twitch", "twitch"),
         new("youtube", "youtube"),
         new("telegram", "telegram")
-                };
+                    };
 
 }

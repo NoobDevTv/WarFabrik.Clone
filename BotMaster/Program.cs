@@ -33,8 +33,6 @@ namespace BotMaster
             Console.CancelKeyPress += (s, e) => resetEvent.Set();
             var typeContainer = TypeContainer.Get<ITypeContainer>();
 
-           
-
             typeContainer.Register(botmasterConfig);
 
             var serviceLogger = LogManager.GetLogger($"{nameof(BotMaster)}.{nameof(Service)}");
