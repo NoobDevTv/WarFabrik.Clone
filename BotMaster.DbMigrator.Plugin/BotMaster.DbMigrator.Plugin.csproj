@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BotMaster.Commandos\BotMaster.Commandos.csproj" />
+    <ProjectReference Include="..\BotMaster.PluginSystem\BotMaster.PluginSystem.csproj" />
+    <ProjectReference Include="..\BotMaster.RightsManagement\BotMaster.RightsManagement.csproj" />
+	  <PackageReference Include="NLog" Version="5.1.2" />
+  </ItemGroup>
+
+</Project>

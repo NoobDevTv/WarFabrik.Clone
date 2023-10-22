@@ -281,7 +281,6 @@ namespace BotMaster.Twitch
             var userResponse = await api.Helix.Users.GetUsersAsync(logins: new List<string> { channelName });
             var userId = userResponse.Users.First().Id;
 
-
             var pubSub = new TwitchPubSub();
 
             var ctx = new TwitchContext(api, client, pubSub, userId, channelName, commandoCentral, new(), new());

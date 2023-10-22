@@ -45,7 +45,7 @@ public class CommandoCentral
     {
         using var ctx = new CommandosDbContext();
         using var trans = ctx.Database.BeginTransaction();
-        ctx.Database.Migrate();
+        //ctx.Database.Migrate();
         trans.Commit();
         return ctx.Commands.ToList().Where(x => x.Plattforms.Count == 0 || x.Global || x.Plattforms.Contains(plattform)).ToList();
     }

@@ -18,16 +18,6 @@ public class UserConnectionContext  : BaseDatabaseContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<User>().ToTable(x => x.ExcludeFromMigrations());
-        modelBuilder.Entity<PlattformUser>().ToTable(x => x.ExcludeFromMigrations());
-
-        modelBuilder.Entity("GroupPlattformUser").ToTable(x => x.ExcludeFromMigrations());
-        modelBuilder.Entity("GroupRight").ToTable(x => x.ExcludeFromMigrations());
-        modelBuilder.Entity("GroupUser").ToTable(x => x.ExcludeFromMigrations());
-        modelBuilder.Entity("PlattformUserRight").ToTable(x => x.ExcludeFromMigrations());
-        modelBuilder.Entity("RightUser").ToTable(x => x.ExcludeFromMigrations());
-        modelBuilder.Entity<Group>().ToTable(x => x.ExcludeFromMigrations());
-        modelBuilder.Entity<Right>().ToTable(x => x.ExcludeFromMigrations());
         base.OnModelCreating(modelBuilder);
     }
 }

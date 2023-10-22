@@ -273,3 +273,5 @@ __pycache__/
 **/GeneratedFiles/
 *.db
 *pipe*docker*
+/NewTwitchTestConsole/Token - Copy.json
+/NewTwitchTestConsole/Token.json

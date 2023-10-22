@@ -1,0 +1,26 @@
+version: "3.7"
+
+services:
+  db:
+    container_name: botdb
+    image: mariadb:latest
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: 'my-secret-pw'
+      MARIADB_DATABASE: botmasterdb
+      MARIADB_USER: mariadb
+      MARIADB_PASSWORD: 'my-secret-pw'
+    networks:
+      main:
+        aliases:
+          - botdb
+    volumes:
+      - botmaster-db-data:/var/lib/mysql
+
+
+volumes:
+  botmaster-db-data:
+
+networks:
+  main:
+    name: botmaster

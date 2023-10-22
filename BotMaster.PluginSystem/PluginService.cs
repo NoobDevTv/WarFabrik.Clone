@@ -78,12 +78,23 @@ namespace BotMaster.PluginSystem
                 throw new NotSupportedException(error);
             }
             logger.Info($"Got a new connection for instance {connection.InstanceId}");
+     
             pluginInstance.Connection = connection;
-            connection.SendMessages(messageHub.SubscribeAsSender);
-            connection.ReceiveMessages(messageHub.GetFiltered);
+            connection.SendMessages(
+                (x) => messageHub
+                .SubscribeAsSender(x, (e) => RemoveInstance(connection, e)));
+
+            connection.ReceiveMessages(messageHub.GetFiltered, (e) => RemoveInstance(connection, e));
             ChangedPlugins.OnNext(pluginInstance);
         }
-
+        private void RemoveInstance(PluginConnection connection, Exception e)
+        {
+            if (plugins.Remove(connection.InstanceId, out var instance))
+            {
+                logger.Warn($"Removing instance because of error {e}");
+                instance.Connection.Dispose();
+            }
+        }
         private void OnNewManifest((PluginManifest manifest, Guid instanceId) registration)
         {
             logger.Info($"Got a new manifest {registration.manifest.Name}");

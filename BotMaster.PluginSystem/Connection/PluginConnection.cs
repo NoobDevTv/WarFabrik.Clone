@@ -6,6 +6,7 @@ using NLog;
 
 using System;
 using System.Data;
+using System.Reactive.Linq;
 
 namespace BotMaster.PluginSystem.Connection
 {
@@ -103,10 +104,14 @@ namespace BotMaster.PluginSystem.Connection
             sendDisposable = subscribeAsSender(MessageConvert.ToMessage(receiveObservable));
         }
 
-        internal virtual void ReceiveMessages(Func<string, IObservable<Message>> subscribeAsReceiver)
+        internal virtual void ReceiveMessages(Func<string, IObservable<Message>> subscribeAsReceiver, Action<Exception> onError)
         {
             //Serverside
-            recDisposable = MessageConvert.ToPackage(subscribeAsReceiver(ManifestId)).Subscribe(sendObserver);
+            recDisposable = MessageConvert
+                .ToPackage(subscribeAsReceiver(ManifestId))
+                .Do(_ => { }, onError)
+                .Catch(Observable.Empty<Package>())
+                .Subscribe(sendObserver);
         }
 
         public void Dispose()

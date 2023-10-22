@@ -2,6 +2,7 @@
 using BotMaster.Livestream.MessageContract;
 
 using NLog;
+
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 
@@ -16,13 +17,14 @@ namespace BotMaster.Twitch
         {
             return Observable.Using(() => new FollowerServiceContext(api, userId), serviceContext =>
             {
-                var interval 
-                = Observable
-                    .Concat(Observable.Return(0L), 
-                        Observable.Interval(period, scheduler));
+                return Observable.Empty<FollowInformation>();
+                var interval
+                    = Observable
+                        .Concat(Observable.Return(0L),
+                            Observable.Interval(period, scheduler));
 
                 return interval
-                    .Select(_ => Observable.FromAsync(() => api.Helix.Users.GetUsersFollowsAsync(toId: serviceContext.UserId)))
+                    .Select(_ => Observable.FromAsync(() => api.Helix.Users.GetUsersFollowsAsync(null, null, 20, null, serviceContext.UserId)))
                     .Concat()
                     .OnError(serviceContext.Logger, nameof(TwitchLib.Api.Helix.Users.GetUsersFollowsAsync))
                     .Retry()

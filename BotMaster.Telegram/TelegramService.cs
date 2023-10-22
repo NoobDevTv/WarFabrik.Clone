@@ -41,11 +41,11 @@ namespace BotMaster.Telegram
 
         public override IObservable<Package> Start(ILogger logger, IObservable<Package> receivedPackages)
         {
-            using (var ctx = new RightsDbContext())
-                ctx.Migrate();
+            //using (var ctx = new RightsDbContext())
+            //    ctx.Migrate();
 
-            using (var ctx = new UserConnectionContext())
-                ctx.Migrate();
+            //using (var ctx = new UserConnectionContext())
+            //    ctx.Migrate();
 
             return Observable
             .Using(

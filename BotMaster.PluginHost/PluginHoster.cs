@@ -59,7 +59,7 @@ namespace BotMaster.PluginHost
             var typecontainer = new StandaloneTypeContainer();
 
             logger.Trace("Create plugin instance");
-            var pluginInstance = provider.Connect(manifest);
+            PluginConnection pluginInstance = provider.Connect(manifest);
 
 
             var types = pluginAssembly

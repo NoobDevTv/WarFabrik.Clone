@@ -1,0 +1,31 @@
+{
+  "Id": "BotMaster.DbMigrator.Plugin",
+  "Name": "DbMigrator Plugin",
+  "Author": "NoobDevTv",
+  "Version": "1.0.0",
+  "File": "BotMaster.DbMigrator.Plugin.dll",
+  "ProcessRunner": "BotMaster.DockerRunner",
+  "TcpData": {
+    "Port": 5762,
+    "HandshakePort": 6789,
+    "Hostname": "Botmaster"
+  },
+  "DockerData": {
+    "ImageName": "botmaster_dbmigrator:latest",
+    "ContainerName": "BotMaster_DbMigrator_NoobDevTV",
+    "Bindings": [
+      "C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net7.0\\additionalfiles:/app/additionalfiles",
+      "C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster\\bin\\Debug\\net7.0\\plugins\\BotMaster.Database\\logs:/app/logs",
+      "C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster.Database\\plugin.manifest.json:/app/plugins/BotMaster.DbMigrator.Plugin/plugin.manifest.json",
+      "C:\\Users\\susch\\source\\repos\\WarFabrik.Clone\\BotMaster.DotNetRunner\\appsettings.json:/app/appsettings.json"
+    ],
+    "PublishedPorts": [],
+    "Networks": []
+  },
+  "Connection": {
+    "Type": "TCP",
+    "Port": 6789,
+    "HandshakePort": 6789,
+    "Hostname": "Botmaster"
+  }
+}

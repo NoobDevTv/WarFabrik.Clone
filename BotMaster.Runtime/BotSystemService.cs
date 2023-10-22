@@ -44,7 +44,7 @@ namespace BotMaster.Runtime
             var outgouingMessage = SystemContract.ToMessages(systemMessages);
 
 #pragma warning disable DF0001 // Marks undisposed anonymous objects from method invocations.
-            disposable = StableCompositeDisposable.Create(messageHub.SubscribeAsSender(outgouingMessage));
+            disposable = StableCompositeDisposable.Create(messageHub.SubscribeAsSender(outgouingMessage, (e) => { }));
             this.pluginService = pluginService;
             this.serverRunnerService = serverRunnerService;
 #pragma warning restore DF0001 // Marks undisposed anonymous objects from method invocations.

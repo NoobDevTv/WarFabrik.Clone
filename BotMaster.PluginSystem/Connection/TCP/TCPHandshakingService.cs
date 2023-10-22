@@ -74,9 +74,8 @@ public class TCPHandshakingService : IDisposable, IHandshakingService
             var length = BitConverter.ToInt32(lengthBytes);
 
             if (length > ushort.MaxValue)
-            {
                 return;
-            }
+
             Span<byte> bytes = stackalloc byte[length];
             ns.ReadExactly(bytes);
 

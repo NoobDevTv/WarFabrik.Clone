@@ -36,7 +36,6 @@ public partial class UserConnectionContextMigration001 : IAutoMigrationTypeProvi
 
         public int PlattformUserId { get; set; }
 
-        [ForeignKey(nameof(PlattformUserId))]
-        public virtual PlattformUser? PlattformUser { get; set; }
     }
+   
 }

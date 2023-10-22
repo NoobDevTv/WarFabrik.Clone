@@ -17,6 +17,8 @@ namespace BotMaster.RightsManagement.Migrations;
 #nullable enable
 public partial class RightsContextMigration001 : IAutoMigrationTypeProvider
 {
+    //2022_10_23-20_39_01-RightsDbContext-InitialMigration
+    //2022_10_23-20_39_01-RightsDbContext-InitialMigration
     public const string Id = $"2022_10_23-20_39_01-{nameof(RightsDbContext)}-InitialMigration";
     public IReadOnlyList<Type> GetEntityTypes()
     {

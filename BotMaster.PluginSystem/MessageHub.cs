@@ -13,8 +13,8 @@ namespace BotMaster.PluginSystem
             internalSubject = new Subject<Message>();
         }
 
-        public IDisposable SubscribeAsSender(IObservable<Message> messages)
-            => messages.Subscribe(internalSubject);
+        public IDisposable SubscribeAsSender(IObservable<Message> messages, Action<Exception> onError)
+            => messages.Do(_ => {  }, onError).Catch(Observable.Empty<Message>()).Subscribe(internalSubject);
 
         public IObservable<Message> GetFiltered(string targetId)
             => internalSubject.Where(message => string.IsNullOrEmpty(message.TargetId) || message.TargetId == targetId);

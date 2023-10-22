@@ -107,11 +107,18 @@ namespace BotMaster.PluginSystem.Connection
         private static async Task ReadHeader(Stream clientStream, Memory<byte> headerMemory, CancellationToken token)
         {
             int headerSize = 0;
+            try
+            {
 
             do
             {
                 headerSize += await clientStream.ReadAsync(headerMemory[headerSize..Package.HeaderSize], token);
             } while (headerSize < headerMemory.Length);
+            }
+            catch (Exception)
+            {
+                ; //Todo Logging or so
+            }
         }
     }
 }

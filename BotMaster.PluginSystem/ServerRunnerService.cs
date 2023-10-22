@@ -34,6 +34,7 @@ namespace BotMaster.PluginSystem
             ns.ReadExactly(guidBytes);
             var guid = new Guid(guidBytes);
 
+            //TODO Sync startups
             ns.WriteByte(1);
             Task.Run(() =>
             {
